@@ -18,19 +18,9 @@ class ChildrenManager {
 
     async loadChildren() {
         try {
-            const response = await fetch('/api/v1/parent/children', {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (response.ok) {
-                this.children = await response.json();
-                console.log('子女資料載入成功:', this.children);
-            } else {
-                throw new Error('載入子女資料失敗');
-            }
+            const response = await apiClient.get('/learning/parents/children');
+            this.children = response.data || response;
+            console.log('子女資料載入成功:', this.children);
         } catch (error) {
             console.error('載入子女資料錯誤:', error);
             this.showError('載入子女資料失敗，請稍後再試');
@@ -66,7 +56,7 @@ class ChildrenManager {
     }
 
     renderChildrenList() {
-        const container = document.getElementById('children-list');
+        const container = document.getElementById('childrenGrid');
         if (!container) return;
 
         if (this.children.length === 0) {
@@ -81,58 +71,39 @@ class ChildrenManager {
         }
 
         const childrenHTML = this.children.map(child => `
-            <div class="col-md-6 col-lg-4 mb-4">
-                <div class="card child-card h-100" data-child-id="${child.id}">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="avatar avatar-lg me-3">
-                                <img src="${child.avatar || '/assets/images/default-avatar.png'}" 
-                                     alt="${child.name}" class="rounded-circle">
-                            </div>
-                            <div>
-                                <h6 class="card-title mb-1">${child.name}</h6>
-                                <small class="text-muted">${child.grade}年級</small>
-                            </div>
-                        </div>
-                        
-                        <div class="row text-center mb-3">
-                            <div class="col-4">
-                                <div class="stat-item">
-                                    <h6 class="mb-1">${child.total_exercises || 0}</h6>
-                                    <small class="text-muted">練習題數</small>
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="stat-item">
-                                    <h6 class="mb-1">${child.accuracy_rate || 0}%</h6>
-                                    <small class="text-muted">正確率</small>
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="stat-item">
-                                    <h6 class="mb-1">${child.study_days || 0}</h6>
-                                    <small class="text-muted">學習天數</small>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="progress mb-3" style="height: 6px;">
-                            <div class="progress-bar bg-primary" 
-                                 style="width: ${child.overall_progress || 0}%"></div>
-                        </div>
-                        <small class="text-muted">整體進度: ${child.overall_progress || 0}%</small>
-
-                        <div class="d-flex gap-2 mt-3">
-                            <button class="btn btn-outline-primary btn-sm flex-fill view-details-btn" 
-                                    data-child-id="${child.id}">
-                                <i class="fas fa-info-circle me-1"></i>詳細資訊
-                            </button>
-                            <button class="btn btn-primary btn-sm flex-fill view-progress-btn" 
-                                    data-child-id="${child.id}">
-                                <i class="fas fa-chart-line me-1"></i>學習進度
-                            </button>
-                        </div>
+            <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow child-card" data-child-id="${child.id}">
+                <div class="flex items-center mb-4">
+                    <img src="${child.avatar || '/assets/images/default-avatar.png'}" alt="${child.name}" class="w-12 h-12 rounded-full mr-3">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-800">${child.name}</h3>
+                        <p class="text-sm text-gray-500">${child.grade}年級</p>
                     </div>
+                </div>
+                <div class="grid grid-cols-3 text-center mb-4">
+                    <div>
+                        <p class="text-xl font-bold text-gray-800">${child.total_exercises || 0}</p>
+                        <p class="text-xs text-gray-500">練習題數</p>
+                    </div>
+                    <div>
+                        <p class="text-xl font-bold text-gray-800">${child.accuracy_rate || 0}%</p>
+                        <p class="text-xs text-gray-500">正確率</p>
+                    </div>
+                    <div>
+                        <p class="text-xl font-bold text-gray-800">${child.study_days || 0}</p>
+                        <p class="text-xs text-gray-500">學習天數</p>
+                    </div>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
+                    <div class="bg-blue-600 h-2 rounded-full" style="width: ${child.overall_progress || 0}%"></div>
+                </div>
+                <p class="text-xs text-gray-500">整體進度: ${child.overall_progress || 0}%</p>
+                <div class="mt-4 grid grid-cols-2 gap-2">
+                    <button class="btn btn-outline view-details-btn" data-child-id="${child.id}">
+                        <span class="material-icons mr-1">info</span> 詳細資訊
+                    </button>
+                    <button class="btn view-progress-btn" data-child-id="${child.id}">
+                        <span class="material-icons mr-1">trending_up</span> 學習進度
+                    </button>
                 </div>
             </div>
         `).join('');
@@ -148,7 +119,7 @@ class ChildrenManager {
                 card.classList.remove('selected');
             });
             document.querySelector(`[data-child-id="${childId}"]`).classList.add('selected');
-            
+
             // 更新儀表板顯示
             this.updateDashboard();
         }
@@ -156,19 +127,9 @@ class ChildrenManager {
 
     async showChildDetails(childId) {
         try {
-            const response = await fetch(`/api/v1/parent/children/${childId}`, {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (response.ok) {
-                const childDetails = await response.json();
-                this.renderChildDetails(childDetails);
-            } else {
-                throw new Error('載入子女詳細資訊失敗');
-            }
+            const response = await apiClient.get(`/learning/parents/children/${childId}`);
+            const childDetails = response.data || response;
+            this.renderChildDetails(childDetails);
         } catch (error) {
             console.error('載入子女詳細資訊錯誤:', error);
             this.showError('載入子女詳細資訊失敗');
@@ -176,45 +137,41 @@ class ChildrenManager {
     }
 
     renderChildDetails(child) {
-        const modal = document.getElementById('childDetailsModal');
-        if (!modal) return;
+        const details = document.getElementById('childDetails');
+        if (!details) return;
 
-        modal.querySelector('.modal-title').textContent = `${child.name} 的詳細資訊`;
-        modal.querySelector('.modal-body').innerHTML = `
-            <div class="row">
-                <div class="col-md-6">
-                    <h6>基本資訊</h6>
-                    <ul class="list-unstyled">
-                        <li><strong>姓名:</strong> ${child.name}</li>
-                        <li><strong>年級:</strong> ${child.grade}年級</li>
-                        <li><strong>班級:</strong> ${child.class_name || '未分配'}</li>
-                        <li><strong>學號:</strong> ${child.student_id || '未設定'}</li>
-                        <li><strong>註冊日期:</strong> ${new Date(child.created_at).toLocaleDateString()}</li>
-                    </ul>
-                </div>
-                <div class="col-md-6">
-                    <h6>學習統計</h6>
-                    <ul class="list-unstyled">
-                        <li><strong>總練習題數:</strong> ${child.total_exercises || 0}</li>
-                        <li><strong>平均正確率:</strong> ${child.accuracy_rate || 0}%</li>
-                        <li><strong>學習天數:</strong> ${child.study_days || 0}天</li>
-                        <li><strong>總學習時數:</strong> ${child.total_study_hours || 0}小時</li>
-                        <li><strong>連續學習:</strong> ${child.streak_days || 0}天</li>
-                    </ul>
-                </div>
-            </div>
-            
-            <div class="mt-4">
-                <h6>最近學習活動</h6>
-                <div class="timeline">
-                    ${this.renderRecentActivities(child.recent_activities || [])}
-                </div>
-            </div>
-        `;
+        const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val ?? ''; };
+        const setSrc = (id, val) => { const el = document.getElementById(id); if (el) el.src = val || '/assets/images/default-avatar.png'; };
+        const toggle = (el, show) => { if (el) el.style.display = show ? '' : 'none'; };
 
-        // 顯示模態框
-        const bootstrapModal = new bootstrap.Modal(modal);
-        bootstrapModal.show();
+        setText('childName', `${child.name} 的詳細資訊`);
+        setText('childNameTitle', child.name);
+        setText('childGrade', child.grade ? `${child.grade}` : '');
+        setText('childClass', child.class_name || '');
+        setText('childFullName', child.name || '');
+        setText('childGradeInfo', child.grade ? `${child.grade}` : '');
+        setText('childClassInfo', child.class_name || '');
+        setText('childStudentId', child.student_id || '');
+        setText('activeCourses', child.active_courses ?? 0);
+        setText('completedAssignments', child.completed_assignments ?? 0);
+        setText('averageScore', child.average_score != null ? `${child.average_score}` : '');
+        setText('studyTime', child.total_study_hours != null ? `${child.total_study_hours} 小時` : '');
+
+        setSrc('childAvatar', child.avatar);
+        const statusEl = document.getElementById('childStatus');
+        if (statusEl) {
+            statusEl.className = 'status-indicator ' + (child.status || '');
+        }
+
+        toggle(details, true);
+
+        const backBtn = document.getElementById('backToOverview');
+        if (backBtn && !backBtn._bound) {
+            backBtn.addEventListener('click', () => {
+                toggle(details, false);
+            });
+            backBtn._bound = true;
+        }
     }
 
     renderRecentActivities(activities) {
@@ -236,19 +193,9 @@ class ChildrenManager {
 
     async showChildProgress(childId) {
         try {
-            const response = await fetch(`/api/v1/parent/children/${childId}/progress`, {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (response.ok) {
-                const progressData = await response.json();
-                this.renderChildProgress(progressData);
-            } else {
-                throw new Error('載入學習進度失敗');
-            }
+            const response = await apiClient.get(`/learning/parents/children/${childId}/progress`);
+            const progressData = response.data || response;
+            this.renderChildProgress(progressData);
         } catch (error) {
             console.error('載入學習進度錯誤:', error);
             this.showError('載入學習進度失敗');
@@ -349,48 +296,21 @@ class ChildrenManager {
     }
 
     renderProgressChart(trendData) {
-        const canvas = document.getElementById('progressChart');
-        if (!canvas || trendData.length === 0) return;
-
-        const ctx = canvas.getContext('2d');
-        const labels = trendData.map(item => item.date);
-        const data = trendData.map(item => item.progress);
-
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: '學習進度',
-                    data: data,
-                    borderColor: 'rgb(75, 192, 192)',
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    tension: 0.1
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100
-                    }
-                }
-            }
-        });
+        // 頁面無圖表容器，暫不渲染
+        return;
     }
 
     filterChildren(searchTerm) {
-        const filteredChildren = this.children.filter(child => 
+        const filteredChildren = this.children.filter(child =>
             child.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             child.grade.toString().includes(searchTerm)
         );
-        
+
         this.renderFilteredChildren(filteredChildren);
     }
 
     renderFilteredChildren(filteredChildren) {
-        const container = document.getElementById('children-list');
+        const container = document.getElementById('childrenGrid');
         if (!container) return;
 
         if (filteredChildren.length === 0) {
@@ -406,58 +326,39 @@ class ChildrenManager {
 
         // 使用相同的渲染邏輯
         const childrenHTML = filteredChildren.map(child => `
-            <div class="col-md-6 col-lg-4 mb-4">
-                <div class="card child-card h-100" data-child-id="${child.id}">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="avatar avatar-lg me-3">
-                                <img src="${child.avatar || '/assets/images/default-avatar.png'}" 
-                                     alt="${child.name}" class="rounded-circle">
-                            </div>
-                            <div>
-                                <h6 class="card-title mb-1">${child.name}</h6>
-                                <small class="text-muted">${child.grade}年級</small>
-                            </div>
-                        </div>
-                        
-                        <div class="row text-center mb-3">
-                            <div class="col-4">
-                                <div class="stat-item">
-                                    <h6 class="mb-1">${child.total_exercises || 0}</h6>
-                                    <small class="text-muted">練習題數</small>
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="stat-item">
-                                    <h6 class="mb-1">${child.accuracy_rate || 0}%</h6>
-                                    <small class="text-muted">正確率</small>
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="stat-item">
-                                    <h6 class="mb-1">${child.study_days || 0}</h6>
-                                    <small class="text-muted">學習天數</small>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="progress mb-3" style="height: 6px;">
-                            <div class="progress-bar bg-primary" 
-                                 style="width: ${child.overall_progress || 0}%"></div>
-                        </div>
-                        <small class="text-muted">整體進度: ${child.overall_progress || 0}%</small>
-
-                        <div class="d-flex gap-2 mt-3">
-                            <button class="btn btn-outline-primary btn-sm flex-fill view-details-btn" 
-                                    data-child-id="${child.id}">
-                                <i class="fas fa-info-circle me-1"></i>詳細資訊
-                            </button>
-                            <button class="btn btn-primary btn-sm flex-fill view-progress-btn" 
-                                    data-child-id="${child.id}">
-                                <i class="fas fa-chart-line me-1"></i>學習進度
-                            </button>
-                        </div>
+            <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow child-card" data-child-id="${child.id}">
+                <div class="flex items-center mb-4">
+                    <img src="${child.avatar || '/assets/images/default-avatar.png'}" alt="${child.name}" class="w-12 h-12 rounded-full mr-3">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-800">${child.name}</h3>
+                        <p class="text-sm text-gray-500">${child.grade}年級</p>
                     </div>
+                </div>
+                <div class="grid grid-cols-3 text-center mb-4">
+                    <div>
+                        <p class="text-xl font-bold text-gray-800">${child.total_exercises || 0}</p>
+                        <p class="text-xs text-gray-500">練習題數</p>
+                    </div>
+                    <div>
+                        <p class="text-xl font-bold text-gray-800">${child.accuracy_rate || 0}%</p>
+                        <p class="text-xs text-gray-500">正確率</p>
+                    </div>
+                    <div>
+                        <p class="text-xl font-bold text-gray-800">${child.study_days || 0}</p>
+                        <p class="text-xs text-gray-500">學習天數</p>
+                    </div>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
+                    <div class="bg-blue-600 h-2 rounded-full" style="width: ${child.overall_progress || 0}%"></div>
+                </div>
+                <p class="text-xs text-gray-500">整體進度: ${child.overall_progress || 0}%</p>
+                <div class="mt-4 grid grid-cols-2 gap-2">
+                    <button class="btn btn-outline view-details-btn" data-child-id="${child.id}">
+                        <span class="material-icons mr-1">info</span> 詳細資訊
+                    </button>
+                    <button class="btn view-progress-btn" data-child-id="${child.id}">
+                        <span class="material-icons mr-1">trending_up</span> 學習進度
+                    </button>
                 </div>
             </div>
         `).join('');
@@ -512,7 +413,7 @@ class ChildrenManager {
 
 // 初始化子女管理模組
 document.addEventListener('DOMContentLoaded', () => {
-    if (document.getElementById('children-list')) {
+    if (document.getElementById('childrenGrid')) {
         window.childrenManager = new ChildrenManager();
     }
 }); 

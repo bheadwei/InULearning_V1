@@ -34,7 +34,7 @@ class ParentApp {
     setupGlobalEvents() {
         // 全域錯誤處理
         window.addEventListener('error', this.handleGlobalError.bind(this));
-        
+
         // 網路狀態監聽
         window.addEventListener('online', this.handleOnline.bind(this));
         window.addEventListener('offline', this.handleOffline.bind(this));
@@ -96,9 +96,9 @@ class ParentApp {
     setupNavigation() {
         // 更新當前頁面的導航狀態
         this.updateNavigationState();
-        
+
         // 導航點擊事件
-        const navLinks = document.querySelectorAll('.nav-link');
+        const navLinks = document.querySelectorAll('nav a');
         navLinks.forEach(link => {
             link.addEventListener('click', this.handleNavigation.bind(this));
         });
@@ -114,10 +114,10 @@ class ParentApp {
      * 更新導航狀態
      */
     updateNavigationState() {
-        const navLinks = document.querySelectorAll('.nav-link');
+        const navLinks = document.querySelectorAll('nav a');
         navLinks.forEach(link => {
             link.classList.remove('active');
-            if (link.getAttribute('href') && 
+            if (link.getAttribute('href') &&
                 window.location.pathname.includes(link.getAttribute('href'))) {
                 link.classList.add('active');
             }
@@ -130,13 +130,13 @@ class ParentApp {
     handleNavigation(e) {
         const link = e.currentTarget;
         const href = link.getAttribute('href');
-        
+
         if (href && !href.startsWith('#')) {
             // 移除所有活動狀態
-            document.querySelectorAll('.nav-link').forEach(navLink => {
+            document.querySelectorAll('nav a').forEach(navLink => {
                 navLink.classList.remove('active');
             });
-            
+
             // 添加當前活動狀態
             link.classList.add('active');
         }
@@ -157,7 +157,7 @@ class ParentApp {
      */
     handleGlobalError(error) {
         console.error('全域錯誤:', error);
-        
+
         // 顯示用戶友好的錯誤訊息
         if (error.message && !error.message.includes('Script error')) {
             showAlert('發生錯誤，請重新整理頁面', 'error');
@@ -191,13 +191,13 @@ class ParentApp {
             e.preventDefault();
             this.openProgress();
         }
-        
+
         // Ctrl/Cmd + R: 查看報告
         if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
             e.preventDefault();
             window.location.href = 'pages/reports.html';
         }
-        
+
         // Ctrl/Cmd + C: 聯絡老師
         if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
             e.preventDefault();
@@ -241,15 +241,15 @@ class ParentApp {
                 </button>
             </div>
         `;
-        
+
         // 添加到頁面
         document.body.appendChild(notification);
-        
+
         // 自動移除
         setTimeout(() => {
             notification.remove();
         }, 5000);
-        
+
         // 手動關閉
         notification.querySelector('.notification-close').addEventListener('click', () => {
             notification.remove();
@@ -281,12 +281,12 @@ class ParentApp {
      */
     navigateTo(page, params = {}) {
         let url = `pages/${page}.html`;
-        
+
         if (Object.keys(params).length > 0) {
             const queryString = new URLSearchParams(params).toString();
             url += `?${queryString}`;
         }
-        
+
         window.location.href = url;
     }
 }

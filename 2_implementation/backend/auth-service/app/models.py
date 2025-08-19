@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, DateTime, Boolean, Enum, Text, ForeignKey
 from sqlalchemy.sql import func
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
 from app.database import Base
 import enum
 import sys
@@ -107,35 +107,18 @@ class RefreshToken(Base):
 
 
 class ParentChildRelation(Base):
-    """家長-學生關係表"""
-    __tablename__ = "parent_child_relations"
-    
+    __tablename__ = 'parent_child_relations'
+
     id = Column(Integer, primary_key=True, index=True)
-    parent_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    child_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    
-    # 關係狀態
+    parent_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    child_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    relationship_type = Column(String(50), default='parent')
     is_active = Column(Boolean, default=True)
-    relationship_type = Column(String(50), default="parent")  # parent, guardian, etc.
-    
-    # 時間戳記
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
-    # 關聯
-    parent = relationship("User", foreign_keys=[parent_id], back_populates="children")
-    child = relationship("User", foreign_keys=[child_id], back_populates="parents")
-    
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "parent_id": self.parent_id,
-            "child_id": self.child_id,
-            "is_active": self.is_active,
-            "relationship_type": self.relationship_type,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None
-        }
+    parent = relationship("User", foreign_keys=[parent_id], backref="child_relations")
+    child = relationship("User", foreign_keys=[child_id], backref="parent_relations")
 
 
 class SchoolClass(Base):

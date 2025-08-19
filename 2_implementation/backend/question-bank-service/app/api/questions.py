@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Body
 from typing import List, Optional, Dict, Any
 from app.database import DatabaseManager, get_database
 from app.schemas import (
@@ -7,6 +7,7 @@ from app.schemas import (
 )
 from app.crud import QuestionCRUD
 import json
+from bson import ObjectId
 
 router = APIRouter(prefix="/questions", tags=["questions"])
 
@@ -293,6 +294,98 @@ async def get_questions_by_criteria(
             detail=f"根據條件獲取題目失敗: {str(e)}"
         )
 
+
+@router.post("/criteria-excluding", response_model=List[QuestionResponse])
+async def get_questions_by_criteria_excluding(
+    payload: Dict[str, Any] = Body(...),
+    db: DatabaseManager = Depends(get_database)
+):
+    """根據條件獲取題目，並使用 $nin 排除指定題目ID。
+
+    請求格式：
+    {
+      "grade": "7A",
+      "subject": "國文",
+      "publisher": "南一",
+      "chapter": "夏夜",    // 可選
+      "limit": 10,           // 預設 10
+      "exclude_ids": ["6560...", "6561..."]
+    }
+    回傳：List[QuestionResponse]
+    """
+    try:
+        grade: str = payload.get("grade")
+        subject: str = payload.get("subject")
+        publisher: str = payload.get("publisher")
+        chapter: Optional[str] = payload.get("chapter")
+        limit: int = int(payload.get("limit") or payload.get("questionCount") or 10)
+        exclude_ids: List[str] = payload.get("exclude_ids") or payload.get("excludeIds") or []
+        exclude_contents: List[str] = payload.get("exclude_contents") or payload.get("excludeContents") or []
+
+        if not grade or not subject or not publisher:
+            raise HTTPException(status_code=400, detail="grade/subject/publisher 為必填")
+
+        collection = await db.get_questions_collection()
+
+        query: Dict[str, Any] = {
+            "grade": grade,
+            "subject": subject,
+            "publisher": publisher
+        }
+        if chapter:
+            query["chapter"] = chapter
+
+        # 構建 $nin 條件
+        object_ids = []
+        for qid in exclude_ids:
+            try:
+                object_ids.append(ObjectId(qid))
+            except Exception:
+                # 忽略非 ObjectId 格式
+                pass
+        if object_ids:
+            query["_id"] = {"$nin": object_ids}
+        if exclude_contents:
+            # 使用原始 content 欄位排除（處理歷史資料 question_id 不對齊的情況）
+            query["content"] = {"$nin": exclude_contents}
+
+        cursor = collection.find(query).limit(limit)
+        questions: List[Dict[str, Any]] = []
+        async for q in cursor:
+            # 與 /by-conditions 的格式保持一致
+            options = q.get("options", [])
+            if isinstance(options, list) and len(options) > 0:
+                if isinstance(options[0], dict) and 'text' in options[0]:
+                    option_texts = [opt['text'] for opt in options]
+                else:
+                    option_texts = options
+            else:
+                option_texts = []
+
+            formatted_q = {
+                "id": str(q["_id"]),
+                "question": q.get("content", q.get("question", "")),
+                "options": option_texts,
+                "answer": q.get("correct_answer", q.get("answer", "")),
+                "explanation": q.get("explanation", ""),
+                "difficulty": q.get("difficulty", "normal"),
+                "subject": q.get("subject"),
+                "grade": q.get("grade"),
+                "publisher": q.get("publisher"),
+                "chapter": q.get("chapter", ""),
+                "image_filename": q.get("image_filename"),
+                "image_url": q.get("image_url")
+            }
+            questions.append(formatted_q)
+
+        return questions
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"根據條件獲取題目(排除)失敗: {str(e)}"
+        )
 
 @router.post("/batch", response_model=List[QuestionResponse])
 async def get_questions_by_ids(

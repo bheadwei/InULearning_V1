@@ -67,6 +67,17 @@ class ExerciseManager {
         this.init();
     }
 
+    shuffleArray(array) {
+        const result = array.slice();
+        for (let i = result.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            const temp = result[i];
+            result[i] = result[j];
+            result[j] = temp;
+        }
+        return result;
+    }
+
     init() {
         // 避免重複初始化
         if (this.initialized) return;
@@ -100,6 +111,15 @@ class ExerciseManager {
         const questionCountInput = document.getElementById('questionCountInput');
         if (questionCountInput) {
             questionCountInput.value = '10';
+        }
+
+        // 還原「只出我沒做過的題目」偏好
+        const onlyUnseenCheckbox = document.getElementById('onlyUnseenCheckbox');
+        if (onlyUnseenCheckbox) {
+            const saved = localStorage.getItem('exercise_only_unseen');
+            if (saved === 'true') {
+                onlyUnseenCheckbox.checked = true;
+            }
         }
     }
 
@@ -155,6 +175,14 @@ class ExerciseManager {
         const restartBtn = document.getElementById('restartExerciseBtn');
         if (restartBtn) {
             restartBtn.addEventListener('click', () => this.restartExercise());
+        }
+
+        // 儲存 only_unseen 偏好
+        const onlyUnseenCheckbox = document.getElementById('onlyUnseenCheckbox');
+        if (onlyUnseenCheckbox) {
+            onlyUnseenCheckbox.addEventListener('change', () => {
+                localStorage.setItem('exercise_only_unseen', onlyUnseenCheckbox.checked ? 'true' : 'false');
+            });
         }
     }
 
@@ -234,13 +262,15 @@ class ExerciseManager {
         const subject = document.getElementById('subjectSelect')?.value || '';
         const chapter = document.getElementById('chapterSelect')?.value || '';
         const questionCount = parseInt(document.getElementById('questionCountInput')?.value || '10');
+        const onlyUnseen = !!document.getElementById('onlyUnseenCheckbox')?.checked;
 
         return {
             grade,
             edition,
             subject,
             chapter,
-            question_count: questionCount
+            question_count: questionCount,
+            only_unseen: onlyUnseen
         };
     }
 
@@ -275,12 +305,49 @@ class ExerciseManager {
             console.log('題庫檢查結果:', result);
 
             if (result.success && result.data.count > 0) {
-                const availableCount = result.data.count;
+                const totalCount = result.data.count;
                 const requestedCount = this.selectedCriteria.question_count;
 
-                // 簡化邏輯：如果有題目就顯示成功
-                this.showQuestionBankInfo(availableCount, requestedCount);
-                this.enableStartButton();
+                if (this.selectedCriteria.only_unseen) {
+                    // 新：改用後端彙總端點，直接取得 total/done/unseen
+                    let total = totalCount;
+                    let done = 0;
+                    let unseen = totalCount;
+                    try {
+                        const sum = await learningAPI.getAvailabilitySummary({
+                            grade: this.selectedCriteria.grade,
+                            subject: this.selectedCriteria.subject,
+                            publisher: this.selectedCriteria.edition,
+                            chapter: this.selectedCriteria.chapter
+                        });
+                        if (sum && sum.success && sum.data) {
+                            total = sum.data.total ?? totalCount;
+                            done = sum.data.done ?? 0;
+                            unseen = sum.data.unseen ?? Math.max(0, total - done);
+                        }
+                    } catch (e) {
+                        console.warn('取得可用題數彙總失敗，退回基本估算:', e);
+                        unseen = Math.max(0, totalCount);
+                    }
+
+                    if (unseen === 0) {
+                        this.showAllDoneMessage();
+                        this.disableStartButton();
+                        return;
+                    }
+
+                    this.showUnseenQuestionBankInfo(total, unseen, requestedCount);
+                    if (unseen >= requestedCount) {
+                        this.enableStartButton();
+                    } else {
+                        this.showInsufficientUnseen(unseen, requestedCount);
+                        this.disableStartButton();
+                    }
+                } else {
+                    // 原行為
+                    this.showQuestionBankInfo(totalCount, requestedCount);
+                    this.enableStartButton();
+                }
             } else {
                 // 如果 API 調用失敗，顯示通用可用訊息
                 console.log('API 調用失敗，顯示通用訊息');
@@ -294,6 +361,77 @@ class ExerciseManager {
             this.enableStartButton();
         } finally {
             this.hideLoading();
+        }
+    }
+
+    showAllDoneMessage() {
+        const questionsInfo = document.getElementById('questionsInfo');
+        if (questionsInfo) {
+            questionsInfo.innerHTML = `
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 text-blue-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1-4h2v2H9v-2zm0-8h2v6H9V6z" clip-rule="evenodd"></path>
+                        </svg>
+                        <div>
+                            <h4 class="text-blue-800 font-medium">全部題目都做過囉！</h4>
+                            <p class="text-blue-700 text-sm mt-1">請調整條件或取消勾選「只出我沒做過的題目」。</p>
+                            <div class="mt-3 flex items-center space-x-2">
+                                <button class="px-3 py-1.5 bg-gray-200 text-gray-800 rounded text-sm hover:bg-gray-300" onclick="document.getElementById('onlyUnseenCheckbox').checked=false; localStorage.setItem('exercise_only_unseen','false'); exerciseManager.checkQuestionBank();">取消勾選並重新檢查</button>
+                                <button class="px-3 py-1.5 bg-blue-600 text-white rounded text-sm hover:bg-blue-700" onclick="document.getElementById('gradeSelect').focus();">調整條件</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    showUnseenQuestionBankInfo(total, unseen, requested) {
+        const questionsInfo = document.getElementById('questionsInfo');
+        if (questionsInfo) {
+            questionsInfo.innerHTML = `
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 text-green-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                        </svg>
+                        <div>
+                            <h4 class="text-green-800 font-medium">題庫檢查完成！(已套用「未做過」過濾)</h4>
+                            <div class="text-green-700 text-sm mt-1 space-y-1">
+                                <p>年級: ${this.getGradeDisplayName(this.selectedCriteria.grade)}</p>
+                                <p>版本: ${this.selectedCriteria.edition}</p>
+                                <p>科目: ${this.selectedCriteria.subject}</p>
+                                ${this.selectedCriteria.chapter ? `<p>章節: ${this.selectedCriteria.chapter}</p>` : '<p>章節: 全部章節</p>'}
+                                <p>題庫總題數: ${total} 題</p>
+                                <p>可用題數（未做過）: ${unseen} 題</p>
+                                <p>將出題: ${requested} 題</p>
+                                <p>預估時間: ${requested * 2} 分鐘</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    showInsufficientUnseen(unseen, requested) {
+        const questionsInfo = document.getElementById('questionsInfo');
+        if (questionsInfo) {
+            questionsInfo.innerHTML += `
+                <div class="mt-3 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 text-yellow-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                        </svg>
+                        <div>
+                            <h4 class="text-yellow-800 font-medium">未做過的題目數量不足</h4>
+                            <p class="text-yellow-700 text-sm mt-1">您要求 ${requested} 題，但目前僅找到 ${unseen} 題未做過。</p>
+                            <button onclick="document.getElementById('questionCountInput').value=${unseen}; exerciseManager.validateQuestionCount(); exerciseManager.enableStartButton();" class="mt-2 px-3 py-1 bg-yellow-200 text-yellow-800 rounded text-sm hover:bg-yellow-300">調整為 ${unseen} 題</button>
+                        </div>
+                    </div>
+                </div>
+            `;
         }
     }
 
@@ -405,37 +543,69 @@ class ExerciseManager {
         try {
             this.showLoading('正在載入題目...');
 
-            // 獲取題目
-            const questionsResult = await learningAPI.getQuestionsByConditions({
-                grade: this.selectedCriteria.grade,
-                edition: this.selectedCriteria.edition,
-                subject: this.selectedCriteria.subject,
-                chapter: this.selectedCriteria.chapter,
-                questionCount: this.selectedCriteria.question_count
-            });
+            if (this.selectedCriteria.only_unseen) {
+                // 只出未做過：完全交由後端排除，前端不再依賴 done-questions
+                const target = this.selectedCriteria.question_count;
+                const res = await learningAPI.getQuestionsByConditionsExcluding({
+                    grade: this.selectedCriteria.grade,
+                    edition: this.selectedCriteria.edition,
+                    subject: this.selectedCriteria.subject,
+                    chapter: this.selectedCriteria.chapter,
+                    questionCount: target
+                });
 
-            console.log('題目載入結果:', questionsResult);
+                if (!res.success) {
+                    // 題庫或服務端不可用時，提示錯誤而非誤判「全部做過」
+                    this.showError(res.error || '題庫服務暫時不可用，請稍後再試');
+                    return;
+                }
+                if (!Array.isArray(res.data) || res.data.length === 0) {
+                    this.showAllDoneMessage();
+                    return;
+                }
 
-            if (questionsResult.success && questionsResult.data && questionsResult.data.length > 0) {
-                this.questions = questionsResult.data;
-                console.log('成功載入題目:', this.questions.length, '題');
-                console.log('題目內容:', this.questions);
+                if (res.data.length < target) {
+                    this.showInsufficientUnseen(res.data.length, target);
+                }
+
+                this.questions = this.shuffleArray(res.data).slice(0, target).map((q, idx) => ({ ...q, order_index: idx }));
             } else {
-                console.log('API 調用失敗，錯誤:', questionsResult.error);
-                console.log('原始回應:', questionsResult);
-                // 顯示錯誤信息給用戶
-                this.showError('載入題目失敗，請檢查選擇條件或稍後再試');
-                return; // 停止執行，不跳轉
+                // 原本流程：直接抓題
+                const questionsResult = await learningAPI.getQuestionsByConditions({
+                    grade: this.selectedCriteria.grade,
+                    edition: this.selectedCriteria.edition,
+                    subject: this.selectedCriteria.subject,
+                    chapter: this.selectedCriteria.chapter,
+                    questionCount: this.selectedCriteria.question_count
+                });
+
+                console.log('題目載入結果:', questionsResult);
+
+                if (questionsResult.success && questionsResult.data && questionsResult.data.length > 0) {
+                    this.questions = this.shuffleArray(questionsResult.data).map((q, idx) => ({ ...q, order_index: idx }));
+                    console.log('成功載入題目:', this.questions.length, '題');
+                    console.log('題目內容:', this.questions);
+                } else {
+                    console.log('API 調用失敗，錯誤:', questionsResult.error);
+                    console.log('原始回應:', questionsResult);
+                    // 顯示錯誤信息給用戶
+                    this.showError('載入題目失敗，請檢查選擇條件或稍後再試');
+                    return; // 停止執行，不跳轉
+                }
             }
 
             // 創建學習會話並跳轉到考試頁面
+            const randomSeed = Date.now();
             const sessionData = {
                 grade: this.selectedCriteria.grade,
                 edition: this.selectedCriteria.edition,
+                publisher: this.selectedCriteria.edition,
                 subject: this.selectedCriteria.subject,
                 chapter: this.selectedCriteria.chapter,
                 question_count: this.questions.length,
-                questions: this.questions
+                questions: this.questions,
+                randomized: true,
+                randomSeed: randomSeed
             };
 
             // 將會話資料存儲到 sessionStorage

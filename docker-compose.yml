@@ -91,7 +91,7 @@ services:
     environment:
       - DATABASE_URL=postgresql://aipe-tester:aipe-tester@postgres:5432/inulearning
       - REDIS_URL=redis://redis:6379/0
-      - SECRET_KEY=your-secret-key-here-change-in-production
+      - SECRET_KEY=dev-secret
       - ALGORITHM=HS256
       - ACCESS_TOKEN_EXPIRE_MINUTES=30
       - CORS_ORIGINS=["http://localhost:3000","http://localhost:8080","http://localhost:8081","http://localhost:8082"]
@@ -183,11 +183,13 @@ services:
       MONGODB_URL: mongodb://aipe-tester:aipe-tester@mongodb:27017/inulearning?authSource=admin
       REDIS_URL: redis://redis:6379/0
       AUTH_SERVICE_URL: http://auth-service:8000
+      # 舊變數保留兼容，實際使用 QUESTION_BANK_URL
       QUESTION_BANK_SERVICE_URL: http://question-bank-service:8000
+      QUESTION_BANK_URL: http://question-bank-service:8000
       CORS_ORIGINS: '["http://localhost","http://localhost:3000","http://localhost:8080","http://localhost:8081","http://localhost:8082","http://localhost:8083"]'
-      SECRET_KEY: your-secret-key-change-in-production
+      SECRET_KEY: dev-secret
       ALGORITHM: HS256
-      JWT_SECRET_KEY: your-secret-key-change-in-production
+      JWT_SECRET_KEY: dev-secret
       JWT_ALGORITHM: HS256
       DEBUG: "true"
       ENVIRONMENT: development
@@ -257,6 +259,9 @@ services:
       - learning-service
       - ai-analysis-service
       - teacher-management-service
+      - parent-dashboard-service
+      - report-service
+
     networks:
       - inulearning_network
 
@@ -341,6 +346,7 @@ services:
     volumes:
       - ./files:/var/www/html/files
       - ./2_implementation/frontend/shared:/usr/share/nginx/html/shared
+
       - ./2_implementation/frontend/teacher-app:/usr/share/nginx/html/teacher-app
       - ./2_implementation/frontend/teacher-app/pages:/usr/share/nginx/html/pages
       - ./2_implementation/frontend/teacher-app/js:/usr/share/nginx/html/js
@@ -352,6 +358,46 @@ services:
         condition: service_started
   # ... existing code ...
 
+
+  # 家長儀表板服務
+  parent-dashboard-service:
+    build:
+      context: ./2_implementation/backend/parent-dashboard-service
+      dockerfile: Dockerfile
+    container_name: inulearning_parent_dashboard_service
+    environment:
+      - AUTH_SERVICE_URL=http://auth-service:8000
+      - LEARNING_SERVICE_URL=http://learning-service:8000
+      - AI_ANALYSIS_SERVICE_URL=http://ai-analysis-service:8004
+    ports:
+      - "8005:8005"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+    networks:
+      - inulearning_network
+    volumes:
+      - ./logs:/app/logs
+
+  # 報告服務
+  report-service:
+    build:
+      context: ./2_implementation/backend/report-service
+      dockerfile: Dockerfile
+    container_name: inulearning_report_service
+    environment:
+      - DATABASE_URL=postgresql://aipe-tester:aipe-tester@postgres:5432/inulearning
+    ports:
+      - "8006:8006"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - inulearning_network
+    volumes:
+      - ./logs:/app/logs
   # 備註：以下服務暫時註釋，後續開發
   # ai-analysis-service:  # 備註 - Milvus/RAG 後續開發
   # notification-service: # 備註 - 後續開發
@@ -380,6 +426,7 @@ services:
       - ./logs:/app/logs
   # parent-dashboard-service: # 備註 - 後續開發
   # report-service: # 備註 - 後續開發
+
 
 volumes:
   postgres_data:

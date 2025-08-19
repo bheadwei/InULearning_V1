@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
+
 <head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>練習作答 - InU Learning【因你而學】</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
     <link rel="stylesheet" href="../css/main.css">
-    
+
     <!-- MathJax 配置和載入 -->
     <script>
         window.MathJax = {
@@ -25,41 +26,50 @@
     </script>
     <script async src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script async id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    
+
     <style>
         body {
             font-family: 'Noto Sans TC', sans-serif;
         }
+
         .custom-scrollbar::-webkit-scrollbar {
             height: 8px;
         }
+
         .custom-scrollbar::-webkit-scrollbar-track {
             background: #f1f5f9;
             border-radius: 10px;
         }
+
         .custom-scrollbar::-webkit-scrollbar-thumb {
             background: #cbd5e1;
             border-radius: 10px;
         }
+
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
         }
+
         .timer {
             font-family: 'Courier New', monospace;
         }
     </style>
 </head>
+
 <body class="bg-gray-100">
     <div class="flex h-screen">
         <!-- 側邊欄 -->
         <aside class="w-64 bg-blue-800 text-white flex flex-col">
-            <div class="p-6 text-center">
-                <div class="bg-yellow-400 rounded-full w-24 h-24 mx-auto mb-4 flex items-center justify-center">
-                    <span class="text-blue-800 font-bold text-lg">InU<br/>Learning</span>
+            <a class="block" href="../index.html">
+                <div class="flex items-center justify-center p-6 hover:bg-blue-700">
+                    <img alt="InU Learning Logo" class="w-24 h-24 rounded-full"
+                        src="http://localhost/shared/image/InULearning_logo.png" />
                 </div>
-                <h1 class="text-xl font-semibold">InU Learning</h1>
-                <p class="text-sm">【因你而學】</p>
-            </div>
+                <div class="px-6 pb-4 hover:bg-blue-700">
+                    <h1 class="text-xl font-bold text-center">InU Learning</h1>
+                    <p class="text-sm text-center">【因你而學】</p>
+                </div>
+            </a>
             <nav class="flex-1 px-4">
                 <ul>
                     <li class="mb-2">
@@ -89,7 +99,8 @@
                 </ul>
             </nav>
             <div class="p-4 border-t border-blue-700">
-                <button id="logoutBtn" class="w-full flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg">
+                <button id="logoutBtn"
+                    class="w-full flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg">
                     <span class="material-icons">logout</span>
                     <span class="ml-3">登出</span>
                 </button>
@@ -116,8 +127,12 @@
                     <div class="text-sm text-gray-600">
                         <span id="currentQuestion">1</span> / <span id="totalQuestions">10</span>
                     </div>
+                    <!-- 錯題重練徽章 -->
+                    <span id="retryBadge"
+                        class="px-2 py-1 rounded bg-yellow-100 text-yellow-800 text-xs hidden">錯題重練</span>
                     <!-- 提交按鈕 -->
-                    <button id="submitBtn" class="bg-green-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-green-700 hidden">
+                    <button id="submitBtn"
+                        class="bg-green-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-green-700 hidden">
                         提交答案
                     </button>
                 </div>
@@ -137,7 +152,8 @@
                     </div>
 
                     <!-- 題目內容 -->
-                    <div id="questionContent" class="bg-gray-100 p-6 rounded-lg mb-8 min-h-[200px] flex items-center justify-center">
+                    <div id="questionContent"
+                        class="bg-gray-100 p-6 rounded-lg mb-8 min-h-[200px] flex items-center justify-center">
                         <p class="text-lg text-gray-800">載入題目中...</p>
                     </div>
 
@@ -148,11 +164,13 @@
 
                     <!-- 操作按鈕 -->
                     <div class="flex justify-between">
-                        <button id="prevBtn" class="flex items-center bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-300">
+                        <button id="prevBtn"
+                            class="flex items-center bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-300">
                             <span class="material-icons mr-2">arrow_back</span>
                             上一題
                         </button>
-                        <button id="nextBtn" class="flex items-center bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700">
+                        <button id="nextBtn"
+                            class="flex items-center bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700">
                             下一題
                             <span class="material-icons ml-2">arrow_forward</span>
                         </button>
@@ -176,10 +194,12 @@
                     </p>
                 </div>
                 <div class="items-center px-4 py-3">
-                    <button id="confirmSubmit" class="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                    <button id="confirmSubmit"
+                        class="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300">
                         確認提交
                     </button>
-                    <button id="cancelSubmit" class="mt-2 px-4 py-2 bg-gray-300 text-gray-700 text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                    <button id="cancelSubmit"
+                        class="mt-2 px-4 py-2 bg-gray-300 text-gray-700 text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300">
                         取消
                     </button>
                 </div>
@@ -194,4 +214,5 @@
     <script src="../js/api/auth.js"></script>
     <script src="../js/pages/exam.js"></script>
 </body>
-</html> 
+
+</html>

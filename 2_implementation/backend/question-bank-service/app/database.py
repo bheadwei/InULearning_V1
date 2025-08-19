@@ -47,6 +47,21 @@ class DatabaseManager:
             self.chapters_collection = self.database[settings.mongodb_chapters_collection]
             self.knowledge_points_collection = self.database[settings.mongodb_knowledge_points_collection]
             
+            # 建立常用查詢索引（效能優化）
+            try:
+                # 組合索引：grade + subject + publisher + chapter
+                await self.questions_collection.create_index(
+                    [("grade", 1), ("subject", 1), ("publisher", 1), ("chapter", 1)],
+                    name="idx_questions_gspc"
+                )
+                # 單欄位索引（若未存在，確保查詢選擇性）
+                await self.questions_collection.create_index([("grade", 1)], name="idx_questions_grade")
+                await self.questions_collection.create_index([("subject", 1)], name="idx_questions_subject")
+                await self.questions_collection.create_index([("publisher", 1)], name="idx_questions_publisher")
+                await self.questions_collection.create_index([("chapter", 1)], name="idx_questions_chapter")
+            except Exception as idx_err:
+                print(f"⚠️ 建立 Mongo 索引失敗: {idx_err}")
+
             # 測試連接
             await self.client.admin.command('ping')
             print("✅ MongoDB 連接成功")

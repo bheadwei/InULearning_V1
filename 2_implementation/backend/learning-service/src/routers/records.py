@@ -7,6 +7,7 @@ from typing import List, Optional
 from datetime import datetime, timedelta
 import logging
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import text
 
 from ..utils.auth import get_current_user
 from ..utils.database import get_db_session
@@ -58,6 +59,214 @@ async def get_children_learning_records(
     except Exception as e:
         logger.error(f"查詢子女學習記錄失敗: {str(e)}")
         raise HTTPException(status_code=500, detail="查詢學習記錄失敗")
+
+
+# 新增：家長端 - 子女列表（對應前端 /learning/parents/children）
+@router.get("/parents/children")
+async def list_parent_children(
+    request: Request,
+    current_user = Depends(get_current_user),
+    db_session: AsyncSession = Depends(get_db_session)
+):
+    """查詢家長名下子女列表，直接從 PostgreSQL 的 users 與 parent_child_relations 取得資料。"""
+    if current_user.role != "parent":
+        raise HTTPException(status_code=403, detail="只有家長可以查詢子女資料")
+
+    # 驗證 Token（即使本查詢不直接調用其他服務，也先檢查請求頭部合法性）
+    _ = get_token_from_request(request)
+
+    try:
+        parent_id = int(getattr(current_user, "user_id", getattr(current_user, "id", 0)))
+        if not parent_id:
+            raise HTTPException(status_code=401, detail="無效的使用者識別")
+
+        query = text(
+            """
+            SELECT u.id, u.first_name, u.last_name, u.username, u.avatar_url, u.created_at
+            FROM parent_child_relations pcr
+            JOIN users u ON u.id = pcr.child_id
+            WHERE pcr.parent_id = :parent_id
+              AND pcr.is_active = TRUE
+              AND u.is_active = TRUE
+              AND u.role = 'student'
+            ORDER BY u.id ASC
+            """
+        )
+
+        result = await db_session.execute(query, {"parent_id": parent_id})
+        rows = result.mappings().all()
+
+        children = []
+        for row in rows:
+            first_name = row.get("first_name") or ""
+            last_name = row.get("last_name") or ""
+            full_name = (first_name + " " + last_name).strip() or row.get("username")
+            children.append({
+                "id": row["id"],
+                "name": full_name,
+                "grade": 0,  # 資料表未提供年級，給預設值避免前端出錯
+                "class_name": None,
+                "student_id": None,
+                "avatar": row.get("avatar_url"),
+                "created_at": row.get("created_at").isoformat() if row.get("created_at") else None,
+                # 下列為學習度量的預設值，後續可由學習記錄計算填入
+                "total_exercises": 0,
+                "accuracy_rate": 0,
+                "study_days": 0,
+                "overall_progress": 0,
+                "streak_days": 0,
+                "total_study_hours": 0
+            })
+
+        return children
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"列出子女資料失敗: {e}")
+        raise HTTPException(status_code=500, detail="獲取子女列表失敗")
+
+
+# 新增：家長端 - 子女詳細（對應前端 /learning/parents/children/{child_id}）
+@router.get("/parents/children/{child_id}")
+async def get_parent_child_details(
+    child_id: int,
+    request: Request,
+    current_user = Depends(get_current_user),
+    db_session: AsyncSession = Depends(get_db_session)
+):
+    """查詢特定子女詳細資料，先驗證親子關係，再讀取 users。"""
+    if current_user.role != "parent":
+        raise HTTPException(status_code=403, detail="只有家長可以查詢子女資料")
+
+    _ = get_token_from_request(request)
+
+    try:
+        parent_id = int(getattr(current_user, "user_id", getattr(current_user, "id", 0)))
+        if not parent_id:
+            raise HTTPException(status_code=401, detail="無效的使用者識別")
+
+        # 驗證關係
+        relation_query = text(
+            """
+            SELECT 1
+            FROM parent_child_relations
+            WHERE parent_id = :parent_id
+              AND child_id = :child_id
+              AND is_active = TRUE
+            """
+        )
+        relation_result = await db_session.execute(relation_query, {"parent_id": parent_id, "child_id": child_id})
+        if relation_result.scalar() is None:
+            raise HTTPException(status_code=404, detail="子女不存在或無權限訪問")
+
+        # 取得子女基本資料
+        user_query = text(
+            """
+            SELECT id, first_name, last_name, username, avatar_url, created_at
+            FROM users
+            WHERE id = :child_id AND is_active = TRUE AND role = 'student'
+            """
+        )
+        user_res = await db_session.execute(user_query, {"child_id": child_id})
+        row = user_res.mappings().first()
+        if not row:
+            raise HTTPException(status_code=404, detail="學生不存在")
+
+        first_name = row.get("first_name") or ""
+        last_name = row.get("last_name") or ""
+        full_name = (first_name + " " + last_name).strip() or row.get("username")
+
+        detail = {
+            "id": row["id"],
+            "name": full_name,
+            "grade": 0,
+            "class_name": None,
+            "student_id": None,
+            "avatar": row.get("avatar_url"),
+            "created_at": row.get("created_at").isoformat() if row.get("created_at") else None,
+            # 下列欄位暫以預設值回傳
+            "active_courses": 0,
+            "completed_assignments": 0,
+            "average_score": 0,
+            "total_study_hours": 0,
+            "status": ""
+        }
+
+        return detail
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"獲取子女詳細資料失敗: {e}")
+        raise HTTPException(status_code=500, detail="獲取子女詳細資訊失敗")
+
+
+# 新增：家長端 - 子女進度（對應前端 /learning/parents/children/{child_id}/progress）
+@router.get("/parents/children/{child_id}/progress")
+async def get_parent_child_progress(
+    child_id: int,
+    request: Request,
+    current_user = Depends(get_current_user),
+    db_session: AsyncSession = Depends(get_db_session)
+):
+    """查詢子女學習進度（目前回傳基本骨架，後續可擴充從學習記錄計算）。"""
+    if current_user.role != "parent":
+        raise HTTPException(status_code=403, detail="只有家長可以查詢學習進度")
+
+    _ = get_token_from_request(request)
+
+    try:
+        parent_id = int(getattr(current_user, "user_id", getattr(current_user, "id", 0)))
+        if not parent_id:
+            raise HTTPException(status_code=401, detail="無效的使用者識別")
+
+        # 驗證關係
+        relation_query = text(
+            """
+            SELECT 1
+            FROM parent_child_relations
+            WHERE parent_id = :parent_id
+              AND child_id = :child_id
+              AND is_active = TRUE
+            """
+        )
+        relation_result = await db_session.execute(relation_query, {"parent_id": parent_id, "child_id": child_id})
+        if relation_result.scalar() is None:
+            raise HTTPException(status_code=404, detail="子女不存在或無權限訪問")
+
+        # 取得名稱
+        user_query = text(
+            """
+            SELECT first_name, last_name, username
+            FROM users
+            WHERE id = :child_id AND is_active = TRUE AND role = 'student'
+            """
+        )
+        user_res = await db_session.execute(user_query, {"child_id": child_id})
+        row = user_res.mappings().first()
+        if not row:
+            raise HTTPException(status_code=404, detail="學生不存在")
+
+        first_name = row.get("first_name") or ""
+        last_name = row.get("last_name") or ""
+        full_name = (first_name + " " + last_name).strip() or row.get("username")
+
+        progress = {
+            "child_name": full_name,
+            "overall_progress": 0,
+            "accuracy_rate": 0,
+            "study_days": 0,
+            "streak_days": 0,
+            "subjects": [],
+            "weaknesses": [],
+            "trend_data": []
+        }
+
+        return progress
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"獲取子女學習進度失敗: {e}")
+        raise HTTPException(status_code=500, detail="獲取學習進度失敗")
 
 @router.get("/teacher/students")
 async def get_students_learning_records(

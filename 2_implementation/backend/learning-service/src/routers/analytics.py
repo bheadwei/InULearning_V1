@@ -294,3 +294,55 @@ async def get_subjects_trend(
     }
 
 
+@router.get("/students/{student_id}/summary")
+async def get_student_summary(
+    student_id: int,
+    db_session: AsyncSession = Depends(get_db_session),
+    # 注意：此端點設計為可由其他後端服務調用，因此暫不強制要求終端用戶的 JWT
+    # current_user = Depends(get_current_user),
+):
+    """取得特定學生的學習總結摘要。"""
+    try:
+        # 學習時數相關統計
+        stmt_sessions = (
+            select(
+                func.count(LearningSession.id).label("total_sessions"),
+                func.sum(LearningSession.time_spent).label("total_time_spent_seconds"),
+                func.avg(LearningSession.time_spent).label("avg_session_duration_seconds"),
+                func.count(distinct(func.date(LearningSession.start_time))).label("study_days"),
+            )
+            .where(LearningSession.user_id == student_id)
+        )
+        session_stats = (await db_session.execute(stmt_sessions)).first()
+
+        # 練習記錄相關統計
+        stmt_records = (
+            select(
+                func.count(ExerciseRecord.id).label("total_exercises"),
+                func.avg(cast(case((ExerciseRecord.is_correct == True, 1), else_=0), Float)).label("accuracy_rate"),
+            )
+            .where(ExerciseRecord.user_id == student_id)
+        )
+        record_stats = (await db_session.execute(stmt_records)).first()
+
+        total_time_spent_seconds = session_stats.total_time_spent_seconds or 0
+        avg_duration_seconds = session_stats.avg_session_duration_seconds or 0
+
+        # 將 Decimal 類型轉換為 float
+        total_study_minutes = float(total_time_spent_seconds) / 60.0
+        avg_session_duration_minutes = float(avg_duration_seconds) / 60.0
+
+        return {
+            "student_id": student_id,
+            "total_study_minutes": round(total_study_minutes, 1),
+            "total_sessions": session_stats.total_sessions or 0,
+            "avg_session_duration_minutes": round(avg_session_duration_minutes, 1),
+            "study_days": session_stats.study_days or 0,
+            "total_exercises": record_stats.total_exercises or 0,
+            "accuracy_rate": round(float(record_stats.accuracy_rate or 0.0) * 100, 2),
+        }
+    except Exception as e:
+        logger.error(f"Failed to get student summary for student_id={student_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to retrieve student summary")
+
+

@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
+
 <head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>親師溝通 - InU Learning【因你而學】</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
     <link rel="stylesheet" href="../css/main.css">
     <style>
         body {
@@ -14,13 +15,15 @@
         }
     </style>
 </head>
+
 <body class="bg-gray-100">
     <div class="flex h-screen bg-white">
         <!-- 側邊欄 -->
         <aside class="w-64 bg-blue-800 text-white flex flex-col">
             <a class="block" href="../index.html">
                 <div class="flex items-center justify-center p-6 hover:bg-blue-700">
-                    <img alt="InU Learning Logo" class="w-24 h-24 rounded-full" src="http://localhost/shared/image/InULearning_logo.png"/>
+                    <img alt="InU Learning Logo" class="w-24 h-24 rounded-full"
+                        src="http://localhost/shared/image/InULearning_logo.png" />
                 </div>
                 <div class="px-6 pb-4 hover:bg-blue-700">
                     <h1 class="text-xl font-bold text-center">InU Learning</h1>
@@ -54,7 +57,8 @@
                 </a>
             </nav>
             <div class="p-4 border-t border-blue-700">
-                <button id="logoutBtn" class="w-full flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg">
+                <button id="logoutBtn"
+                    class="w-full flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg">
                     <span class="material-icons">logout</span>
                     <span class="ml-3">登出</span>
                 </button>
@@ -75,7 +79,9 @@
                                 <span class="material-icons">search</span>
                             </button>
                         </span>
-                        <input autocomplete="off" class="py-2 text-sm text-gray-700 bg-gray-200 rounded-md pl-10 focus:outline-none focus:bg-white focus:text-gray-900 w-full" name="q" placeholder="搜尋..." type="search"/>
+                        <input autocomplete="off"
+                            class="py-2 text-sm text-gray-700 bg-gray-200 rounded-md pl-10 focus:outline-none focus:bg-white focus:text-gray-900 w-full"
+                            name="q" placeholder="搜尋..." type="search" />
                     </div>
                 </div>
                 <div class="flex items-center space-x-4">
@@ -84,8 +90,10 @@
                         <span id="userName" class="text-sm font-medium text-blue-600"></span>
                     </div>
                     <div id="authButtons">
-                        <a class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors" href="login.html">登入</a>
-                        <a class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors" href="register.html">註冊</a>
+                        <a class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                            href="http://localhost/login.html">登入</a>
+                        <a class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+                            href="http://localhost/register.html">註冊</a>
                     </div>
                 </div>
             </header>
@@ -110,9 +118,11 @@
                                     </button>
                                 </div>
                                 <div class="space-y-2">
-                                    <div class="contact-item p-3 rounded-lg cursor-pointer hover:bg-blue-50 transition-colors" onclick="selectContact('teacher1')">
+                                    <div class="contact-item p-3 rounded-lg cursor-pointer hover:bg-blue-50 transition-colors"
+                                        onclick="selectContact('teacher1')">
                                         <div class="flex items-center">
-                                            <img src="https://via.placeholder.com/40x40" alt="教師頭像" class="w-10 h-10 rounded-full mr-3">
+                                            <img src="https://via.placeholder.com/40x40" alt="教師頭像"
+                                                class="w-10 h-10 rounded-full mr-3">
                                             <div class="flex-1">
                                                 <p class="text-sm font-medium text-gray-800">王老師</p>
                                                 <p class="text-xs text-gray-500">數學科</p>
@@ -120,9 +130,11 @@
                                             <span class="w-2 h-2 bg-green-500 rounded-full"></span>
                                         </div>
                                     </div>
-                                    <div class="contact-item p-3 rounded-lg cursor-pointer hover:bg-blue-50 transition-colors" onclick="selectContact('teacher2')">
+                                    <div class="contact-item p-3 rounded-lg cursor-pointer hover:bg-blue-50 transition-colors"
+                                        onclick="selectContact('teacher2')">
                                         <div class="flex items-center">
-                                            <img src="https://via.placeholder.com/40x40" alt="教師頭像" class="w-10 h-10 rounded-full mr-3">
+                                            <img src="https://via.placeholder.com/40x40" alt="教師頭像"
+                                                class="w-10 h-10 rounded-full mr-3">
                                             <div class="flex-1">
                                                 <p class="text-sm font-medium text-gray-800">李老師</p>
                                                 <p class="text-xs text-gray-500">國語科</p>
@@ -130,9 +142,11 @@
                                             <span class="w-2 h-2 bg-gray-400 rounded-full"></span>
                                         </div>
                                     </div>
-                                    <div class="contact-item p-3 rounded-lg cursor-pointer hover:bg-blue-50 transition-colors" onclick="selectContact('teacher3')">
+                                    <div class="contact-item p-3 rounded-lg cursor-pointer hover:bg-blue-50 transition-colors"
+                                        onclick="selectContact('teacher3')">
                                         <div class="flex items-center">
-                                            <img src="https://via.placeholder.com/40x40" alt="教師頭像" class="w-10 h-10 rounded-full mr-3">
+                                            <img src="https://via.placeholder.com/40x40" alt="教師頭像"
+                                                class="w-10 h-10 rounded-full mr-3">
                                             <div class="flex-1">
                                                 <p class="text-sm font-medium text-gray-800">陳老師</p>
                                                 <p class="text-xs text-gray-500">英文科</p>
@@ -150,20 +164,24 @@
                                 <!-- 聊天標題 -->
                                 <div class="flex items-center justify-between p-4 border-b">
                                     <div class="flex items-center">
-                                        <img src="https://via.placeholder.com/40x40" alt="教師頭像" class="w-10 h-10 rounded-full mr-3">
+                                        <img src="https://via.placeholder.com/40x40" alt="教師頭像"
+                                            class="w-10 h-10 rounded-full mr-3">
                                         <div>
                                             <h3 class="text-lg font-medium text-gray-800">王老師</h3>
                                             <p class="text-sm text-gray-500">數學科 • 在線</p>
                                         </div>
                                     </div>
                                     <div class="flex space-x-2">
-                                        <button class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg">
+                                        <button
+                                            class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg">
                                             <span class="material-icons">phone</span>
                                         </button>
-                                        <button class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg">
+                                        <button
+                                            class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg">
                                             <span class="material-icons">videocam</span>
                                         </button>
-                                        <button class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg">
+                                        <button
+                                            class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg">
                                             <span class="material-icons">more_vert</span>
                                         </button>
                                     </div>
@@ -173,7 +191,8 @@
                                 <div class="flex-1 overflow-y-auto p-4 space-y-4" id="chatMessages">
                                     <div class="flex justify-start">
                                         <div class="flex items-end space-x-2">
-                                            <img src="https://via.placeholder.com/32x32" alt="教師頭像" class="w-8 h-8 rounded-full">
+                                            <img src="https://via.placeholder.com/32x32" alt="教師頭像"
+                                                class="w-8 h-8 rounded-full">
                                             <div class="bg-gray-100 rounded-lg px-4 py-2 max-w-xs">
                                                 <p class="text-sm text-gray-800">您好！我是小明的數學老師，想跟您討論一下他的學習情況。</p>
                                                 <p class="text-xs text-gray-500 mt-1">14:30</p>
@@ -190,7 +209,8 @@
                                     </div>
                                     <div class="flex justify-start">
                                         <div class="flex items-end space-x-2">
-                                            <img src="https://via.placeholder.com/32x32" alt="教師頭像" class="w-8 h-8 rounded-full">
+                                            <img src="https://via.placeholder.com/32x32" alt="教師頭像"
+                                                class="w-8 h-8 rounded-full">
                                             <div class="bg-gray-100 rounded-lg px-4 py-2 max-w-xs">
                                                 <p class="text-sm text-gray-800">小明最近在數學方面有很好的進步，特別是在幾何題目上表現出色。</p>
                                                 <p class="text-xs text-gray-500 mt-1">14:33</p>
@@ -210,11 +230,13 @@
                                 <!-- 輸入區域 -->
                                 <div class="border-t p-4">
                                     <div class="flex items-center space-x-2">
-                                        <button class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg">
+                                        <button
+                                            class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg">
                                             <span class="material-icons">attach_file</span>
                                         </button>
                                         <div class="flex-1">
-                                            <input type="text" id="messageInput" placeholder="輸入訊息..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                            <input type="text" id="messageInput" placeholder="輸入訊息..."
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                                         </div>
                                         <button class="btn" onclick="sendMessage()">
                                             <span class="material-icons">send</span>
@@ -229,8 +251,10 @@
                     <div class="bg-white rounded-lg shadow-md p-6 mt-8">
                         <h2 class="text-xl font-semibold text-gray-800 mb-4">最近對話</h2>
                         <div class="space-y-4">
-                            <div class="conversation-item flex items-center p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
-                                <img src="https://via.placeholder.com/50x50" alt="教師頭像" class="w-12 h-12 rounded-full mr-4">
+                            <div
+                                class="conversation-item flex items-center p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                                <img src="https://via.placeholder.com/50x50" alt="教師頭像"
+                                    class="w-12 h-12 rounded-full mr-4">
                                 <div class="flex-1">
                                     <div class="flex items-center justify-between">
                                         <h3 class="font-medium text-gray-800">李老師 (國語科)</h3>
@@ -243,8 +267,10 @@
                                     <span class="material-icons text-gray-400">chevron_right</span>
                                 </div>
                             </div>
-                            <div class="conversation-item flex items-center p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
-                                <img src="https://via.placeholder.com/50x50" alt="教師頭像" class="w-12 h-12 rounded-full mr-4">
+                            <div
+                                class="conversation-item flex items-center p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                                <img src="https://via.placeholder.com/50x50" alt="教師頭像"
+                                    class="w-12 h-12 rounded-full mr-4">
                                 <div class="flex-1">
                                     <div class="flex items-center justify-between">
                                         <h3 class="font-medium text-gray-800">陳老師 (英文科)</h3>
@@ -263,7 +289,9 @@
                     <div class="bg-white rounded-lg shadow-md p-6 mt-8">
                         <h2 class="text-xl font-semibold text-gray-800 mb-4">快速聯絡</h2>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <button class="quick-contact-btn p-4 border rounded-lg hover:bg-blue-50 transition-colors text-left" onclick="quickContact('schedule')">
+                            <button
+                                class="quick-contact-btn p-4 border rounded-lg hover:bg-blue-50 transition-colors text-left"
+                                onclick="quickContact('schedule')">
                                 <div class="flex items-center">
                                     <span class="material-icons text-blue-600 mr-3">schedule</span>
                                     <div>
@@ -272,7 +300,9 @@
                                     </div>
                                 </div>
                             </button>
-                            <button class="quick-contact-btn p-4 border rounded-lg hover:bg-green-50 transition-colors text-left" onclick="quickContact('report')">
+                            <button
+                                class="quick-contact-btn p-4 border rounded-lg hover:bg-green-50 transition-colors text-left"
+                                onclick="quickContact('report')">
                                 <div class="flex items-center">
                                     <span class="material-icons text-green-600 mr-3">assessment</span>
                                     <div>
@@ -281,7 +311,9 @@
                                     </div>
                                 </div>
                             </button>
-                            <button class="quick-contact-btn p-4 border rounded-lg hover:bg-purple-50 transition-colors text-left" onclick="quickContact('suggestion')">
+                            <button
+                                class="quick-contact-btn p-4 border rounded-lg hover:bg-purple-50 transition-colors text-left"
+                                onclick="quickContact('suggestion')">
                                 <div class="flex items-center">
                                     <span class="material-icons text-purple-600 mr-3">lightbulb</span>
                                     <div>
@@ -298,7 +330,8 @@
     </div>
 
     <!-- 載入指示器 -->
-    <div id="loadingIndicator" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div id="loadingIndicator"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
         <div class="bg-white rounded-lg p-6 flex items-center space-x-3">
             <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
             <span class="text-gray-700">處理中...</span>
@@ -309,17 +342,17 @@
     <script src="../js/main.js"></script>
     <script>
         // 頁面初始化
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // 初始化認證
             const auth = new ParentAuthManager();
-            
+
             // 登出按鈕
-            document.getElementById('logoutBtn').addEventListener('click', function() {
+            document.getElementById('logoutBtn').addEventListener('click', function () {
                 auth.logout();
             });
-            
+
             // 訊息輸入框事件
-            document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            document.getElementById('messageInput').addEventListener('keypress', function (e) {
                 if (e.key === 'Enter') {
                     sendMessage();
                 }
@@ -332,11 +365,11 @@
                 item.classList.remove('bg-blue-100', 'border-blue-500');
                 item.classList.add('hover:bg-blue-50');
             });
-            
+
             // 添加選中狀態
             event.currentTarget.classList.remove('hover:bg-blue-50');
             event.currentTarget.classList.add('bg-blue-100', 'border-blue-500');
-            
+
             // 載入該聯絡人的聊天記錄
             loadChatHistory(contactId);
         }
@@ -349,12 +382,12 @@
         function sendMessage() {
             const messageInput = document.getElementById('messageInput');
             const message = messageInput.value.trim();
-            
+
             if (message) {
                 // 添加訊息到聊天區域
                 addMessageToChat(message, 'sent');
                 messageInput.value = '';
-                
+
                 // 模擬回覆
                 setTimeout(() => {
                     addMessageToChat('收到您的訊息，我會盡快回覆您。', 'received');
@@ -366,7 +399,7 @@
             const chatMessages = document.getElementById('chatMessages');
             const messageDiv = document.createElement('div');
             const time = new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' });
-            
+
             if (type === 'sent') {
                 messageDiv.innerHTML = `
                     <div class="flex justify-end">
@@ -391,7 +424,7 @@
                     </div>
                 `;
             }
-            
+
             chatMessages.appendChild(messageDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
@@ -413,7 +446,7 @@
                     message = '請給我一些學習改進的建議。';
                     break;
             }
-            
+
             if (message) {
                 addMessageToChat(message, 'sent');
                 setTimeout(() => {
@@ -423,4 +456,5 @@
         }
     </script>
 </body>
-</html> 
+
+</html>

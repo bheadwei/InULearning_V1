@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
+
 <head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>學習進度 - InU Learning【因你而學】</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
     <link rel="stylesheet" href="../css/main.css">
     <style>
         body {
@@ -14,13 +15,15 @@
         }
     </style>
 </head>
+
 <body class="bg-gray-100">
     <div class="flex h-screen bg-white">
         <!-- 側邊欄 -->
         <aside class="w-64 bg-blue-800 text-white flex flex-col">
             <a class="block" href="../index.html">
                 <div class="flex items-center justify-center p-6 hover:bg-blue-700">
-                    <img alt="InU Learning Logo" class="w-24 h-24 rounded-full" src="http://localhost/shared/image/InULearning_logo.png"/>
+                    <img alt="InU Learning Logo" class="w-24 h-24 rounded-full"
+                        src="http://localhost/shared/image/InULearning_logo.png" />
                 </div>
                 <div class="px-6 pb-4 hover:bg-blue-700">
                     <h1 class="text-xl font-bold text-center">InU Learning</h1>
@@ -44,7 +47,8 @@
                     <span class="material-icons">assessment</span>
                     <span class="ml-3">學習報告</span>
                 </a>
-                <a class="flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg" href="communication.html">
+                <a class="flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg"
+                    href="communication.html">
                     <span class="material-icons">chat</span>
                     <span class="ml-3">親師溝通</span>
                 </a>
@@ -54,7 +58,8 @@
                 </a>
             </nav>
             <div class="p-4 border-t border-blue-700">
-                <button id="logoutBtn" class="w-full flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg">
+                <button id="logoutBtn"
+                    class="w-full flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg">
                     <span class="material-icons">logout</span>
                     <span class="ml-3">登出</span>
                 </button>
@@ -75,7 +80,9 @@
                                 <span class="material-icons">search</span>
                             </button>
                         </span>
-                        <input autocomplete="off" class="py-2 text-sm text-gray-700 bg-gray-200 rounded-md pl-10 focus:outline-none focus:bg-white focus:text-gray-900 w-full" name="q" placeholder="搜尋..." type="search"/>
+                        <input autocomplete="off"
+                            class="py-2 text-sm text-gray-700 bg-gray-200 rounded-md pl-10 focus:outline-none focus:bg-white focus:text-gray-900 w-full"
+                            name="q" placeholder="搜尋..." type="search" />
                     </div>
                 </div>
                 <div class="flex items-center space-x-4">
@@ -84,8 +91,10 @@
                         <span id="userName" class="text-sm font-medium text-blue-600"></span>
                     </div>
                     <div id="authButtons">
-                        <a class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors" href="login.html">登入</a>
-                        <a class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors" href="register.html">註冊</a>
+                        <a class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                            href="http://localhost/login.html">登入</a>
+                        <a class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+                            href="http://localhost/register.html">註冊</a>
                     </div>
                 </div>
             </header>
@@ -109,24 +118,7 @@
                             </div>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="childrenSelector">
-                            <div class="child-card p-4 border rounded-lg cursor-pointer hover:bg-blue-50 transition-colors" onclick="selectChild(1)">
-                                <div class="flex items-center">
-                                    <img src="https://via.placeholder.com/50x50" alt="子女頭像" class="w-12 h-12 rounded-full mr-3">
-                                    <div>
-                                        <h3 class="font-medium text-gray-800">張小明</h3>
-                                        <p class="text-sm text-gray-500">三年級</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="child-card p-4 border rounded-lg cursor-pointer hover:bg-blue-50 transition-colors" onclick="selectChild(2)">
-                                <div class="flex items-center">
-                                    <img src="https://via.placeholder.com/50x50" alt="子女頭像" class="w-12 h-12 rounded-full mr-3">
-                                    <div>
-                                        <h3 class="font-medium text-gray-800">張小華</h3>
-                                        <p class="text-sm text-gray-500">一年級</p>
-                                    </div>
-                                </div>
-                            </div>
+                            <!-- 子女卡片將由 JavaScript 動態載入 -->
                         </div>
                     </div>
 
@@ -138,8 +130,8 @@
                                     <span class="material-icons">school</span>
                                 </div>
                                 <div class="ml-4">
-                                    <p class="text-sm font-medium text-gray-600">總學習時數</p>
-                                    <p class="text-2xl font-bold text-gray-900">24.5 小時</p>
+                                    <p class="text-sm font-medium text-gray-600">總學習時數 (分鐘)</p>
+                                    <p id="totalStudyMinutes" class="text-2xl font-bold text-gray-900">載入中...</p>
                                 </div>
                             </div>
                         </div>
@@ -149,8 +141,8 @@
                                     <span class="material-icons">check_circle</span>
                                 </div>
                                 <div class="ml-4">
-                                    <p class="text-sm font-medium text-gray-600">完成任務</p>
-                                    <p class="text-2xl font-bold text-gray-900">156 個</p>
+                                    <p class="text-sm font-medium text-gray-600">完成測驗次數</p>
+                                    <p id="totalSessions" class="text-2xl font-bold text-gray-900">載入中...</p>
                                 </div>
                             </div>
                         </div>
@@ -161,7 +153,7 @@
                                 </div>
                                 <div class="ml-4">
                                     <p class="text-sm font-medium text-gray-600">平均分數</p>
-                                    <p class="text-2xl font-bold text-gray-900">85.2 分</p>
+                                    <p id="averageScore" class="text-2xl font-bold text-gray-900">載入中...</p>
                                 </div>
                             </div>
                         </div>
@@ -315,7 +307,8 @@
     </div>
 
     <!-- 載入指示器 -->
-    <div id="loadingIndicator" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div id="loadingIndicator"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
         <div class="bg-white rounded-lg p-6 flex items-center space-x-3">
             <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
             <span class="text-gray-700">處理中...</span>
@@ -326,15 +319,143 @@
     <script src="../js/main.js"></script>
     <script>
         // 頁面初始化
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // 初始化認證
-            const auth = new ParentAuthManager();
-            
+            // const auth = new ParentAuthManager(); // auth.js 中已有全域 parentAuth 實例
+
             // 登出按鈕
-            document.getElementById('logoutBtn').addEventListener('click', function() {
-                auth.logout();
+            document.getElementById('logoutBtn').addEventListener('click', function () {
+                parentAuth.logout();
             });
+
+            // 載入子女列表
+            loadChildren();
+
+            // 載入匯總統計數據 (預設載入全部)
+            loadSummaryStats();
         });
+
+        async function loadSummaryStats(childId = null) {
+            const minutesElement = document.getElementById('totalStudyMinutes');
+            const sessionsElement = document.getElementById('totalSessions');
+            const scoreElement = document.getElementById('averageScore');
+
+            // 讓使用者知道正在載入
+            if (minutesElement) minutesElement.textContent = '計算中...';
+            if (sessionsElement) sessionsElement.textContent = '計算中...';
+            if (scoreElement) scoreElement.textContent = '計算中...';
+
+            let url = `/api/v1/parent/summary/stats?t=${Date.now()}`;
+            if (childId) {
+                url += `&child_id=${childId}`;
+            }
+
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': `Bearer ${parentAuth.getToken()}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('無法獲取匯總數據');
+                }
+
+                const data = await response.json();
+
+                const minutes = data.total_study_minutes || 0;
+                if (minutesElement) {
+                    minutesElement.textContent = `${minutes.toFixed(1)} 分鐘`;
+                }
+
+                const sessions = data.total_sessions || 0;
+                if (sessionsElement) {
+                    sessionsElement.textContent = `${sessions} 次`;
+                }
+
+                const score = data.average_score || 0;
+                if (scoreElement) {
+                    scoreElement.textContent = `${score.toFixed(1)} 分`;
+                }
+
+            } catch (error) {
+                console.error('載入匯總數據失敗:', error);
+                if (minutesElement) {
+                    minutesElement.textContent = '讀取失敗';
+                    minutesElement.classList.add('text-red-500');
+                }
+                if (sessionsElement) {
+                    sessionsElement.textContent = '讀取失敗';
+                    sessionsElement.classList.add('text-red-500');
+                }
+                if (scoreElement) {
+                    scoreElement.textContent = '讀取失敗';
+                    scoreElement.classList.add('text-red-500');
+                }
+            }
+        }
+
+        async function loadChildren() {
+            const selector = document.getElementById('childrenSelector');
+            if (!selector) return;
+
+            // 顯示載入狀態
+            selector.innerHTML = '<p class="text-gray-500">正在載入子女列表...</p>';
+
+            try {
+                const response = await fetch(`/api/v1/parent/children?t=${Date.now()}`, {
+                    headers: {
+                        'Authorization': `Bearer ${parentAuth.getToken()}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`無法獲取子女列表 (${response.status})`);
+                }
+
+                const children = await response.json();
+                selector.innerHTML = ''; // 清空載入提示
+
+                if (children.length === 0) {
+                    selector.innerHTML = '<p class="text-gray-500">尚未新增任何子女。</p>';
+                    return;
+                }
+
+                children.forEach(child => {
+                    const card = document.createElement('div');
+                    card.className = 'child-card p-4 border rounded-lg cursor-pointer hover:bg-blue-50 transition-colors';
+                    card.onclick = () => selectChild(child.id);
+
+                    const gradeText = child.grade ? `${child.grade}年級` : '年級未設定';
+                    const avatarUrl = (child.avatar && child.avatar.startsWith('http')) ? child.avatar : 'https://via.placeholder.com/50x50';
+
+                    card.innerHTML = `
+                        <div class="flex items-center">
+                            <img src="${avatarUrl}" alt="子女頭像"
+                                class="w-12 h-12 rounded-full mr-3">
+                            <div>
+                                <h3 class="font-medium text-gray-800">${child.name}</h3>
+                                <p class="text-sm text-gray-500">${gradeText}</p>
+                            </div>
+                        </div>
+                    `;
+                    selector.appendChild(card);
+                });
+
+                // 預設選中第一個子女
+                if (children.length > 0) {
+                    const firstCard = selector.querySelector('.child-card');
+                    if (firstCard) {
+                        firstCard.click();
+                    }
+                }
+
+            } catch (error) {
+                console.error('載入子女列表失敗:', error);
+                selector.innerHTML = '<p class="text-red-500">無法載入子女列表，請稍後再試。</p>';
+                alert(error.message);
+            }
+        }
 
         // 子女選擇功能
         function selectChild(childId) {
@@ -343,39 +464,38 @@
                 card.classList.remove('bg-blue-100', 'border-blue-500');
                 card.classList.add('hover:bg-blue-50');
             });
-            
+
             // 添加選中狀態
-            event.currentTarget.classList.remove('hover:bg-blue-50');
-            event.currentTarget.classList.add('bg-blue-100', 'border-blue-500');
-            
+            // 使用 event.currentTarget 來確保選中的是綁定事件的元素
+            const selectedCard = event.currentTarget;
+            if (selectedCard) {
+                selectedCard.classList.remove('hover:bg-blue-50');
+                selectedCard.classList.add('bg-blue-100', 'border-blue-500');
+            }
+
             // 載入該子女的進度數據
-            loadChildProgress(childId);
+            loadSummaryStats(childId);
         }
 
         function switchChild(mode) {
             if (mode === 'all') {
                 // 顯示所有子女的綜合進度
-                loadAllChildrenProgress();
+                loadSummaryStats(); // 不帶參數，載入全部
+                // 取消所有卡片的選中狀態
+                document.querySelectorAll('.child-card').forEach(card => {
+                    card.classList.remove('bg-blue-100', 'border-blue-500');
+                    card.classList.add('hover:bg-blue-50');
+                });
             } else if (mode === 'compare') {
                 // 顯示比較模式
-                loadCompareMode();
+                console.log('比較模式待實現...');
             }
         }
 
         function loadChildProgress(childId) {
             // 這裡會載入特定子女的進度數據
-            console.log('載入子女 ID:', childId, '的進度數據');
-        }
-
-        function loadAllChildrenProgress() {
-            // 載入所有子女的綜合進度
-            console.log('載入所有子女的綜合進度');
-        }
-
-        function loadCompareMode() {
-            // 載入比較模式
-            console.log('載入比較模式');
         }
     </script>
 </body>
-</html> 
+
+</html>

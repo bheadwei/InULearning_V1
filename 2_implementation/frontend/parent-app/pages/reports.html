@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
+
 <head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>學習報告 - InU Learning【因你而學】</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
     <link rel="stylesheet" href="../css/main.css">
     <style>
         body {
@@ -14,13 +15,15 @@
         }
     </style>
 </head>
+
 <body class="bg-gray-100">
     <div class="flex h-screen bg-white">
         <!-- 側邊欄 -->
         <aside class="w-64 bg-blue-800 text-white flex flex-col">
             <a class="block" href="../index.html">
                 <div class="flex items-center justify-center p-6 hover:bg-blue-700">
-                    <img alt="InU Learning Logo" class="w-24 h-24 rounded-full" src="http://localhost/shared/image/InULearning_logo.png"/>
+                    <img alt="InU Learning Logo" class="w-24 h-24 rounded-full"
+                        src="http://localhost/shared/image/InULearning_logo.png" />
                 </div>
                 <div class="px-6 pb-4 hover:bg-blue-700">
                     <h1 class="text-xl font-bold text-center">InU Learning</h1>
@@ -44,7 +47,8 @@
                     <span class="material-icons">assessment</span>
                     <span class="ml-3">學習報告</span>
                 </a>
-                <a class="flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg" href="communication.html">
+                <a class="flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg"
+                    href="communication.html">
                     <span class="material-icons">chat</span>
                     <span class="ml-3">親師溝通</span>
                 </a>
@@ -54,7 +58,8 @@
                 </a>
             </nav>
             <div class="p-4 border-t border-blue-700">
-                <button id="logoutBtn" class="w-full flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg">
+                <button id="logoutBtn"
+                    class="w-full flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg">
                     <span class="material-icons">logout</span>
                     <span class="ml-3">登出</span>
                 </button>
@@ -75,7 +80,9 @@
                                 <span class="material-icons">search</span>
                             </button>
                         </span>
-                        <input autocomplete="off" class="py-2 text-sm text-gray-700 bg-gray-200 rounded-md pl-10 focus:outline-none focus:bg-white focus:text-gray-900 w-full" name="q" placeholder="搜尋..." type="search"/>
+                        <input autocomplete="off"
+                            class="py-2 text-sm text-gray-700 bg-gray-200 rounded-md pl-10 focus:outline-none focus:bg-white focus:text-gray-900 w-full"
+                            name="q" placeholder="搜尋..." type="search" />
                     </div>
                 </div>
                 <div class="flex items-center space-x-4">
@@ -84,8 +91,10 @@
                         <span id="userName" class="text-sm font-medium text-blue-600"></span>
                     </div>
                     <div id="authButtons">
-                        <a class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors" href="login.html">登入</a>
-                        <a class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors" href="register.html">註冊</a>
+                        <a class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                            href="http://localhost/login.html">登入</a>
+                        <a class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+                            href="http://localhost/register.html">註冊</a>
                     </div>
                 </div>
             </header>
@@ -107,8 +116,6 @@
                                     <label class="block text-sm font-medium text-gray-700 mb-1">選擇子女</label>
                                     <select id="childSelector" class="form-control">
                                         <option value="all">全部子女</option>
-                                        <option value="1">張小明 (三年級)</option>
-                                        <option value="2">張小華 (一年級)</option>
                                     </select>
                                 </div>
                                 <div>
@@ -369,77 +376,277 @@
     </div>
 
     <!-- 載入指示器 -->
-    <div id="loadingIndicator" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div id="loadingIndicator"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
         <div class="bg-white rounded-lg p-6 flex items-center space-x-3">
             <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
             <span class="text-gray-700">處理中...</span>
         </div>
     </div>
 
-    <script src="../js/auth.js"></script>
     <script src="../js/main.js"></script>
+    <script src="../js/auth.js"></script>
     <script>
         // 頁面初始化
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // 初始化認證
             const auth = new ParentAuthManager();
-            
+
             // 登出按鈕
-            document.getElementById('logoutBtn').addEventListener('click', function() {
+            document.getElementById('logoutBtn').addEventListener('click', function () {
                 auth.logout();
             });
-            
+
+            // 載入子女列表
+            loadChildren();
+
             // 篩選器變更事件
-            document.getElementById('childSelector').addEventListener('change', function() {
+            document.getElementById('childSelector').addEventListener('change', function () {
                 loadReportData();
             });
-            
-            document.getElementById('reportType').addEventListener('change', function() {
+
+            document.getElementById('reportType').addEventListener('change', function () {
                 loadReportData();
             });
-            
-            document.getElementById('subjectFilter').addEventListener('change', function() {
+
+            document.getElementById('subjectFilter').addEventListener('change', function () {
                 loadReportData();
             });
         });
 
+        // 簡易的 showNotification 實現
+        function showNotification(message, type) {
+            // 根據訊息類型可以添加不同的樣式
+            console.log(`[${type.toUpperCase()}] Notification: ${message}`);
+            alert(message);
+        }
+
+        async function loadChildren() {
+            try {
+                const response = await fetch('/api/v1/parent/children', {
+                    headers: {
+                        'Authorization': `Bearer ${parentAuth.getToken()}`
+                    }
+                });
+                if (!response.ok) {
+                    throw new Error('無法獲取子女列表');
+                }
+                const children = await response.json();
+                const selector = document.getElementById('childSelector');
+
+                // 清空現有選項 (保留 "全部子女")
+                selector.innerHTML = '<option value="all">全部子女</option>';
+
+                children.forEach(child => {
+                    const option = document.createElement('option');
+                    option.value = child.id;
+                    option.textContent = `${child.name} (${child.grade}年級)`;
+                    selector.appendChild(option);
+                });
+            } catch (error) {
+                console.error('載入子女列表失敗:', error);
+                showNotification('無法載入子女列表，請稍後再試', 'error');
+            }
+        }
+
         function generateReport() {
             // 顯示載入指示器
             document.getElementById('loadingIndicator').classList.remove('hidden');
-            
-            // 模擬報告生成
-            setTimeout(() => {
-                document.getElementById('loadingIndicator').classList.add('hidden');
-                showNotification('報告已生成', 'success');
-                loadReportData();
-            }, 2000);
+            loadReportData();
         }
 
         function downloadReport() {
             // 模擬下載報告
             showNotification('報告下載中...', 'info');
-            
+
             // 創建下載連結
             const link = document.createElement('a');
             link.href = '#';
             link.download = '學習報告.pdf';
             link.click();
-            
+
             setTimeout(() => {
                 showNotification('報告下載完成', 'success');
             }, 1500);
         }
 
-        function loadReportData() {
+        async function loadReportData() {
             const childId = document.getElementById('childSelector').value;
             const reportType = document.getElementById('reportType').value;
             const subject = document.getElementById('subjectFilter').value;
-            
+
+            if (childId === 'all') {
+                // 如果選擇 "全部子女"，可以選擇顯示一個總覽報告或提示使用者選擇一個子女
+                // 這裡我們暫時只清空報告內容並返回
+                clearReportData();
+                document.getElementById('loadingIndicator').classList.add('hidden');
+                return;
+            }
+
             console.log('載入報告數據:', { childId, reportType, subject });
-            
-            // 這裡會根據篩選條件載入相應的報告數據
-            // 實際實現時會調用 API
+            document.getElementById('loadingIndicator').classList.remove('hidden');
+
+            try {
+                const response = await fetch('/api/v1/reports/learning', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${parentAuth.getToken()}`
+                    },
+                    body: JSON.stringify({
+                        child_id: parseInt(childId),
+                        report_type: reportType,
+                        subject: subject
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('無法生成學習報告');
+                }
+
+                const report = await response.json();
+                updateReportUI(report);
+
+            } catch (error) {
+                console.error('生成報告失敗:', error);
+                showNotification('無法生成報告，請稍後再試', 'error');
+            } finally {
+                document.getElementById('loadingIndicator').classList.add('hidden');
+            }
+        }
+
+        function updateReportUI(report) {
+            // 更新整體表現
+            document.querySelector('.text-2xl.font-bold.text-blue-600').textContent = report.overall_performance.overall_score.toFixed(1);
+
+            const performanceContainer = document.querySelector('.space-y-2');
+            performanceContainer.innerHTML = ''; // 清空舊資料
+            report.overall_performance.subjects.forEach(subject => {
+                const subjectDiv = document.createElement('div');
+                subjectDiv.className = 'flex justify-between text-sm';
+                subjectDiv.innerHTML = `
+                    <span class="text-gray-600">${subject.name}</span>
+                    <span class="font-medium">${subject.score.toFixed(1)}</span>
+                `;
+                performanceContainer.appendChild(subjectDiv);
+            });
+
+            // 更新學習時數和完成任務 (使用模擬數據，因為 API 回應中沒有這些)
+            document.querySelector('.text-2xl.font-bold.text-green-600').textContent = `${report.overall_performance.total_study_hours.toFixed(1)}h`;
+            document.querySelector('.text-2xl.font-bold.text-purple-600').textContent = report.overall_performance.completed_tasks;
+
+            // 更新科目詳細分析
+            const subjectAnalysisContainer = document.querySelector('.space-y-4');
+            subjectAnalysisContainer.innerHTML = ''; // 清空舊資料
+            report.subject_analysis.forEach(subject => {
+                const analysisDiv = document.createElement('div');
+                analysisDiv.className = 'subject-analysis p-4 border rounded-lg';
+                analysisDiv.innerHTML = `
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="font-medium text-gray-800">${subject.subject}</h3>
+                        <span class="text-lg font-bold text-blue-600">${subject.score.toFixed(1)}</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
+                        <div class="bg-blue-600 h-2 rounded-full" style="width: ${subject.accuracy}%"></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">完成題數</span>
+                            <span class="font-medium">${subject.completed_exercises}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">正確率</span>
+                            <span class="font-medium">${subject.accuracy}%</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">學習時數</span>
+                            <span class="font-medium">${subject.study_hours}h</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">進步幅度</span>
+                            <span class="font-medium text-green-600">+${subject.progress}%</span>
+                        </div>
+                    </div>
+                `;
+                subjectAnalysisContainer.appendChild(analysisDiv);
+            });
+
+            // 更新學習趨勢圖表 (使用模擬數據)
+            const trendCharts = document.querySelectorAll('.trend-chart');
+            trendCharts.forEach(chart => {
+                const chartType = chart.querySelector('h3').textContent.includes('成績趨勢') ? 'score' : 'study_hours';
+                const weeks = ['第1週', '第2週', '第3週', '第4週'];
+                const data = weeks.map(week => {
+                    const percentage = Math.floor(Math.random() * 100); // 模擬數據
+                    return { week, percentage };
+                });
+
+                const chartContainer = chart.querySelector('.flex.items-end.justify-between.h-32');
+                chartContainer.innerHTML = ''; // 清空舊資料
+                data.forEach(item => {
+                    const bar = document.createElement('div');
+                    bar.className = 'flex flex-col items-center';
+                    bar.innerHTML = `
+                        <div class="w-8 bg-blue-600 rounded-t" style="height: ${item.percentage}%"></div>
+                        <span class="text-xs text-gray-500 mt-1">${item.week}</span>
+                    `;
+                    chartContainer.appendChild(bar);
+                });
+            });
+
+            // 更新弱點分析與建議 (使用模擬數據)
+            const weaknessAnalysis = document.querySelector('.weakness-analysis');
+            weaknessAnalysis.innerHTML = `
+                <h3 class="text-lg font-medium text-gray-800 mb-3">需要加強的領域</h3>
+                <div class="space-y-3">
+                    <div class="flex items-center p-3 bg-red-50 rounded-lg">
+                        <span class="material-icons text-red-600 mr-3">warning</span>
+                        <div>
+                            <p class="text-sm font-medium text-gray-800">英文單字記憶</p>
+                            <p class="text-xs text-gray-600">建議增加單字練習頻率</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center p-3 bg-yellow-50 rounded-lg">
+                        <span class="material-icons text-yellow-600 mr-3">info</span>
+                        <div>
+                            <p class="text-sm font-medium text-gray-800">數學應用題</p>
+                            <p class="text-xs text-gray-600">需要更多實際應用練習</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const improvementSuggestions = document.querySelector('.improvement-suggestions');
+            improvementSuggestions.innerHTML = `
+                <h3 class="text-lg font-medium text-gray-800 mb-3">改進建議</h3>
+                <div class="space-y-3">
+                    <div class="flex items-center p-3 bg-blue-50 rounded-lg">
+                        <span class="material-icons text-blue-600 mr-3">lightbulb</span>
+                        <div>
+                            <p class="text-sm font-medium text-gray-800">每日單字練習</p>
+                            <p class="text-xs text-gray-600">建議每天練習10個新單字</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center p-3 bg-green-50 rounded-lg">
+                        <span class="material-icons text-green-600 mr-3">school</span>
+                        <div>
+                            <p class="text-sm font-medium text-gray-800">數學解題技巧</p>
+                            <p class="text-xs text-gray-600">專注於解題步驟的訓練</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function clearReportData() {
+            // 清空報告數據的 UI
+            document.querySelector('.text-2xl.font-bold.text-blue-600').textContent = 'N/A';
+            document.querySelector('.space-y-2').innerHTML = '';
+            document.querySelector('.text-2xl.font-bold.text-green-600').textContent = 'N/A';
+            document.querySelector('.text-2xl.font-bold.text-purple-600').textContent = 'N/A';
+            document.querySelector('.space-y-4').innerHTML = '';
         }
     </script>
 </body>
-</html> 
+
+</html>

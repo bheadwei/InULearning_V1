@@ -1,4 +1,5 @@
 #!/bin/bash
+set -x # 追蹤模式
 
 # InULearning Docker 一鍵啟動腳本
 # 作者: AIPE01_group2
@@ -512,8 +513,8 @@ pull_and_build() {
     $DOCKER_COMPOSE_CMD pull --ignore-pull-failures 2>/dev/null || true
     
     # 建立自定義映像
-    log_info "建立應用映像..."
-    $DOCKER_COMPOSE_CMD build --parallel 2>/dev/null || $DOCKER_COMPOSE_CMD build
+    log_info "建立應用映像 (將禁用快取以確保最新)..."
+    $DOCKER_COMPOSE_CMD build --no-cache
     
     log_success "映像準備完成"
 }
@@ -531,7 +532,7 @@ start_services() {
     sleep 10
     
     log_info "啟動應用服務..."
-    $DOCKER_COMPOSE_CMD up -d auth-service question-bank-service learning-service ai-analysis-service
+    $DOCKER_COMPOSE_CMD up -d auth-service question-bank-service learning-service ai-analysis-service parent-dashboard-service report-service
 
     # 啟動題庫資料載入（一次性）
     log_info "啟動題庫資料載入..."
