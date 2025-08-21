@@ -1,159 +1,324 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>InULearning - 教師控制台</title>
-    <link rel="stylesheet" href="../shared/css/components.css">
-    <link rel="stylesheet" href="../shared/css/responsive.css">
+    <meta name="description" content="InULearning 教師控制台：管理班級、學生、題庫與作業，查看學習報告。">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/responsive.css">
     <link rel="stylesheet" href="css/main.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body>
-    <!-- 導航欄 -->
-    <nav class="navbar">
-        <div class="navbar-container">
-            <div class="navbar-brand">
-                <i class="fas fa-chalkboard-teacher"></i>
-                <span>InULearning 教師台</span>
+
+<body class="bg-gray-100">
+    <div class="flex h-screen bg-white">
+        <!-- 側邊欄 -->
+        <aside class="w-64 bg-blue-800 text-white flex flex-col">
+            <a class="block" href="index.html">
+                <div class="flex items-center justify-center p-6 hover:bg-blue-700">
+                    <div class="w-24 h-24 rounded-full bg-blue-600 flex items-center justify-center">
+                        <span class="material-icons text-3xl">school</span>
+                    </div>
+                </div>
+                <div class="px-6 pb-4 hover:bg-blue-700">
+                    <h1 class="text-xl font-bold text-center">InU Learning</h1>
+                    <p class="text-sm text-center">【因你而學】</p>
+                </div>
+            </a>
+            <nav class="flex-1 px-4 py-4 space-y-2">
+                <a class="flex items-center px-4 py-2 text-gray-100 bg-blue-700 rounded-lg" href="index.html">
+                    <span class="material-icons">dashboard</span>
+                    <span class="ml-3">教師控制台</span>
+                </a>
+                <a class="flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg" href="pages/classes-enhanced.html">
+                    <span class="material-icons">class</span>
+                    <span class="ml-3">班級管理</span>
+                </a>
+                <a class="flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg" href="pages/students-enhanced.html">
+                    <span class="material-icons">people</span>
+                    <span class="ml-3">學生分析</span>
+                </a>
+                <a class="flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg" href="pages/assignments-enhanced.html">
+                    <span class="material-icons">assignment</span>
+                    <span class="ml-3">作業管理</span>
+                </a>
+                <a class="flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg" href="pages/questions-enhanced.html">
+                    <span class="material-icons">quiz</span>
+                    <span class="ml-3">題庫管理</span>
+                </a>
+                <a class="flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg" href="pages/grades-enhanced.html">
+                    <span class="material-icons">analytics</span>
+                    <span class="ml-3">成績管理</span>
+                </a>
+                <a class="flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg" href="pages/analytics-enhanced.html">
+                    <span class="material-icons">analytics</span>
+                    <span class="ml-3">學習分析</span>
+                </a>
+            </nav>
+            <div class="p-4 border-t border-blue-700">
+                <button id="logoutBtn" class="w-full flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg">
+                    <span class="material-icons">logout</span>
+                    <span class="ml-3">登出</span>
+                </button>
             </div>
-            <div class="navbar-menu">
-                <a href="pages/dashboard.html" class="nav-link active">
-                    <i class="fas fa-tachometer-alt"></i>
-                    <span>儀表板</span>
-                </a>
-                <a href="pages/classes.html" class="nav-link">
-                    <i class="fas fa-users"></i>
-                    <span>班級管理</span>
-                </a>
-                <a href="pages/students.html" class="nav-link">
-                    <i class="fas fa-user-graduate"></i>
-                    <span>學生分析</span>
-                </a>
-                <a href="pages/questions.html" class="nav-link">
-                    <i class="fas fa-question-circle"></i>
-                    <span>題目管理</span>
-                </a>
-            </div>
-            <div class="navbar-user">
-                <div class="user-dropdown">
-                    <button class="user-dropdown-toggle">
-                        <i class="fas fa-user-circle"></i>
-                        <span id="teacher-name">教師</span>
-                        <i class="fas fa-chevron-down"></i>
+        </aside>
+
+        <!-- 主要內容區域 -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- 頂部導航 -->
+            <header class="flex justify-between items-center p-4 bg-white border-b">
+                <div class="flex items-center flex-1">
+                    <button class="text-gray-500 focus:outline-none lg:hidden">
+                        <span class="material-icons">menu</span>
                     </button>
-                    <div class="user-dropdown-menu">
-                        <a href="pages/profile.html" class="dropdown-item">
-                            <i class="fas fa-user"></i>
-                            <span>個人資料</span>
-                        </a>
-                        <div class="dropdown-divider"></div>
-                        <a href="#" class="dropdown-item" id="logout-btn">
-                            <i class="fas fa-sign-out-alt"></i>
-                            <span>登出</span>
-                        </a>
+                    <div class="relative text-gray-600 focus-within:text-gray-400 ml-4 flex-1 max-w-md">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-2">
+                            <button class="p-1 focus:outline-none" type="submit">
+                                <span class="material-icons">search</span>
+                            </button>
+                        </span>
+                        <input autocomplete="off" class="py-2 text-sm text-gray-700 bg-gray-200 rounded-md pl-10 focus:outline-none focus:bg-white focus:text-gray-900 w-full" name="q" placeholder="搜尋班級、學生或題目..." type="search"/>
                     </div>
                 </div>
-            </div>
+                <div class="flex items-center space-x-4">
+                    <!-- API 加載指示器 -->
+                    <div class="api-loading-indicator" style="display: none;">
+                        <div class="flex items-center text-blue-600">
+                            <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                            <span class="text-sm">載入中...</span>
+                        </div>
+                    </div>
+                    
+                    <div id="userInfo" class="hidden flex items-center space-x-2">
+                        <span class="text-sm text-gray-600">歡迎，</span>
+                        <span id="userName" class="text-sm font-medium text-blue-600">王老師</span>
+                        <button id="logoutBtn" class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition-colors">
+                            登出
+                        </button>
+                    </div>
+                    <div id="authButtons">
+                        <a class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors" href="http://localhost/login.html">登入</a>
+                        <a class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors" href="pages/register.html">註冊</a>
+                    </div>
+                </div>
+            </header>
+
+            <!-- 主要內容 -->
+            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100">
+                <!-- 全局加載指示器 -->
+                <div id="global-loading" class="fixed inset-0 bg-black bg-opacity-25 flex items-center justify-center z-50" style="display: none;">
+                    <div class="bg-white rounded-lg p-6 flex items-center space-x-3 shadow-lg">
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                        <span class="text-gray-700 font-medium">載入中，請稍候...</span>
+                    </div>
+                </div>
+                
+                <div class="container mx-auto px-6 py-8">
+                    <!-- 歡迎區塊 -->
+                    <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-lg p-8 mb-8">
+                        <h2 class="text-3xl font-bold mb-4">歡迎回來，王老師！</h2>
+                        <p class="text-xl mb-6">今天是美好的一天，讓我們開始今天的教學工作吧！</p>
+                        <div class="flex flex-wrap gap-4">
+                            <button class="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+                                <span class="material-icons mr-2">add</span>
+                                建立新作業
+                            </button>
+                            <button class="bg-blue-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-400 transition-colors">
+                                <span class="material-icons mr-2">analytics</span>
+                                查看報告
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 統計卡片 -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+                            <div class="flex items-center">
+                                <div class="bg-blue-100 p-3 rounded-lg mr-4">
+                                    <span class="material-icons text-blue-600 text-2xl">class</span>
+                                </div>
+                                <div>
+                                    <h3 class="text-2xl font-bold text-gray-800">12</h3>
+                                    <p class="text-gray-600">活躍班級</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+                            <div class="flex items-center">
+                                <div class="bg-green-100 p-3 rounded-lg mr-4">
+                                    <span class="material-icons text-green-600 text-2xl">people</span>
+                                </div>
+                                <div>
+                                    <h3 class="text-2xl font-bold text-gray-800">156</h3>
+                                    <p class="text-gray-600">學生總數</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+                            <div class="flex items-center">
+                                <div class="bg-yellow-100 p-3 rounded-lg mr-4">
+                                    <span class="material-icons text-yellow-600 text-2xl">assignment</span>
+                                </div>
+                                <div>
+                                    <h3 class="text-2xl font-bold text-gray-800">8</h3>
+                                    <p class="text-gray-600">待批改作業</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+                            <div class="flex items-center">
+                                <div class="bg-purple-100 p-3 rounded-lg mr-4">
+                                    <span class="material-icons text-purple-600 text-2xl">quiz</span>
+                                </div>
+                                <div>
+                                    <h3 class="text-2xl font-bold text-gray-800">45</h3>
+                                    <p class="text-gray-600">題庫數量</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 功能卡片 -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                        <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer" onclick="location.href='pages/assignments-enhanced.html'">
+                            <div class="text-center">
+                                <div class="bg-blue-100 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                                    <span class="material-icons text-blue-600 text-3xl">add_circle</span>
+                                </div>
+                                <h3 class="text-xl font-semibold text-gray-800 mb-2">建立新作業</h3>
+                                <p class="text-gray-600">為學生建立新的學習作業</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer" onclick="location.href='pages/analytics-enhanced.html'">
+                            <div class="text-center">
+                                <div class="bg-green-100 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                                    <span class="material-icons text-green-600 text-3xl">analytics</span>
+                                </div>
+                                <h3 class="text-xl font-semibold text-gray-800 mb-2">查看學習報告</h3>
+                                <p class="text-gray-600">分析學生的學習進度和表現</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer" onclick="location.href='pages/questions-enhanced.html'">
+                            <div class="text-center">
+                                <div class="bg-yellow-100 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                                    <span class="material-icons text-yellow-600 text-3xl">quiz</span>
+                                </div>
+                                <h3 class="text-xl font-semibold text-gray-800 mb-2">管理題庫</h3>
+                                <p class="text-gray-600">新增、編輯和管理題庫內容</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer" onclick="location.href='pages/students-enhanced.html'">
+                            <div class="text-center">
+                                <div class="bg-purple-100 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                                    <span class="material-icons text-purple-600 text-3xl">people</span>
+                                </div>
+                                <h3 class="text-xl font-semibold text-gray-800 mb-2">學生分析</h3>
+                                <p class="text-gray-600">分析學生學習狀況與進步</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer" onclick="location.href='pages/grades-enhanced.html'">
+                            <div class="text-center">
+                                <div class="bg-red-100 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                                    <span class="material-icons text-red-600 text-3xl">assignment_turned_in</span>
+                                </div>
+                                <h3 class="text-xl font-semibold text-gray-800 mb-2">批改作業</h3>
+                                <p class="text-gray-600">查看和批改學生提交的作業</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer" onclick="location.href='pages/profile.html'">
+                            <div class="text-center">
+                                <div class="bg-indigo-100 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                                    <span class="material-icons text-indigo-600 text-3xl">settings</span>
+                                </div>
+                                <h3 class="text-xl font-semibold text-gray-800 mb-2">系統設定</h3>
+                                <p class="text-gray-600">管理個人和系統設定</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 最近活動 -->
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4">最近活動</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                                <div class="bg-blue-100 p-2 rounded-lg mr-3">
+                                    <span class="material-icons text-blue-600">assignment</span>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="font-medium text-gray-800">新作業已建立</p>
+                                    <p class="text-sm text-gray-600">數學作業 - 2小時前</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                                <div class="bg-green-100 p-2 rounded-lg mr-3">
+                                    <span class="material-icons text-green-600">check_circle</span>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="font-medium text-gray-800">作業批改完成</p>
+                                    <p class="text-sm text-gray-600">英文作業 - 4小時前</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                                <div class="bg-yellow-100 p-2 rounded-lg mr-3">
+                                    <span class="material-icons text-yellow-600">person_add</span>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="font-medium text-gray-800">新學生加入</p>
+                                    <p class="text-sm text-gray-600">張小明 - 6小時前</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
         </div>
-    </nav>
-
-    <!-- 主要內容區域 -->
-    <main class="main-content">
-        <div class="container">
-            <!-- 歡迎區塊 -->
-            <div class="welcome-section">
-                <h1>歡迎回來，教師！</h1>
-                <p>今天是 <span id="current-date"></span>，以下是您的班級概覽</p>
-            </div>
-
-            <!-- 快速統計卡片 -->
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <div class="stat-content">
-                        <h3 id="total-classes">0</h3>
-                        <p>班級總數</p>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-user-graduate"></i>
-                    </div>
-                    <div class="stat-content">
-                        <h3 id="total-students">0</h3>
-                        <p>學生總數</p>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-chart-line"></i>
-                    </div>
-                    <div class="stat-content">
-                        <h3 id="active-sessions">0</h3>
-                        <p>活躍學習</p>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-trophy"></i>
-                    </div>
-                    <div class="stat-content">
-                        <h3 id="avg-score">0%</h3>
-                        <p>平均成績</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 快速操作 -->
-            <div class="quick-actions">
-                <h2>快速操作</h2>
-                <div class="actions-grid">
-                    <a href="pages/classes.html" class="action-card">
-                        <i class="fas fa-plus-circle"></i>
-                        <h3>新增班級</h3>
-                        <p>建立新的班級並管理學生</p>
-                    </a>
-                    <a href="pages/students.html" class="action-card">
-                        <i class="fas fa-chart-bar"></i>
-                        <h3>學生分析</h3>
-                        <p>查看學生學習狀況與進步</p>
-                    </a>
-                    <a href="pages/questions.html" class="action-card">
-                        <i class="fas fa-edit"></i>
-                        <h3>題目管理</h3>
-                        <p>新增或編輯練習題目</p>
-                    </a>
-                    <a href="pages/reports.html" class="action-card">
-                        <i class="fas fa-file-alt"></i>
-                        <h3>學習報告</h3>
-                        <p>生成班級學習報告</p>
-                    </a>
-                </div>
-            </div>
-
-            <!-- 最近活動 -->
-            <div class="recent-activity">
-                <h2>最近活動</h2>
-                <div class="activity-list" id="activity-list">
-                    <!-- 活動項目將由 JavaScript 動態載入 -->
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <!-- 載入指示器 -->
-    <div class="loading-overlay" id="loading-overlay">
-        <div class="loading-spinner"></div>
     </div>
 
-    <!-- 腳本 -->
-    <script src="../shared/js/utils.js"></script>
-    <script src="../shared/js/api-client.js"></script>
+    <!-- JavaScript 檔案載入 -->
     <script src="js/auth.js"></script>
-    <script src="js/dashboard.js"></script>
     <script src="js/main.js"></script>
+    
+    <script>
+        // 頁面載入完成後的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 教師前端頁面載入完成');
+            
+            // 強制更新認證狀態和歡迎訊息
+            if (typeof teacherAuth !== 'undefined') {
+                console.log('✅ 找到認證管理器，更新 UI');
+                teacherAuth.updateUI();
+            } else {
+                console.log('❌ 認證管理器未找到');
+            }
+            
+            // 登出功能
+            document.getElementById('logoutBtn').addEventListener('click', function() {
+                if (confirm('確定要登出嗎？')) {
+                    if (typeof teacherAuth !== 'undefined') {
+                        teacherAuth.logout();
+                    } else {
+                        alert('已登出');
+                    }
+                }
+            });
+        });
+    </script>
 </body>
-</html> 
+
+</html>

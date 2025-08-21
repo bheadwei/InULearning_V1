@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>註冊 - InU Learning【因你而學】</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+
+        .role-badge {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .role-badge:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .role-badge.active {
+            background: linear-gradient(135deg, #3B82F6, #1D4ED8);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .password-strength {
+            height: 4px;
+            border-radius: 2px;
+            margin-top: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .strength-weak {
+            background-color: #ef4444;
+            width: 25%;
+        }
+
+        .strength-fair {
+            background-color: #f59e0b;
+            width: 50%;
+        }
+
+        .strength-good {
+            background-color: #10b981;
+            width: 75%;
+        }
+
+        .strength-strong {
+            background-color: #059669;
+            width: 100%;
+        }
+
+        /* 表單驗證視覺回饋 */
+        .border-green-500 {
+            border-color: #10b981 !important;
+            box-shadow: 0 0 0 1px #10b981;
+        }
+
+        .border-red-500 {
+            border-color: #ef4444 !important;
+            box-shadow: 0 0 0 1px #ef4444;
+        }
+
+        /* 載入狀態樣式 */
+        .opacity-75 {
+            opacity: 0.75;
+        }
+
+        .cursor-not-allowed {
+            cursor: not-allowed;
+        }
+
+        /* 角色選擇動畫 */
+        .role-btn {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .role-btn:hover:not(.active) {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100">
+    <div class="flex h-screen bg-white">
+        <!-- 側邊欄 -->
+        <aside class="w-64 bg-blue-800 text-white flex-col hidden lg:flex">
+            <div class="flex items-center justify-center p-6">
+                <img alt="InU Learning Logo" class="w-24 h-24 rounded-full"
+                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuBkUkYI-c0qBm9BcHamuWBs9ebu6mgGni1SlXL6giHvgu2WnHxHaQYkRoAlzI_OZ8yNf6Rn90d73q13vLeMoBfFP0mQHcxlf2YHE9__XhpOUl-OvECBnRad91AKcE4dKkTJtEoAm_alktSTzu_Aw9Fah_2IQ6YeqBALwAqrLNP2oghwOkLSyBMdfpOrW24nKk3dnl3z6piT9-S0cISDfJ5rhAlBYvIzoAhypgUHvJCzxlSG9ag8QMkltK1Hu_rX4jqdQgGuOD2JLzo">
+            </div>
+            <div class="px-6 pb-4">
+                <h1 class="text-xl font-bold text-center">InU Learning</h1>
+                <p class="text-sm text-center">【因你而學】</p>
+            </div>
+
+            <nav class="flex-1 px-4 py-4 space-y-2">
+                <div class="flex items-center px-4 py-2 text-gray-100 rounded-lg">
+                    <span class="material-icons">school</span>
+                    <span class="ml-3">學生練功專區</span>
+                </div>
+                <div class="flex items-center px-4 py-2 text-gray-100 rounded-lg">
+                    <span class="material-icons">family_restroom</span>
+                    <span class="ml-3">家長控制台</span>
+                </div>
+                <div class="flex items-center px-4 py-2 text-gray-100 rounded-lg">
+                    <span class="material-icons">person</span>
+                    <span class="ml-3">教師專區</span>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- 主內容區 -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- 頂部導航 -->
+            <header class="flex justify-between items-center p-4 bg-white border-b">
+                <div class="flex items-center flex-1">
+                    <button class="text-gray-500 focus:outline-none lg:hidden">
+                        <span class="material-icons">menu</span>
+                    </button>
+                    <div class="lg:hidden ml-4">
+                        <h1 class="text-lg font-bold text-blue-800">InU Learning</h1>
+                    </div>
+                </div>
+            </header>
+
+            <!-- 註冊表單區 -->
+            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100">
+                <div class="container mx-auto px-6 py-8">
+                    <div class="max-w-md mx-auto bg-white rounded-lg shadow-md overflow-hidden">
+                        <div class="px-6 py-8">
+                            <!-- Logo (小螢幕顯示) -->
+                            <div class="flex justify-center mb-6">
+                                <img alt="InU Learning Logo" class="w-20 h-20 rounded-full lg:hidden"
+                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuBkUkYI-c0qBm9BcHamuWBs9ebu6mgGni1SlXL6giHvgu2WnHxHaQYkRoAlzI_OZ8yNf6Rn90d73q13vLeMoBfFP0mQHcxlf2YHE9__XhpOUl-OvECBnRad91AKcE4dKkTJtEoAm_alktSTzu_Aw9Fah_2IQ6YeqBALwAqrLNP2oghwOkLSyBMdfpOrW24nKk3dnl3z6piT9-S0cISDfJ5rhAlBYvIzoAhypgUHvJCzxlSG9ag8QMkltK1Hu_rX4jqdQgGuOD2JLzo">
+                            </div>
+
+                            <!-- 標題 -->
+                            <h2 class="text-2xl font-bold text-center text-blue-800">註冊您的 InU Learning 帳號</h2>
+                            <p class="mt-2 text-center text-gray-600">選擇您的身份並開始您的個人化學習旅程</p>
+
+                            <!-- 身份選擇 -->
+                            <div class="mt-6 mb-6">
+                                <label class="block text-sm font-medium text-gray-700 mb-3">選擇身份</label>
+                                <div class="grid grid-cols-3 gap-3">
+                                    <button type="button"
+                                        class="role-badge role-btn active bg-blue-50 border-2 border-blue-200 rounded-lg p-3 text-center transition-all duration-200"
+                                        data-role="student">
+                                        <span class="material-icons text-blue-600 mb-1">school</span>
+                                        <div class="text-sm font-medium text-blue-800">學生</div>
+                                    </button>
+                                    <button type="button"
+                                        class="role-badge role-btn bg-green-50 border-2 border-green-200 rounded-lg p-3 text-center transition-all duration-200"
+                                        data-role="parent">
+                                        <span class="material-icons text-green-600 mb-1">family_restroom</span>
+                                        <div class="text-sm font-medium text-green-800">家長</div>
+                                    </button>
+                                    <button type="button"
+                                        class="role-badge role-btn bg-purple-50 border-2 border-purple-200 rounded-lg p-3 text-center transition-all duration-200"
+                                        data-role="teacher">
+                                        <span class="material-icons text-purple-600 mb-1">person</span>
+                                        <div class="text-sm font-medium text-purple-800">教師</div>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- 註冊表單 -->
+                            <form id="registerForm" class="space-y-6">
+                                <!-- 姓名欄位 -->
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700"
+                                            for="firstName">名字</label>
+                                        <input
+                                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                            id="firstName" name="firstName" required type="text" placeholder="請輸入您的名字"
+                                            maxlength="50">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700" for="lastName">姓氏</label>
+                                        <input
+                                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                            id="lastName" name="lastName" required type="text" placeholder="請輸入您的姓氏"
+                                            maxlength="50">
+                                    </div>
+                                </div>
+
+                                <!-- 電子郵件 -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700" for="email">電子郵件</label>
+                                    <input autocomplete="email"
+                                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                        id="email" name="email" required type="email" placeholder="請輸入您的電子郵件"
+                                        maxlength="255">
+                                </div>
+
+                                <!-- 用戶名 -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700" for="username">用戶名</label>
+                                    <input autocomplete="username"
+                                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                        id="username" name="username" required type="text" placeholder="請輸入用戶名"
+                                        maxlength="100">
+                                </div>
+
+                                <!-- 密碼 -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700" for="password">密碼</label>
+                                    <input autocomplete="new-password"
+                                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                        id="password" name="password" required type="password"
+                                        placeholder="請輸入密碼（至少8個字元）" maxlength="128" spellcheck="false">
+                                    <div class="password-strength" id="passwordStrength"></div>
+                                    <p class="mt-1 text-xs text-gray-500" id="passwordHint">密碼至少需要8個字元</p>
+                                </div>
+
+                                <!-- 確認密碼 -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700"
+                                        for="confirmPassword">確認密碼</label>
+                                    <input autocomplete="new-password"
+                                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                        id="confirmPassword" name="confirmPassword" required type="password"
+                                        placeholder="請再次輸入密碼" maxlength="128" spellcheck="false">
+                                </div>
+
+                                <!-- 電話號碼 -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700" for="phone">電話號碼 <span
+                                            class="text-gray-400">(選填)</span></label>
+                                    <input autocomplete="tel"
+                                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                        id="phone" name="phone" type="tel" placeholder="請輸入電話號碼" maxlength="20">
+                                </div>
+
+                                <!-- 服務條款 -->
+                                <div class="flex items-center">
+                                    <input class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                        id="agreeTerms" name="agreeTerms" type="checkbox" required>
+                                    <label class="ml-2 block text-sm text-gray-900" for="agreeTerms">
+                                        我同意 <a href="#" class="text-blue-600 hover:text-blue-500">服務條款</a> 和 <a href="#"
+                                            class="text-blue-600 hover:text-blue-500">隱私政策</a>
+                                    </label>
+                                </div>
+
+                                <!-- 註冊按鈕 -->
+                                <div>
+                                    <button id="registerBtn"
+                                        class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
+                                        type="submit">
+                                        <span id="registerText">註冊帳號</span>
+                                        <span id="loadingSpinner" class="hidden ml-2">
+                                            <svg class="animate-spin h-4 w-4 text-white"
+                                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                                    stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor"
+                                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                                </path>
+                                            </svg>
+                                        </span>
+                                    </button>
+                                </div>
+
+                                <!-- 分隔線 -->
+                                <div class="relative">
+                                    <div class="absolute inset-0 flex items-center">
+                                        <div class="w-full border-t border-gray-300"></div>
+                                    </div>
+                                    <div class="relative flex justify-center text-sm">
+                                        <span class="px-2 bg-white text-gray-500">或使用其他方式註冊</span>
+                                    </div>
+                                </div>
+
+                                <!-- Google 註冊 -->
+                                <div>
+                                    <button type="button"
+                                        class="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors duration-200"
+                                        onclick="alert('Google 註冊功能開發中...')">
+                                        <img alt="Google logo" class="w-5 h-5"
+                                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBn3GMtPbiYKp07JRG1hAhCltT7oN-f3IoikefY1Uby1psAxL2bnBktNuwsl0283bf8x27y7_lsaaNsV369M95n-GuJwri9nfAmCGUlJArv2Jdn-7C5uNWgOf3YkTD5F8eP0gZKDts6yGUiPkKjpMBqRv11cj4NmdQGlr79IVHnYaEPDqWH5muRBVqTrqtxDIFjgGagJJMjKQHZ3KB9bO3Qtds6_HGJaG41xOt9hqN-JKDpWOB_LdOXfipdSJX5UuQioT7Gd65FCuE">
+                                        <span class="ml-2">使用 Google 註冊</span>
+                                    </button>
+                                </div>
+                            </form>
+
+                            <!-- 錯誤和成功訊息 -->
+                            <div id="errorMessage"
+                                class="hidden mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-md text-sm">
+                            </div>
+                            <div id="successMessage"
+                                class="hidden mt-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-md text-sm">
+                            </div>
+
+                            <!-- 登入連結 -->
+                            <p class="mt-8 text-center text-sm text-gray-600">
+                                已經有帳號了嗎？
+                                <a class="font-medium text-blue-600 hover:text-blue-500" href="/login.html">前往登入</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- JavaScript 引用 -->
+    <script src="/js/utils.js"></script>
+    <script src="/js/api-client.js"></script>
+    <script src="/js/register.js"></script>
+</body>
+
+</html>

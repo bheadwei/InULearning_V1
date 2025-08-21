@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>學生分析調試頁面</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .debug-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .error { color: red; }
+        .success { color: green; }
+        .info { color: blue; }
+    </style>
+</head>
+<body>
+    <h1>學生分析頁面調試</h1>
+    
+    <div class="debug-section">
+        <h2>1. 檢查 JavaScript 文件載入</h2>
+        <div id="js-load-status"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>2. 檢查認證狀態</h2>
+        <div id="auth-status"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>3. 檢查 API 客戶端</h2>
+        <div id="api-status"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>4. 檢查學生管理器</h2>
+        <div id="manager-status"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>5. 控制台錯誤</h2>
+        <div id="console-errors"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>6. 測試按鈕</h2>
+        <button onclick="testAuth()">測試認證</button>
+        <button onclick="testAPI()">測試 API</button>
+        <button onclick="testManager()">測試管理器</button>
+        <button onclick="goToStudentsPage()">前往學生分析頁面</button>
+    </div>
+
+    <!-- 載入 JavaScript 文件 -->
+    <script src="../js/auth.js"></script>
+    <script src="../js/api-client.js"></script>
+    <script src="../js/students-enhanced.js"></script>
+    
+    <script>
+        // 捕獲控制台錯誤
+        const originalError = console.error;
+        const originalLog = console.log;
+        const errors = [];
+        
+        console.error = function(...args) {
+            errors.push({ type: 'error', args, timestamp: new Date().toISOString() });
+            originalError.apply(console, args);
+        };
+        
+        console.log = function(...args) {
+            errors.push({ type: 'log', args, timestamp: new Date().toISOString() });
+            originalLog.apply(console, args);
+        };
+
+        // 頁面載入完成後執行診斷
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🔍 開始診斷學生分析頁面...');
+            
+            // 延遲執行以確保所有腳本都載入完成
+            setTimeout(() => {
+                runDiagnostics();
+            }, 1000);
+        });
+
+        function runDiagnostics() {
+            console.log('🔍 執行診斷...');
+            
+            // 1. 檢查 JavaScript 文件載入
+            checkJSFiles();
+            
+            // 2. 檢查認證狀態
+            checkAuthStatus();
+            
+            // 3. 檢查 API 客戶端
+            checkAPIClient();
+            
+            // 4. 檢查學生管理器
+            checkStudentsManager();
+            
+            // 5. 顯示控制台錯誤
+            displayConsoleErrors();
+        }
+
+        function checkJSFiles() {
+            const statusDiv = document.getElementById('js-load-status');
+            let html = '<h3>JavaScript 文件載入狀態：</h3>';
+            
+            try {
+                if (typeof TeacherAuthManager !== 'undefined') {
+                    html += '<p class="success">✅ auth.js 載入成功</p>';
+                } else {
+                    html += '<p class="error">❌ auth.js 載入失敗</p>';
+                }
+                
+                if (typeof apiClient !== 'undefined') {
+                    html += '<p class="success">✅ api-client.js 載入成功</p>';
+                } else {
+                    html += '<p class="error">❌ api-client.js 載入失敗</p>';
+                }
+                
+                if (typeof StudentsAnalysisManager !== 'undefined') {
+                    html += '<p class="success">✅ students-enhanced.js 載入成功</p>';
+                } else {
+                    html += '<p class="error">❌ students-enhanced.js 載入失敗</p>';
+                }
+                
+                if (typeof teacherAuth !== 'undefined') {
+                    html += '<p class="success">✅ teacherAuth 對象存在</p>';
+                } else {
+                    html += '<p class="error">❌ teacherAuth 對象不存在</p>';
+                }
+                
+                if (typeof studentsManager !== 'undefined') {
+                    html += '<p class="success">✅ studentsManager 對象存在</p>';
+                } else {
+                    html += '<p class="error">❌ studentsManager 對象不存在</p>';
+                }
+                
+            } catch (error) {
+                html += `<p class="error">❌ 檢查過程中發生錯誤: ${error.message}</p>`;
+            }
+            
+            statusDiv.innerHTML = html;
+        }
+
+        function checkAuthStatus() {
+            const statusDiv = document.getElementById('auth-status');
+            let html = '<h3>認證狀態：</h3>';
+            
+            try {
+                if (typeof teacherAuth !== 'undefined') {
+                    const token = teacherAuth.getToken();
+                    const user = teacherAuth.getUser();
+                    
+                    html += `<p class="info">Token: ${token ? '存在' : '不存在'}</p>`;
+                    html += `<p class="info">用戶: ${user ? JSON.stringify(user) : '未登入'}</p>`;
+                    html += `<p class="info">登入狀態: ${teacherAuth.isLoggedIn() ? '已登入' : '未登入'}</p>`;
+                } else {
+                    html += '<p class="error">❌ teacherAuth 未定義</p>';
+                }
+            } catch (error) {
+                html += `<p class="error">❌ 檢查認證狀態時發生錯誤: ${error.message}</p>`;
+            }
+            
+            statusDiv.innerHTML = html;
+        }
+
+        function checkAPIClient() {
+            const statusDiv = document.getElementById('api-status');
+            let html = '<h3>API 客戶端狀態：</h3>';
+            
+            try {
+                if (typeof apiClient !== 'undefined') {
+                    html += `<p class="success">✅ API 客戶端載入成功</p>`;
+                    html += `<p class="info">Base URL: ${apiClient.baseUrl}</p>`;
+                    html += `<p class="info">Timeout: ${apiClient.timeout}ms</p>`;
+                } else {
+                    html += '<p class="error">❌ API 客戶端未定義</p>';
+                }
+            } catch (error) {
+                html += `<p class="error">❌ 檢查 API 客戶端時發生錯誤: ${error.message}</p>`;
+            }
+            
+            statusDiv.innerHTML = html;
+        }
+
+        function checkStudentsManager() {
+            const statusDiv = document.getElementById('manager-status');
+            let html = '<h3>學生管理器狀態：</h3>';
+            
+            try {
+                if (typeof studentsManager !== 'undefined') {
+                    html += '<p class="success">✅ 學生管理器存在</p>';
+                    html += `<p class="info">學生數量: ${studentsManager.students ? studentsManager.students.length : 'N/A'}</p>`;
+                    html += `<p class="info">當前視圖: ${studentsManager.currentView || 'N/A'}</p>`;
+                } else {
+                    html += '<p class="error">❌ 學生管理器未定義</p>';
+                }
+            } catch (error) {
+                html += `<p class="error">❌ 檢查學生管理器時發生錯誤: ${error.message}</p>`;
+            }
+            
+            statusDiv.innerHTML = html;
+        }
+
+        function displayConsoleErrors() {
+            const statusDiv = document.getElementById('console-errors');
+            let html = '<h3>控制台錯誤：</h3>';
+            
+            if (errors.length === 0) {
+                html += '<p class="success">✅ 沒有發現錯誤</p>';
+            } else {
+                errors.forEach((error, index) => {
+                    const type = error.type === 'error' ? '❌' : 'ℹ️';
+                    const color = error.type === 'error' ? 'error' : 'info';
+                    html += `<p class="${color}">${type} [${error.timestamp}] ${error.args.join(' ')}</p>`;
+                });
+            }
+            
+            statusDiv.innerHTML = html;
+        }
+
+        // 測試函數
+        function testAuth() {
+            console.log('🧪 測試認證功能...');
+            try {
+                if (typeof teacherAuth !== 'undefined') {
+                    teacherAuth.updateUI();
+                    console.log('✅ 認證功能測試成功');
+                } else {
+                    console.error('❌ teacherAuth 未定義');
+                }
+            } catch (error) {
+                console.error('❌ 認證功能測試失敗:', error);
+            }
+        }
+
+        function testAPI() {
+            console.log('🧪 測試 API 功能...');
+            try {
+                if (typeof apiClient !== 'undefined') {
+                    console.log('✅ API 客戶端測試成功');
+                } else {
+                    console.error('❌ apiClient 未定義');
+                }
+            } catch (error) {
+                console.error('❌ API 功能測試失敗:', error);
+            }
+        }
+
+        function testManager() {
+            console.log('🧪 測試學生管理器...');
+            try {
+                if (typeof studentsManager !== 'undefined') {
+                    console.log('✅ 學生管理器測試成功');
+                } else {
+                    console.error('❌ studentsManager 未定義');
+                }
+            } catch (error) {
+                console.error('❌ 學生管理器測試失敗:', error);
+            }
+        }
+
+        function goToStudentsPage() {
+            window.location.href = 'students-enhanced.html';
+        }
+    </script>
+</body>
+</html>

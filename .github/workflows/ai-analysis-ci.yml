@@ -1,0 +1,51 @@
+name: AI Analysis Service CI
+
+on:
+  push:
+    paths:
+      - '2_implementation/backend/ai-analysis-service/**'
+      - 'scripts/check_ai_analysis_service.py'
+      - 'docker-compose.yml'
+  pull_request:
+    paths:
+      - '2_implementation/backend/ai-analysis-service/**'
+      - 'scripts/check_ai_analysis_service.py'
+      - 'docker-compose.yml'
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Export env
+        run: |
+          echo "GEMINI_API_KEY=dummy" >> $GITHUB_ENV
+          echo "AI_ANALYSIS_MOCK=1" >> $GITHUB_ENV
+
+      - name: Start minimal stack
+        run: |
+          docker compose up -d postgres redis ai-analysis-service
+          echo "Waiting for service to start..."
+          sleep 8
+
+      - name: Install requests
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+
+      - name: Run E2E checks
+        run: |
+          python scripts/check_ai_analysis_service.py
+
+      - name: Show service logs on failure
+        if: failure()
+        run: |
+          docker compose logs ai-analysis-service
+
+

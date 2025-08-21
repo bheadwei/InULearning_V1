@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>學生分析測試頁面</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <h1>學生分析頁面診斷</h1>
+    
+    <div class="test-section info">
+        <h3>1. 基本頁面測試</h3>
+        <p>當前時間: <span id="current-time"></span></p>
+        <p>頁面載入狀態: <span id="page-status">載入中...</span></p>
+    </div>
+    
+    <div class="test-section info">
+        <h3>2. JavaScript 文件載入測試</h3>
+        <button onclick="testJSFiles()">測試 JS 文件載入</button>
+        <div id="js-test-results"></div>
+    </div>
+    
+    <div class="test-section info">
+        <h3>3. API 客戶端測試</h3>
+        <button onclick="testAPIClient()">測試 API 客戶端</button>
+        <div id="api-test-results"></div>
+    </div>
+    
+    <div class="test-section info">
+        <h3>4. 學生分析管理器測試</h3>
+        <button onclick="testStudentsManager()">測試學生分析管理器</button>
+        <div id="manager-test-results"></div>
+    </div>
+    
+    <div class="test-section info">
+        <h3>5. 頁面導航測試</h3>
+        <button onclick="testNavigation()">測試頁面導航</button>
+        <div id="navigation-test-results"></div>
+    </div>
+    
+    <div class="test-section info">
+        <h3>6. 錯誤日誌</h3>
+        <div id="error-log"></div>
+    </div>
+    
+    <script>
+        // 頁面載入完成
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('current-time').textContent = new Date().toLocaleString();
+            document.getElementById('page-status').textContent = '頁面載入完成';
+            
+            // 捕獲全局錯誤
+            window.addEventListener('error', function(e) {
+                logError('全局錯誤: ' + e.message + ' at ' + e.filename + ':' + e.lineno);
+            });
+            
+            window.addEventListener('unhandledrejection', function(e) {
+                logError('未處理的 Promise 拒絕: ' + e.reason);
+            });
+        });
+        
+        function logError(message) {
+            const errorLog = document.getElementById('error-log');
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'test-section error';
+            errorDiv.textContent = new Date().toLocaleTimeString() + ': ' + message;
+            errorLog.appendChild(errorDiv);
+        }
+        
+        function testJSFiles() {
+            const results = document.getElementById('js-test-results');
+            results.innerHTML = '<div class="test-section info">測試中...</div>';
+            
+            const files = [
+                '../js/auth.js',
+                '../js/api-client.js',
+                '../js/students-enhanced.js'
+            ];
+            
+            let loadedCount = 0;
+            let errorCount = 0;
+            
+            files.forEach(file => {
+                const script = document.createElement('script');
+                script.onload = () => {
+                    loadedCount++;
+                    if (loadedCount + errorCount === files.length) {
+                        showResults(results, loadedCount, errorCount);
+                    }
+                };
+                script.onerror = () => {
+                    errorCount++;
+                    if (loadedCount + errorCount === files.length) {
+                        showResults(results, loadedCount, errorCount);
+                    }
+                };
+                script.src = file;
+                document.head.appendChild(script);
+            });
+        }
+        
+        function showResults(results, loaded, errors) {
+            if (errors === 0) {
+                results.innerHTML = `<div class="test-section success">✅ 所有 JS 文件載入成功 (${loaded}/${loaded + errors})</div>`;
+            } else {
+                results.innerHTML = `<div class="test-section error">❌ JS 文件載入失敗 (${loaded}/${loaded + errors})</div>`;
+            }
+        }
+        
+        function testAPIClient() {
+            const results = document.getElementById('api-test-results');
+            results.innerHTML = '<div class="test-section info">測試中...</div>';
+            
+            try {
+                if (typeof apiClient !== 'undefined') {
+                    results.innerHTML = '<div class="test-section success">✅ API 客戶端可用</div>';
+                } else {
+                    results.innerHTML = '<div class="test-section error">❌ API 客戶端未定義</div>';
+                }
+            } catch (error) {
+                results.innerHTML = `<div class="test-section error">❌ API 客戶端測試失敗: ${error.message}</div>`;
+            }
+        }
+        
+        function testStudentsManager() {
+            const results = document.getElementById('manager-test-results');
+            results.innerHTML = '<div class="test-section info">測試中...</div>';
+            
+            try {
+                if (typeof StudentsAnalysisManager !== 'undefined') {
+                    results.innerHTML = '<div class="test-section success">✅ 學生分析管理器類可用</div>';
+                } else {
+                    results.innerHTML = '<div class="test-section error">❌ 學生分析管理器類未定義</div>';
+                }
+            } catch (error) {
+                results.innerHTML = `<div class="test-section error">❌ 學生分析管理器測試失敗: ${error.message}</div>`;
+            }
+        }
+        
+        function testNavigation() {
+            const results = document.getElementById('navigation-test-results');
+            results.innerHTML = '<div class="test-section info">測試中...</div>';
+            
+            try {
+                // 測試導航到學生分析頁面
+                const testUrl = 'pages/students-enhanced.html';
+                results.innerHTML = `<div class="test-section success">✅ 導航 URL 測試: ${testUrl}</div>`;
+                
+                // 測試點擊事件
+                const testButton = document.createElement('button');
+                testButton.textContent = '點擊測試導航';
+                testButton.onclick = () => {
+                    window.location.href = testUrl;
+                };
+                results.appendChild(testButton);
+                
+            } catch (error) {
+                results.innerHTML = `<div class="test-section error">❌ 導航測試失敗: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>
+
+
+

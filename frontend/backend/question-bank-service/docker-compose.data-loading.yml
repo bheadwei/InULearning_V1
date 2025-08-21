@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  # MongoDB 資料庫
+  mongodb:
+    image: mongo:7.0
+    container_name: inulearning-mongodb-test
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: aipe-tester
+      MONGO_INITDB_ROOT_PASSWORD: aipe-tester
+      MONGO_INITDB_DATABASE: inulearning
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - inulearning
+
+  # MinIO 物件儲存
+  minio:
+    image: minio/minio:latest
+    container_name: inulearning-minio-test
+    environment:
+      MINIO_ROOT_USER: inulearning_admin
+      MINIO_ROOT_PASSWORD: inulearning_password
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - inulearning
+
+  # 資料載入服務
+  data-loader:
+    build:
+      context: .
+      dockerfile: Dockerfile.data-loader
+    container_name: inulearning-data-loader
+    environment:
+      MONGODB_URL: mongodb://aipe-tester:aipe-tester@mongodb:27017/inulearning?authSource=admin
+      MONGODB_DATABASE: inulearning
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: inulearning_admin
+      MINIO_SECRET_KEY: inulearning_password
+      MINIO_BUCKET_NAME: question-bank
+      MINIO_SECURE: "false"
+    volumes:
+      - ../../database/seeds:/app/seeds:ro
+    depends_on:
+      - mongodb
+      - minio
+    networks:
+      - inulearning
+
+volumes:
+  mongodb_data:
+  minio_data:
+
+
+networks:
+  inulearning:
+    driver: bridge

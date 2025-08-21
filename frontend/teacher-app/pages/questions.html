@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="InULearning 教師台 - 題目管理">
+    <title>題目管理 - InULearning 教師台</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/design-tokens.css">
+    <link rel="stylesheet" href="../css/main.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .toolbar { display:flex; gap:1rem; justify-content: space-between; align-items:center; margin-bottom:1rem; }
+        .controls { display:flex; gap:0.5rem; align-items:center; }
+        .search-box input { padding:0.6rem 0.8rem; border:1px solid var(--border); border-radius:8px; width:260px; }
+        .controls select { padding:0.6rem 0.8rem; border:1px solid var(--border); border-radius:8px; }
+        .btn-primary { background: var(--primary-blue); color:#fff; border:none; padding:0.6rem 1rem; border-radius:8px; cursor:pointer; }
+        .btn-primary:hover { background: var(--accent-blue); }
+        .table { width:100%; border-collapse: collapse; background:#fff; box-shadow: var(--shadow-sm); border-radius:12px; overflow:hidden; }
+        .table th, .table td { padding:0.9rem 1rem; border-bottom:1px solid var(--border); text-align:left; }
+        .tag { padding:0.2rem 0.5rem; border-radius:999px; font-size:0.8rem; background:#EFF6FF; color:#1E40AF; }
+        .empty { padding:1rem; color:var(--text-light); text-align:center; }
+        .pagination { display:flex; gap:0.5rem; align-items:center; margin-top:0.75rem; }
+        .btn { padding:0.4rem 0.7rem; border:1px solid var(--border); background:#fff; border-radius:6px; cursor:pointer; }
+        .btn[disabled] { opacity:0.5; cursor:not-allowed; }
+        .btn-danger { background:#EF4444; color:#fff; border:none; }
+        .btn-danger:hover { background:#DC2626; }
+        .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.4); display:none; align-items:center; justify-content:center; z-index:2000; }
+        .modal-backdrop.show { display:flex; }
+        .modal { background:#fff; border-radius:12px; width:100%; max-width:640px; box-shadow:var(--shadow-md); }
+        .modal-header { padding:1rem 1rem 0.5rem 1rem; border-bottom:1px solid var(--border); }
+        .modal-body { padding:1rem; max-height:70vh; overflow:auto; }
+        .modal-footer { padding:0.75rem 1rem; border-top:1px solid var(--border); display:flex; gap:0.5rem; justify-content:flex-end; }
+        .field { margin-bottom:0.75rem; }
+        .field label { display:block; font-weight:600; margin:0 0 0.25rem 0; }
+        .field input, .field select, .field textarea { width:100%; padding:0.6rem 0.8rem; border:1px solid var(--border); border-radius:8px; }
+    </style>
+    <script>
+        let questions = [];
+        let editingId = null;
+        async function loadQuestions() {
+            try {
+                const res = await apiClient.get('/questions');
+                // 兼容不同返回格式
+                questions = res.data || res.items || res || [];
+            } catch (e) {
+                questions = [
+                    { id:'Q-1001', subject:'數學', kp:'分數比較', level:'中', updated:'2025-08-10' },
+                    { id:'Q-1002', subject:'數學', kp:'分數四則', level:'易', updated:'2025-08-08' },
+                ];
+            }
+        }
+        let qPage = 1; const qPageSize = 10;
+        function sortAndFilter(list){
+            const kw = (document.getElementById('kw')?.value || '').trim();
+            const subject = (document.getElementById('subjectFilter')?.value || '');
+            const level = (document.getElementById('levelFilter')?.value || '');
+            const sortBy = (document.getElementById('sortBy')?.value || 'updated_desc');
+            let arr = list.filter(q => (!kw || (`${q.id||''} ${q.subject||''} ${q.kp||q.knowledge_point||''}`).includes(kw)) && (!subject || (q.subject||'')===subject) && (!level || (q.level||q.difficulty||'')===level));
+            if (sortBy==='updated_desc') arr.sort((a,b)=> new Date(b.updated||b.updated_at||0) - new Date(a.updated||a.updated_at||0));
+            else if (sortBy==='updated_asc') arr.sort((a,b)=> new Date(a.updated||a.updated_at||0) - new Date(b.updated||b.updated_at||0));
+            else if (sortBy==='difficulty') arr.sort((a,b)=> (a.level||a.difficulty||'').localeCompare(b.level||b.difficulty||''));
+            else if (sortBy==='id') arr.sort((a,b)=> (String(a.id||a._id||'')).localeCompare(String(b.id||b._id||'')));
+            return arr;
+        }
+        function renderQuestions() {
+            const tbody = document.getElementById('q-tbody');
+            let filtered = sortAndFilter(questions);
+            const total = filtered.length; const totalPages = Math.max(1, Math.ceil(total / qPageSize));
+            qPage = Math.min(qPage, totalPages);
+            filtered = filtered.slice((qPage-1)*qPageSize, (qPage-1)*qPageSize + qPageSize);
+            tbody.innerHTML = filtered.map(q => `
+                <tr>
+                    <td>${q.id || q._id || '-'}</td>
+                    <td>${q.subject || '-'}</td>
+                    <td>${q.kp || q.knowledge_point || '-'}</td>
+                    <td>${q.level || q.difficulty || '-'}</td>
+                    <td>${q.updated || q.updated_at || '-'}</td>
+                    <td style="display:flex; gap:0.5rem;">
+                        <button class="btn" onclick="onEdit('${q.id||q._id||''}')">編輯</button>
+                        <button class="btn-danger" onclick="onDelete('${q.id||q._id||''}','${(q.id||q._id||'').replace(/\"/g,'&quot;')}')">刪除</button>
+                    </td>
+                </tr>`).join('');
+            if (!total) tbody.innerHTML = `<tr><td colspan="6"><div class="empty">尚無資料</div></td></tr>`;
+            document.getElementById('qPageInfo').textContent = `${qPage} / ${totalPages}`;
+            document.getElementById('qPrev').disabled = qPage<=1; document.getElementById('qNext').disabled = qPage>=totalPages;
+        }
+        function openModal(){ document.getElementById('qModal').classList.add('show'); }
+        function closeModal(){ document.getElementById('qModal').classList.remove('show'); }
+        function resetForm(){ document.getElementById('qForm').reset(); document.getElementById('qLevel').value='中'; }
+        function onCreate(){ editingId=null; document.getElementById('qModalTitle').textContent='新增題目'; resetForm(); openModal(); }
+        function onEdit(id){ const q = questions.find(x => (String(x.id||x._id||''))===String(id)); if(!q) return; editingId=id; document.getElementById('qModalTitle').textContent='編輯題目';
+            document.getElementById('qSubject').value = q.subject || '';
+            document.getElementById('qKP').value = q.kp || q.knowledge_point || '';
+            document.getElementById('qLevel').value = q.level || q.difficulty || '中';
+            document.getElementById('qContent').value = q.content || '';
+            openModal(); }
+        async function saveQuestion(){
+            const payload = {
+                subject: document.getElementById('qSubject').value.trim(),
+                knowledge_point: document.getElementById('qKP').value.trim(),
+                difficulty: document.getElementById('qLevel').value,
+                content: document.getElementById('qContent').value.trim(),
+            };
+            if (!payload.subject || !payload.knowledge_point || !payload.difficulty) { showAlert('請完整填寫必要欄位','warning'); return; }
+            try{
+                showLoading();
+                if (editingId) await apiClient.put(`/questions/${editingId}`, payload);
+                else await apiClient.post('/questions', payload);
+                await loadQuestions(); renderQuestions(); closeModal(); showAlert('已儲存','success');
+            }catch(err){ showAlert('儲存失敗：'+(err.message||''),'error'); } finally{ hideLoading(); }
+        }
+        let pendingDeleteId=null; async function confirmDelete(){ if(!pendingDeleteId) return; try{ showLoading(); await apiClient.delete(`/questions/${pendingDeleteId}`); await loadQuestions(); renderQuestions(); showAlert('已刪除','success'); } catch(e){ showAlert('刪除失敗：'+(e.message||''),'error'); } finally { hideLoading(); pendingDeleteId=null; }}
+        function onDelete(id,title){ if(confirm(`確定刪除題目「${title}」？`)){ pendingDeleteId=id; confirmDelete(); } }
+        document.addEventListener('input', (e)=>{ if (e.target && ['kw'].includes(e.target.id)) renderQuestions(); });
+        document.addEventListener('change', (e)=>{ if (['subjectFilter','levelFilter','sortBy'].includes(e.target.id)) renderQuestions(); });
+        // 確保動態 onclick 能找到全域函式
+        window.onEdit = onEdit;
+        window.onDelete = onDelete;
+
+        document.addEventListener('DOMContentLoaded', async ()=>{ await loadQuestions(); renderQuestions();
+            const prev = document.getElementById('qPrev'); const next = document.getElementById('qNext');
+            if (prev && next){ prev.addEventListener('click', ()=>{ if(qPage>1){ qPage--; renderQuestions(); }}); next.addEventListener('click', ()=>{ qPage++; renderQuestions(); }); }
+            const createBtn = document.getElementById('createBtn'); if (createBtn) createBtn.addEventListener('click', onCreate);
+            const qCancel = document.getElementById('qCancel'); if (qCancel) qCancel.addEventListener('click', closeModal);
+            const qSave = document.getElementById('qSave'); if (qSave) qSave.addEventListener('click', saveQuestion);
+        });
+    </script>
+</head>
+<body>
+    <a href="#main" class="skip-link" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;">跳至主要內容</a>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-brand"><i class="fas fa-chalkboard-teacher"></i><span>題目管理</span></div>
+            <div class="navbar-menu">
+                <a href="../index.html" class="nav-link"><i class="fas fa-tachometer-alt"></i><span>儀表板</span></a>
+                <a href="classes.html" class="nav-link"><i class="fas fa-users"></i><span>班級管理</span></a>
+                <a href="students-enhanced.html" class="nav-link"><i class="fas fa-user-graduate"></i><span>學生分析</span></a>
+                <a href="questions.html" class="nav-link active"><i class="fas fa-question-circle"></i><span>題目管理</span></a>
+            </div>
+        </div>
+    </nav>
+    <main id="main" class="main-content">
+        <div class="container">
+            <div class="toolbar">
+                <div class="controls">
+                    <div class="search-box"><input id="kw" type="text" placeholder="搜尋題目/知識點..."></div>
+                    <select id="subjectFilter">
+                        <option value="">全部科目</option>
+                        <option value="數學">數學</option>
+                        <option value="自然">自然</option>
+                        <option value="語文">語文</option>
+                    </select>
+                    <select id="levelFilter">
+                        <option value="">全部難度</option>
+                        <option value="易">易</option>
+                        <option value="中">中</option>
+                        <option value="難">難</option>
+                    </select>
+                    <select id="sortBy">
+                        <option value="updated_desc">更新時間（新→舊）</option>
+                        <option value="updated_asc">更新時間（舊→新）</option>
+                        <option value="difficulty">難度</option>
+                        <option value="id">題號</option>
+                    </select>
+                </div>
+                <div>
+                    <button class="btn-primary" id="createBtn"><i class="fas fa-plus"></i> 新增題目</button>
+                </div>
+            </div>
+            <table class="table">
+                <thead>
+                    <tr><th>題號</th><th>科目</th><th>知識點</th><th>難度</th><th>更新時間</th><th>操作</th></tr>
+                </thead>
+                <tbody id="q-tbody"></tbody>
+            </table>
+            <div class="pagination">
+                <button class="btn" id="qPrev">上一頁</button>
+                <span id="qPageInfo"></span>
+                <button class="btn" id="qNext">下一頁</button>
+            </div>
+        </div>
+    </main>
+    <!-- 新增/編輯 題目 Modal -->
+    <div class="modal-backdrop" id="qModal">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="qModalTitle">
+            <div class="modal-header"><h3 id="qModalTitle">新增題目</h3></div>
+            <div class="modal-body">
+                <form id="qForm">
+                    <div class="field"><label for="qSubject">科目</label>
+                        <select id="qSubject" required>
+                            <option value="">選擇科目</option>
+                            <option value="數學">數學</option>
+                            <option value="自然">自然</option>
+                            <option value="語文">語文</option>
+                        </select>
+                    </div>
+                    <div class="field"><label for="qKP">知識點</label><input id="qKP" required placeholder="例如：分數比較"></div>
+                    <div class="field"><label for="qLevel">難度</label>
+                        <select id="qLevel" required>
+                            <option value="易">易</option>
+                            <option value="中" selected>中</option>
+                            <option value="難">難</option>
+                        </select>
+                    </div>
+                    <div class="field"><label for="qContent">題目內容</label><textarea id="qContent" rows="4" placeholder="題幹、題目描述等"></textarea></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" id="qCancel" type="button">取消</button>
+                <button class="btn-primary" id="qSave" type="button">儲存</button>
+            </div>
+        </div>
+    </div>
+    <script src="../js/utils.js"></script>
+    <script src="../js/api-client.js"></script>
+    <script src="../js/auth.js"></script>
+</body>
+</html>
+

@@ -9,19 +9,15 @@ class TeacherAuthManager {
         this.init();
     }
 
+    /**
+     * 初始化認證管理器
+     */
     init() {
         // 處理從統一登入頁面傳來的認證資訊
         this.handleAuthFromURL();
         
-        // 檢查是否已登入
-        if (this.isLoggedIn()) {
-            this.updateUI();
-        } else {
-            // 如果未登入且不在登入頁面，重定向到統一登入頁面
-            if (!window.location.pathname.includes('login.html')) {
-                window.location.href = 'http://localhost/login.html';
-            }
-        }
+        // 強制檢查認證狀態
+        this.checkExistingAuth();
     }
 
     /**
@@ -33,7 +29,7 @@ class TeacherAuthManager {
         const userInfo = urlParams.get('userInfo');
 
         if (token && userInfo) {
-            console.log('從URL接收到認證資訊');
+            console.log('🚀 從URL接收到認證資訊');
             
             // 儲存到localStorage
             localStorage.setItem(this.tokenKey, token);
@@ -49,6 +45,41 @@ class TeacherAuthManager {
     }
 
     /**
+     * 檢查已存在的認證狀態
+     */
+    checkExistingAuth() {
+        console.log('🔍 檢查教師端認證狀態...');
+        
+        const token = localStorage.getItem(this.tokenKey);
+        const userInfo = localStorage.getItem(this.userKey);
+        
+        console.log('Token 存在:', !!token);
+        console.log('用戶資訊存在:', !!userInfo);
+        
+        if (token && userInfo) {
+            try {
+                const user = JSON.parse(userInfo);
+                console.log('✅ 找到已存在的認證資訊:', user);
+                
+                // 檢查 token 是否過期
+                if (!this.isTokenExpired(token)) {
+                    console.log('✅ Token 有效，更新 UI');
+                    this.updateUI();
+                } else {
+                    console.log('❌ Token 已過期，清除認證資訊');
+                    this.clearAuth();
+                }
+            } catch (error) {
+                console.error('❌ 解析用戶資訊失敗:', error);
+                this.clearAuth();
+            }
+        } else {
+            console.log('❌ 未找到認證資訊');
+            this.updateUI(); // 更新為未登入狀態
+        }
+    }
+
+    /**
      * 教師登入
      * @param {string} email - 教師郵箱
      * @param {string} password - 密碼
@@ -58,25 +89,32 @@ class TeacherAuthManager {
         try {
             showLoading();
             
-            const response = await apiClient.post('/auth/teacher/login', {
-                email: email,
-                password: password
-            });
+            // 檢查 apiClient 是否可用
+            if (typeof apiClient === 'undefined' || !apiClient.post) {
+                throw new Error('API 客戶端未初始化');
+            }
+            
+            const response = await apiClient.post('/auth/login', { email, password });
 
-            if (response.success) {
+            if (response.access_token) {
                 // 儲存 token 和用戶資訊
-                this.setToken(response.data.token);
-                this.setUser(response.data.user);
+                const token = response.access_token;
+                const user = response.user || { email: email, name: email.split('@')[0] };
+                
+                this.setToken(token);
+                this.setUser(user);
+                
+                console.log('✅ 登入成功，token 已保存:', token.substring(0, 20) + '...');
                 
                 // 更新 UI
                 this.updateUI();
                 
-                // 重定向到儀表板
-                window.location.href = 'index.html';
+                // 重定向到班級管理頁面
+                window.location.href = 'pages/classes-enhanced.html';
                 
                 return { success: true, message: '登入成功' };
             } else {
-                return { success: false, message: response.message || '登入失敗' };
+                return { success: false, message: response.detail || '登入失敗' };
             }
         } catch (error) {
             console.error('登入錯誤:', error);
@@ -155,17 +193,82 @@ class TeacherAuthManager {
     }
 
     /**
+     * 檢查認證狀態
+     */
+    async checkAuthStatus() {
+        const token = this.getToken();
+        
+        if (!token) {
+            this.redirectToLogin();
+            return;
+        }
+        
+        try {
+            // 檢查 token 是否過期
+            if (this.isTokenExpired(token)) {
+                console.log('Token 已過期，嘗試重新整理');
+                const refreshed = await this.refreshToken();
+                if (!refreshed) {
+                    this.clearAuth();
+                    this.redirectToLogin();
+                    return;
+                }
+            }
+            
+            // 驗證 token 有效性
+            const response = await apiClient.get('/auth/verify');
+            
+            if (response.success) {
+                this.updateUI();
+            } else {
+                this.clearAuth();
+                this.redirectToLogin();
+            }
+        } catch (error) {
+            console.error('認證檢查失敗:', error);
+            this.clearAuth();
+            this.redirectToLogin();
+        }
+    }
+
+    /**
+     * 清除認證資訊
+     */
+    clearAuth() {
+        localStorage.removeItem(this.tokenKey);
+        localStorage.removeItem(this.userKey);
+    }
+
+    /**
+     * 重定向到登入頁面
+     */
+    redirectToLogin() {
+        window.location.href = 'http://localhost/login.html';
+    }
+
+    /**
      * 更新 UI 顯示當前用戶資訊
      */
     updateUI() {
         const user = this.getCurrentUser();
-        if (user) {
+        const userInfo = document.getElementById('userInfo');
+        const authButtons = document.getElementById('authButtons');
+        const userName = document.getElementById('userName');
+        const logoutBtn = document.getElementById('logoutBtn');
+
+        if (this.isLoggedIn() && user) {
+            // 已登入：顯示用戶資訊，隱藏登入按鈕
+            if (userInfo) userInfo.classList.remove('hidden');
+            if (userName) userName.textContent = user.name || user.email || '王老師';
+            if (authButtons) authButtons.classList.add('hidden');
+            if (logoutBtn) logoutBtn.classList.remove('hidden');
+
+            // 更新其他用戶相關元素
             const teacherNameElement = document.getElementById('teacher-name');
             if (teacherNameElement) {
                 teacherNameElement.textContent = user.name || user.email;
             }
 
-            // 更新用戶頭像或顯示名稱
             const userAvatarElement = document.getElementById('teacher-avatar');
             if (userAvatarElement) {
                 if (user.avatar) {
@@ -174,6 +277,11 @@ class TeacherAuthManager {
                     userAvatarElement.textContent = (user.name || user.email).charAt(0).toUpperCase();
                 }
             }
+        } else {
+            // 未登入：隱藏用戶資訊，顯示登入按鈕
+            if (userInfo) userInfo.classList.add('hidden');
+            if (authButtons) authButtons.classList.remove('hidden');
+            if (logoutBtn) logoutBtn.classList.add('hidden');
         }
     }
 

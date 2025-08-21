@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="InULearning 教師台 - 作業管理增強版">
+    <title>作業管理 - InULearning 教師台</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/shared/css/components.css">
+    <link rel="stylesheet" href="/shared/css/responsive.css">
+    <link rel="stylesheet" href="../css/design-tokens.css">
+    <link rel="stylesheet" href="../css/navigation.css">
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/modern-design-system.css">
+    <link rel="stylesheet" href="../css/navbar-unified.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .assignments-container {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 1.5rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .main-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            border-left: 4px solid var(--primary-blue);
+            transition: all 0.2s ease;
+        }
+
+        .stat-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .stat-card.warning {
+            border-left-color: #F59E0B;
+        }
+
+        .stat-card.success {
+            border-left-color: #10B981;
+        }
+
+        .stat-card.danger {
+            border-left-color: #EF4444;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .assignments-card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .filters-toolbar {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            position: relative;
+            min-width: 250px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.6rem 0.8rem 0.6rem 2.5rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 0.8rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+        }
+
+        .filter-select {
+            padding: 0.6rem 0.8rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: #fff;
+            font-size: 0.9rem;
+            min-width: 120px;
+        }
+
+        .view-toggle {
+            display: flex;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .view-btn {
+            padding: 0.6rem 0.8rem;
+            border: none;
+            background: #fff;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .view-btn.active {
+            background: var(--primary-blue);
+            color: #fff;
+        }
+
+        .assignments-list {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .assignment-item {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            transition: background-color 0.2s ease;
+        }
+
+        .assignment-item:hover {
+            background: #F8FAFC;
+        }
+
+        .assignment-item:last-child {
+            border-bottom: none;
+        }
+
+        .assignment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+
+        .assignment-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 0.25rem;
+        }
+
+        .assignment-meta {
+            display: flex;
+            gap: 1rem;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .assignment-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-active {
+            background: #DBEAFE;
+            color: #1E40AF;
+        }
+
+        .status-draft {
+            background: #F3F4F6;
+            color: #6B7280;
+        }
+
+        .status-closed {
+            background: #FEE2E2;
+            color: #DC2626;
+        }
+
+        .status-grading {
+            background: #FEF3C7;
+            color: #D97706;
+        }
+
+        .assignment-progress {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 6px;
+            background: #E5E7EB;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary-blue);
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            white-space: nowrap;
+        }
+
+        .assignment-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-btn {
+            padding: 0.5rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+        }
+
+        /* 統一綠色按鈕樣式（右側快速操作除外） */
+        .action-btn.primary,
+        .action-btn.secondary,
+        .btn.btn-primary,
+        .view-btn.active {
+            background: #10B981; /* 綠色 */
+            color: #fff;
+            border: none;
+        }
+
+        .btn.btn-secondary { /* 次要按鈕也改為綠色，保持一致 */
+            background: #10B981;
+            color: #fff;
+            border: none;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .sidebar-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .quick-actions-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .quick-actions-card h3 {
+            margin-bottom: 1rem;
+            color: var(--text-dark);
+            font-size: 1.1rem;
+        }
+
+        .action-btn:hover,
+        .btn:hover,
+        .view-btn.active:hover {
+            filter: brightness(0.95);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* 刪除按鈕保留紅色警示色 */
+        .action-btn[data-action="delete"] {
+            background: #EF4444 !important;
+            color: #fff !important;
+            border: none !important;
+        }
+        .action-btn[data-action="delete"]:hover { filter: brightness(0.95); }
+
+        /* 右側快速操作恢復為條列式外觀 */
+        .quick-actions-card .quick-action-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 0.5rem 0;
+            border: none;
+            border-radius: 0;
+            background: transparent;
+            color: var(--text-dark);
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            text-align: left;
+        }
+        .quick-actions-card .quick-action-btn + .quick-action-btn { border-top: 1px solid var(--border); }
+        .quick-actions-card .quick-action-btn i { color: var(--text-light); }
+        .quick-actions-card .quick-action-btn:hover { background: #F8FAFC; color: var(--text-dark); transform: none; box-shadow: none; }
+
+        .calendar-widget {
+            background: #fff;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.25rem;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .calendar-day:hover {
+            background: #F3F4F6;
+        }
+
+        .calendar-day.has-deadline {
+            background: #FEE2E2;
+            color: #DC2626;
+            font-weight: 600;
+        }
+
+        .calendar-day.today {
+            background: var(--primary-blue);
+            color: #fff;
+        }
+
+        .grid-view {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+            padding: 1.5rem;
+        }
+
+        .assignment-card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            border-left: 4px solid var(--primary-blue);
+            transition: all 0.2s ease;
+        }
+
+        .assignment-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .assignment-card.warning {
+            border-left-color: #F59E0B;
+        }
+
+        .assignment-card.danger {
+            border-left-color: #EF4444;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .assignments-container {
+                grid-template-columns: 1fr;
+            }
+
+            .filters-toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-box {
+                min-width: auto;
+            }
+        }
+    </style>
+</head>
+
+<body class="navbar-unified-reset">
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-brand">
+                <i class="fas fa-chalkboard-teacher"></i>
+                <span>作業管理</span>
+            </div>
+            <div class="navbar-menu">
+                <a href="/index.html" class="nav-link">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>儀表板</span>
+                </a>
+                <a href="/pages/classes-enhanced.html" class="nav-link">
+                    <i class="fas fa-users"></i>
+                    <span>班級管理</span>
+                </a>
+                <a href="/pages/students-enhanced.html" class="nav-link">
+                    <i class="fas fa-user-graduate"></i>
+                    <span>學生分析</span>
+                </a>
+                <a href="/pages/assignments-enhanced.html" class="nav-link active">
+                    <i class="fas fa-tasks"></i>
+                    <span>作業管理</span>
+                </a>
+                <a href="/pages/questions-enhanced.html" class="nav-link">
+                    <i class="fas fa-question-circle"></i>
+                    <span>題目管理</span>
+                </a>
+                <a href="/pages/grades-enhanced.html" class="nav-link">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>成績管理</span>
+                </a>
+                <a href="/pages/analytics-enhanced.html" class="nav-link">
+                    <i class="fas fa-analytics"></i>
+                    <span>學習分析</span>
+                </a>
+            </div>
+            <div class="navbar-user">
+                <div class="user-dropdown">
+                    <button class="user-dropdown-toggle">
+                        <i class="fas fa-user-circle"></i>
+                        <span id="teacher-name">教師</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="user-dropdown-menu">
+                        <a href="/pages/profile.html" class="dropdown-item">
+                            <i class="fas fa-user"></i>
+                            <span>個人資料</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item" id="logout-btn">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>登出</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main id="main" class="main-content">
+        <div class="container">
+        <div class="page-header">
+            <div class="header-content">
+                <h1 class="page-title">
+                    <i class="fas fa-tasks"></i>
+                    作業管理
+                </h1>
+                <p class="page-subtitle">管理和追蹤學生作業進度</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-secondary" onclick="exportAssignments()">
+                    <i class="fas fa-download"></i>
+                    匯出報告
+                </button>
+                <button class="btn btn-primary" type="button" onclick="openQuizBuilder()">
+                    <i class="fas fa-plus"></i>
+                    出考卷
+                </button>
+            </div>
+        </div>
+
+        <div class="assignments-container">
+            <div class="main-panel">
+                <!-- 統計卡片 -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalAssignments">12</div>
+                        <div class="stat-label">總作業數</div>
+                    </div>
+                    <div class="stat-card warning">
+                        <div class="stat-number" id="activeAssignments">5</div>
+                        <div class="stat-label">進行中作業</div>
+                    </div>
+                    <div class="stat-card success">
+                        <div class="stat-number" id="completedAssignments">7</div>
+                        <div class="stat-label">已完成作業</div>
+                    </div>
+                    <div class="stat-card danger">
+                        <div class="stat-number" id="overdueAssignments">2</div>
+                        <div class="stat-label">逾期作業</div>
+                    </div>
+                </div>
+
+                <!-- 作業列表 -->
+                <div class="assignments-card">
+                    <div class="card-header">
+                        <h2>作業列表</h2>
+                        <div class="filters-toolbar">
+                            <div class="search-box">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="searchInput" placeholder="搜尋作業名稱或描述...">
+                            </div>
+                            <select class="filter-select" id="statusFilter">
+                                <option value="">所有狀態</option>
+                                <option value="active">進行中</option>
+                                <option value="draft">草稿</option>
+                                <option value="closed">已結束</option>
+                                <option value="grading">批改中</option>
+                            </select>
+                            <select class="filter-select" id="subjectFilter">
+                                <option value="">所有科目</option>
+                                <option value="math">數學</option>
+                                <option value="chinese">國文</option>
+                                <option value="english">英文</option>
+                                <option value="science">自然</option>
+                            </select>
+                            <div class="view-toggle">
+                                <button class="view-btn active" data-view="list">
+                                    <i class="fas fa-list"></i>
+                                </button>
+                                <button class="view-btn" data-view="grid">
+                                    <i class="fas fa-th"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 列表視圖 -->
+                    <div id="listView" class="assignments-list">
+                        <!-- 作業項目將由 JavaScript 動態生成 -->
+                    </div>
+
+                    <!-- 網格視圖 -->
+                    <div id="gridView" class="grid-view hidden">
+                        <!-- 作業卡片將由 JavaScript 動態生成 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 側邊欄 -->
+            <div class="sidebar-panel">
+                <!-- 快速操作 -->
+                <div class="quick-actions-card">
+                    <h3>快速操作</h3>
+                    <button class="quick-action-btn" onclick="openQuizBuilder()">
+                        <i class="fas fa-plus"></i>
+                        出考卷
+                    </button>
+                    <button class="quick-action-btn" onclick="importAssignments()">
+                        <i class="fas fa-upload"></i>
+                        匯入作業
+                    </button>
+                    <button class="quick-action-btn" onclick="bulkGrade()">
+                        <i class="fas fa-edit"></i>
+                        批量批改
+                    </button>
+                    <button class="quick-action-btn" onclick="sendReminders()">
+                        <i class="fas fa-bell"></i>
+                        發送提醒
+                    </button>
+                    <button class="quick-action-btn" onclick="viewAnalytics()">
+                        <i class="fas fa-chart-line"></i>
+                        查看分析
+                    </button>
+                </div>
+
+                <!-- 截止日期日曆 -->
+                <div class="calendar-widget">
+                    <div class="calendar-header">
+                        <h3>截止日期</h3>
+                        <div>
+                            <button onclick="previousMonth()">&lt;</button>
+                            <span id="currentMonth">2024年2月</span>
+                            <button onclick="nextMonth()">&gt;</button>
+                        </div>
+                    </div>
+                    <div class="calendar-grid" id="calendarGrid">
+                        <!-- 日曆將由 JavaScript 動態生成 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+    </main>
+
+
+
+    <!-- 出考卷（Quiz Builder）Stepper Modal -->
+    <div id="quizModal" class="modal" style="display:none;">
+        <div class="modal-content" style="max-width: 960px; width: 96vw;">
+            <div class="modal-header">
+                <h3>出考卷</h3>
+                <button id="quizModalClose" style="background:none;border:none;font-size:1.5rem;cursor:pointer;">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="quizStepIndicators" style="display:flex;gap:.5rem;margin-bottom:1rem;">
+                    <span id="quizStep1Dot" class="badge" style="background:#10B981;color:#fff;">1 設定</span>
+                    <span id="quizStep2Dot" class="badge">2 挑題</span>
+                    <span id="quizStep3Dot" class="badge">3 預覽</span>
+                </div>
+
+                <!-- Step 1: 基本設定 -->
+                <section id="quizStep1">
+                    <div class="form-group">
+                        <label for="quizTitle">標題</label>
+                        <input id="quizTitle" type="text" class="form-control" placeholder="例如：二次函數小測驗" required>
+                    </div>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;">
+                        <div class="form-group">
+                            <label for="quizSubject">科目</label>
+                            <select id="quizSubject" class="form-control" required>
+                                <option value="">請選擇科目</option>
+                                <option value="math">數學</option>
+                                <option value="chinese">國文</option>
+                                <option value="english">英文</option>
+                                <option value="science">自然</option>
+                                <option value="history">歷史</option>
+                                <option value="geography">地理</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="quizDueDate">截止日期</label>
+                            <input id="quizDueDate" type="date" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="quizTimeLimit">限時（分鐘）</label>
+                            <input id="quizTimeLimit" type="number" min="5" max="180" class="form-control" placeholder="30" required>
+                        </div>
+                        <div class="form-group">
+                            <label>作答次數</label>
+                            <input type="text" class="form-control" value="只能作答 1 次" disabled>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="quizClasses">指派班級（可多選）</label>
+                        <select id="quizClasses" class="form-control" multiple size="4" style="min-height:96px;"></select>
+                        <small id="quizClassesHint" style="color:var(--text-light);">將自動載入您的班級</small>
+                    </div>
+                    <div style="display:flex;gap:1rem;align-items:center;">
+                        <label style="display:flex;align-items:center;gap:.5rem;">
+                            <input id="quizShuffleQuestions" type="checkbox" checked>
+                            題目亂序
+                        </label>
+                        <label style="display:flex;align-items:center;gap:.5rem;">
+                            <input id="quizShuffleOptions" type="checkbox" checked>
+                            選項亂序
+                        </label>
+                    </div>
+                </section>
+
+                <!-- Step 2: 版本和單元選擇 -->
+                <section id="quizStep2" style="display:none;">
+                    <div style="margin-bottom: 1.5rem;">
+                        <h4 style="margin-bottom: 1rem;">選擇版本和單元</h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                            <div class="form-group">
+                                <label for="quizGrade">年級</label>
+                                <select id="quizGrade" class="form-control" required>
+                                    <option value="">請選擇年級</option>
+                                    <option value="7A">七年級上學期</option>
+                                    <option value="7B">七年級下學期</option>
+                                    <option value="8A">八年級上學期</option>
+                                    <option value="8B">八年級下學期</option>
+                                    <option value="9A">九年級上學期</option>
+                                    <option value="9B">九年級下學期</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="quizPublisher">出版社</label>
+                                <select id="quizPublisher" class="form-control" required>
+                                    <option value="">請選擇出版社</option>
+                                    <option value="康軒">康軒</option>
+                                    <option value="翰林">翰林</option>
+                                    <option value="南一">南一</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="quizChapter">章節</label>
+                                <select id="quizChapter" class="form-control" required>
+                                    <option value="">請先選擇年級和出版社</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 1rem;">
+                            <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                <input id="qSearch" class="form-control" placeholder="搜尋題幹/關鍵字" style="flex: 1;">
+                            </label>
+                            <select id="qDifficulty" class="form-control" style="max-width: 140px;">
+                                <option value="">所有難度</option>
+                                <option value="easy">簡單</option>
+                                <option value="medium">中等</option>
+                                <option value="hard">困難</option>
+                            </select>
+                            <input id="qKnowledge" class="form-control" placeholder="知識點（可選）" style="max-width: 200px;">
+                        </div>
+                    </div>
+                    
+                    <div style="display:grid;grid-template-columns:2fr 1fr;gap:1rem;">
+                        <div>
+                            <div id="qList" style="border:1px solid var(--border);border-radius:8px;height:360px;overflow:auto;padding:.5rem;">
+                                <div style="color:var(--text-light);text-align:center;padding:2rem;">請先選擇版本和單元</div>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:.5rem;">
+                                <small id="qPagerHint" style="color:var(--text-light);"></small>
+                                <div style="display:flex;gap:.5rem;">
+                                    <button id="qPrev" class="btn btn-secondary" type="button">上一頁</button>
+                                    <button id="qNext" class="btn btn-primary" type="button">下一頁</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem;">
+                                <h4 style="margin:0;">已選題目 <span id="qSelectedCount">0</span>/50</h4>
+                                <button id="qClear" class="btn btn-secondary" type="button">清空</button>
+                            </div>
+                            <div id="qSelected" style="border:1px solid var(--border);border-radius:8px;height:360px;overflow:auto;padding:.5rem;"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Step 3: 預覽與發布 -->
+                <section id="quizStep3" style="display:none;">
+                    <div id="quizPreview"></div>
+                </section>
+            </div>
+            <div class="modal-footer" style="display:flex;gap:.5rem;justify-content:flex-end;">
+                <button id="quizPrevBtn" class="btn btn-secondary" type="button" disabled>上一步</button>
+                <button id="quizNextBtn" class="btn btn-primary" type="button">下一步</button>
+                <button id="quizPublishBtn" class="btn btn-primary" type="button" style="display:none;">發布</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/utils.js"></script>
+    <script src="../js/api-client.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/api-health-check.js"></script>
+    <!-- 移除會覆蓋導覽樣式的現代化導航腳本，統一使用首頁樣式 -->
+    <script src="../js/assignments-enhanced.js"></script>
+</body>
+
+</html>

@@ -216,6 +216,9 @@ class ResultPage {
 
         // 初始 MathJax 渲染
         this.renderMath();
+
+        // 初始化「錯題重練」按鈕狀態
+        this.setupRetryWrongButton();
     }
 
     /**
@@ -260,7 +263,7 @@ class ResultPage {
 
         this.examResults.detailedResults.forEach((result, index) => {
             const navButton = document.createElement('button');
-            navButton.className = `w-10 h-10 rounded-full border-2 text-sm font-medium transition-colors ${result.isCorrect
+            navButton.className = `w-10 h-10 rounded-full border-2 text-sm font-medium transition-colors flex-shrink-0 ${result.isCorrect
                 ? 'bg-green-100 border-green-300 text-green-800 hover:bg-green-200'
                 : 'bg-red-100 border-red-300 text-red-800 hover:bg-red-200'
                 }`;
@@ -269,6 +272,9 @@ class ResultPage {
 
             questionNav.appendChild(navButton);
         });
+
+        // 初始化題目導航狀態
+        this.updateQuestionNavigation();
     }
 
     /**
@@ -326,8 +332,8 @@ class ResultPage {
                 if (Array.isArray(answerChoices)) {
                     options = answerChoices;
                 } else if (typeof answerChoices === 'object') {
-                    // 將對象格式轉為數組 {A: "選項1", B: "選項2"} -> ["選項1", "選項2"]
-                    options = Object.keys(answerChoices).sort().map(key => answerChoices[key]);
+                    // 將對象格式轉為數組，確保順序為 A, B, C, D
+                    options = ['A', 'B', 'C', 'D'].map(letter => answerChoices[letter]).filter(option => option !== undefined);
                 }
             }
 
@@ -434,6 +440,34 @@ class ResultPage {
                 button.classList.remove('ring-2', 'ring-blue-500');
             }
         });
+
+        // 確保當前題目按鈕在可視範圍（當題數超過可視寬度時自動水平滾動）
+        const activeButton = navButtons[this.currentDetailIndex];
+        if (activeButton) {
+            // 在 result.html 中，滾動容器是 questionNav 的父元素（question-nav-container 的 div）
+            const container = questionNav.parentElement;
+
+            if (container && container.classList.contains('question-nav-container')) {
+                const needsScroll = container.scrollWidth > container.clientWidth;
+
+                if (needsScroll) {
+                    const containerLeft = container.scrollLeft;
+                    const containerRight = containerLeft + container.clientWidth;
+                    const btnLeft = activeButton.offsetLeft;
+                    const btnRight = btnLeft + activeButton.offsetWidth;
+                    const padding = 12; // 視覺餘量
+
+                    // 僅在當前題目完全超出可視範圍時才滾動，且以最小位移讓其剛好可見，避免「亂跳」
+                    if (btnRight + padding > containerRight) {
+                        const delta = btnRight + padding - containerRight;
+                        container.scrollTo({ left: containerLeft + delta, behavior: 'smooth' });
+                    } else if (btnLeft - padding < containerLeft) {
+                        const delta = containerLeft - (btnLeft - padding);
+                        container.scrollTo({ left: Math.max(0, containerLeft - delta), behavior: 'smooth' });
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -478,6 +512,157 @@ class ResultPage {
                 }
             });
         }
+
+        // 錯題重練按鈕
+        const retryBtn = document.getElementById('retryWrongBtn');
+        if (retryBtn) {
+            retryBtn.addEventListener('click', () => this.handleRetryWrong());
+        }
+    }
+
+    /**
+     * 設定「錯題重練」按鈕啟用/停用
+     */
+    setupRetryWrongButton() {
+        const retryBtn = document.getElementById('retryWrongBtn');
+        const meta = document.getElementById('retryMeta');
+        if (!retryBtn || !this.examResults || !Array.isArray(this.examResults.detailedResults)) return;
+
+        const wrongCount = this.examResults.detailedResults.filter(r => r && r.isCorrect === false).length;
+        const estimatedMinutes = wrongCount * 2;
+
+        if (wrongCount > 0) {
+            retryBtn.disabled = false;
+            retryBtn.title = `錯題數：${wrongCount}，預估時間：約 ${estimatedMinutes} 分鐘。點擊開始重練`;
+            if (meta) {
+                meta.textContent = `錯題數：${wrongCount} 題｜預估時間：約 ${estimatedMinutes} 分鐘`;
+            }
+        } else {
+            retryBtn.disabled = true;
+            retryBtn.title = '本次全對，無需重練';
+            if (meta) {
+                meta.textContent = '本次全對，無需重練';
+            }
+        }
+    }
+
+    /**
+     * 錯題重練：用本次 session 的錯題建立新 session，並導向 exam.html
+     */
+    handleRetryWrong() {
+        if (!this.examResults || !Array.isArray(this.examResults.detailedResults) || !Array.isArray(this.examResults.questions)) {
+            this.showWarningMessage('找不到可重練的錯題');
+            return;
+        }
+
+        // 取出錯題索引
+        const wrongIndexes = this.examResults.detailedResults
+            .map((r, i) => (r && r.isCorrect === false ? i : -1))
+            .filter(i => i >= 0);
+
+        if (wrongIndexes.length === 0) {
+            this.showWarningMessage('本次全對，無需重練');
+            return;
+        }
+
+        // 取出錯題題目並正規化為 exam.js 期望的結構（必須有 options）
+        const wrongQuestions = wrongIndexes
+            .map(i => this.examResults.questions[i])
+            .filter(Boolean)
+            .map(q => this.normalizeQuestionForExam(q));
+        if (wrongQuestions.length === 0) {
+            this.showWarningMessage('錯題資料異常，請稍後再試');
+            return;
+        }
+
+        // 隨機化錯題順序
+        const shuffled = this.shuffleArray(wrongQuestions).map((q, idx) => ({ ...q, order_index: idx }));
+
+        // 準備新 session 資料
+        const seed = Date.now();
+        const src = this.examResults.sessionData || {};
+        const newSession = {
+            grade: src.grade,
+            edition: src.edition,
+            publisher: src.publisher || src.edition,
+            subject: src.subject,
+            chapter: src.chapter,
+            question_count: shuffled.length,
+            questions: shuffled,
+            randomized: true,
+            randomSeed: seed,
+            isRetry: true,
+            retrySourceSubmittedAt: this.examResults.submittedAt,
+            retrySourceSessionId: src.sessionId || null
+        };
+
+        // 寫入並導向
+        sessionStorage.setItem('examSession', JSON.stringify(newSession));
+        window.location.href = 'exam.html';
+    }
+
+    // 將 result.html 內的題目資料正規化為 exam.js 可用的格式
+    normalizeQuestionForExam(q) {
+        const questionText = q.question || q.content || q.question_text || '';
+        // 規整選項：優先使用 q.options（陣列或物件），否則從 q.choices 轉為陣列
+        let optionsArray = [];
+        if (Array.isArray(q.options)) {
+            optionsArray = q.options;
+        } else if (q.options && typeof q.options === 'object') {
+            optionsArray = Object.values(q.options);
+        } else if (Array.isArray(q.choices)) {
+            optionsArray = q.choices;
+        } else if (q.choices && typeof q.choices === 'object') {
+            const order = ['A', 'B', 'C', 'D', 'E', 'F'];
+            optionsArray = order.map(k => q.choices[k]).filter(v => v !== undefined);
+        }
+        const sourceAnswer = (q.answer !== undefined) ? q.answer
+            : (q.correctAnswer !== undefined) ? q.correctAnswer
+                : (q.correct_answer !== undefined) ? q.correct_answer
+                    : null;
+
+        const correctIndex = this.resolveCorrectIndex(sourceAnswer, optionsArray);
+
+        return {
+            id: q.id,
+            question: questionText,
+            options: optionsArray,
+            // 兼容字段：提供多種命名，統一為索引
+            answer: correctIndex,
+            correctAnswer: correctIndex,
+            correct_answer: correctIndex,
+            correctAnswerIndex: correctIndex,
+            explanation: q.explanation || '暫無解析',
+            difficulty: q.difficulty,
+            knowledgePoints: q.knowledgePoints || q.knowledge_points || [],
+            topic: q.topic || q.questionTopic || q.subject,
+            image_filename: q.image_filename,
+            image_url: q.image_url
+        };
+    }
+
+    resolveCorrectIndex(sourceAnswer, optionsArray) {
+        if (sourceAnswer === null || sourceAnswer === undefined) return 0;
+        if (typeof sourceAnswer === 'number') return sourceAnswer;
+        const str = String(sourceAnswer).trim();
+        const upper = str.toUpperCase();
+        const letterMap = { 'A': 0, 'B': 1, 'C': 2, 'D': 3, 'E': 4, 'F': 5 };
+        if (letterMap.hasOwnProperty(upper)) return letterMap[upper];
+        if (/^\d+$/.test(str)) return parseInt(str, 10);
+        // 嘗試用文字匹配
+        const idx = optionsArray.findIndex(opt => String(opt).trim() === str);
+        return idx >= 0 ? idx : 0;
+    }
+
+    shuffleArray(array) {
+        const result = array.slice();
+        for (let i = result.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            const temp = result[i];
+            result[i] = result[j];
+            result[j] = temp;
+        }
+        return result;
     }
 
     /**
@@ -509,8 +694,7 @@ class ResultPage {
                 return;
             }
 
-            // 取得 exercise_record_id：從歷程模式的 record 結構
-            // 從 learning-service 來的 record 在 to_dict 中有 id 欄位
+            // 取得 exercise_record_id
             const exerciseRecordId = result.id || result.record_id || null;
             if (!exerciseRecordId) {
                 console.log('尚未取得 exercise_record_id，可能為未保存狀態，等待保存後再觸發 AI');
@@ -518,37 +702,64 @@ class ResultPage {
                 return;
             }
 
-            // 先嘗試查詢是否已有最新結果
+            // 1) 優先查詢是否已有最新結果（快取優先）
             const latest = await window.aiAnalysisAPI.getLatestAnalysisByRecord(exerciseRecordId);
             if (latest.success && latest.status === 'succeeded' && latest.data) {
-                console.log('找到已存在的 AI 分析結果，直接渲染');
+                console.log('找到既有 AI 分析結果，直接渲染');
                 this.updateWeaknessAnalysis({ status: 'fulfilled', value: { success: true, data: latest.data } });
                 this.updateLearningRecommendations({ status: 'fulfilled', value: { success: true, data: latest.data } });
                 return;
             }
 
-            // 若已有進行中的任務，改為直接輪詢
+            // 2) 若未命中，使用單一整合端點一次生成並落地（帶題目與作答）
+            const question = {
+                grade: this.examResults?.sessionData?.grade,
+                subject: this.examResults?.sessionData?.subject,
+                publisher: this.examResults?.sessionData?.publisher,
+                chapter: this.examResults?.sessionData?.chapter,
+                topic: result.questionTopic,
+                knowledge_point: result.knowledgePoints || [],
+                difficulty: result.difficulty,
+                question: result.questionContent,
+                options: result.answerChoices || {},
+                answer: result.correctAnswer,
+                explanation: result.explanation
+            };
+            const studentAnswer = result.userAnswer;
+
+            const generated = await window.aiAnalysisAPI.generateCombinedAnalysis(
+                question,
+                studentAnswer,
+                exerciseRecordId,
+                1.0,
+                512
+            );
+
+            if (generated.success && generated.data) {
+                // 直接渲染生成的內容
+                this.updateWeaknessAnalysis({ status: 'fulfilled', value: { success: true, data: generated.data } });
+                this.updateLearningRecommendations({ status: 'fulfilled', value: { success: true, data: generated.data } });
+                return;
+            }
+
+            // 3) 若生成失敗，回退到非同步任務機制（保底）
             let taskId = latest && latest.latest_task_id && (latest.status === 'pending' || latest.status === 'processing')
                 ? latest.latest_task_id
                 : null;
 
             if (!taskId) {
-                // 觸發任務
                 const trigger = await window.aiAnalysisAPI.triggerAnalysisByRecord(exerciseRecordId);
                 if (!trigger.success || !trigger.task_id) {
                     throw new Error(trigger.error || '無法觸發 AI 任務');
                 }
                 taskId = trigger.task_id;
-                console.log('AI 任務已觸發，taskId:', taskId);
-            } else {
-                console.log('已有進行中的任務，taskId:', taskId);
+                console.log('AI 任務已觸發(保底方案)，taskId:', taskId);
             }
 
-            // 輪詢任務狀態
+            // 輪詢任務狀態（保底）
             const pollIntervalMs = 2000;
-            const maxWaitMs = 20000; // 最長等 20 秒
+            const maxWaitMs = 20000;
             const startTime = Date.now();
-
             while (Date.now() - startTime < maxWaitMs) {
                 const status = await window.aiAnalysisAPI.getAnalysisStatus(taskId);
                 if (status.success) {
@@ -564,7 +775,6 @@ class ResultPage {
                 await new Promise(r => setTimeout(r, pollIntervalMs));
             }
 
-            // 逾時處理
             console.warn('AI 任務輪詢逾時');
             this.showAIErrorState();
 
@@ -602,19 +812,20 @@ class ResultPage {
     }
 
     /**
-     * 更新 AI 弱點分析
+     * 修正：弱點分析渲染到 weaknessContent（原本誤用 recommendationsContent）
      */
     updateWeaknessAnalysis(weaknessResult) {
-        const weaknessContent = document.getElementById('recommendationsContent');
+        const weaknessContent = document.getElementById('weaknessContent');
         if (!weaknessContent) return;
 
         if (weaknessResult.status === 'fulfilled' && weaknessResult.value.success) {
             const analysis = weaknessResult.value.data;
             weaknessContent.innerHTML = `
                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <p class="text-gray-700 leading-relaxed">${analysis['學生學習狀況評估'] || 'AI 分析暫時無法使用'}</p>
+                    <p class="text-gray-700 leading-relaxed">${analysis['題目詳解與教學建議'] || 'AI 分析暫時無法使用'}</p>
                 </div>
             `;
+            this.renderMath(weaknessContent);
         } else {
             const errorMessage = weaknessResult.status === 'rejected'
                 ? weaknessResult.reason?.message || '分析失敗'
@@ -629,19 +840,20 @@ class ResultPage {
     }
 
     /**
-     * 更新學習建議
+     * 修正：學習建議渲染到 recommendationsContent（原本誤用 weaknessContent）
      */
     updateLearningRecommendations(guidanceResult) {
-        const recommendationsContent = document.getElementById('weaknessContent');
+        const recommendationsContent = document.getElementById('recommendationsContent');
         if (!recommendationsContent) return;
 
         if (guidanceResult.status === 'fulfilled' && guidanceResult.value.success) {
             const guidance = guidanceResult.value.data;
             recommendationsContent.innerHTML = `
                 <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                    <p class="text-gray-700 leading-relaxed">${guidance['題目詳解與教學建議'] || '學習建議暫時無法生成'}</p>
+                    <p class="text-gray-700 leading-relaxed">${guidance['學生學習狀況評估'] || '學習建議暫時無法生成'}</p>
                 </div>
             `;
+            this.renderMath(recommendationsContent);
         } else {
             const errorMessage = guidanceResult.status === 'rejected'
                 ? guidanceResult.reason?.message || '建議生成失敗'
@@ -682,9 +894,10 @@ class ResultPage {
     /**
      * 觸發 MathJax 重新渲染數學公式
      */
-    renderMath() {
+    renderMath(targetElement) {
         if (window.MathJax && window.MathJax.typesetPromise) {
-            window.MathJax.typesetPromise().then(() => {
+            const elements = targetElement ? [targetElement] : undefined;
+            window.MathJax.typesetPromise(elements).then(() => {
                 console.log('Result頁面 MathJax 渲染完成');
             }).catch((err) => {
                 console.error('Result頁面 MathJax 渲染失敗:', err);
@@ -889,7 +1102,7 @@ class ResultPage {
                 subject: sessionData.subject || '未分類',
                 grade: sessionData.grade || '8A',
                 chapter: sessionData.chapter || result.chapter || question.chapter,
-                publisher: sessionData.publisher || '南一',
+                publisher: sessionData.publisher || sessionData.edition || '南一',
                 knowledge_points: result.knowledgePoints || question.knowledgePoints || [],
                 question_content: result.questionContent || question.content || result.questionText || '',
                 answer_choices: result.answerChoices || question.choices || this.convertOptionsToChoices(result.options),
@@ -910,7 +1123,7 @@ class ResultPage {
             subject: sessionData.subject || '未分類',
             grade: sessionData.grade || '8A',
             chapter: sessionData.chapter,
-            publisher: sessionData.publisher || '南一',
+            publisher: sessionData.publisher || sessionData.edition || '南一',
             difficulty: sessionData.difficulty || 'normal',
             knowledge_points: sessionData.knowledgePoints || [],
             exercise_results: exerciseResults,

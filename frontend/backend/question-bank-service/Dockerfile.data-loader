@@ -1,0 +1,36 @@
+FROM python:3.11-slim
+
+# 設定工作目錄
+WORKDIR /app
+
+# 安裝系統依賴
+RUN apt-get update && apt-get install -y \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# 複製需求檔案
+COPY requirements.txt .
+
+# 安裝 Python 依賴
+RUN pip install --no-cache-dir -r requirements.txt
+
+# 複製應用程式代碼
+COPY . .
+
+# 複製設定檔
+COPY app/ app/
+
+# 設定 Python 路徑
+ENV PYTHONPATH=/app
+
+# 設定預設環境變數
+ENV MONGODB_URL=mongodb://aipe-tester:aipe-tester@mongodb:27017/inulearning?authSource=admin
+ENV MONGODB_DATABASE=inulearning
+ENV MINIO_ENDPOINT=minio:9000
+ENV MINIO_ACCESS_KEY=inulearning_admin
+ENV MINIO_SECRET_KEY=inulearning_password
+ENV MINIO_BUCKET_NAME=question-bank
+ENV MINIO_SECURE=false
+
+# 執行資料載入腳本
+CMD ["./run_data_loading.sh"]

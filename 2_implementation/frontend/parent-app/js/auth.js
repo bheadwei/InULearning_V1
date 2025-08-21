@@ -12,7 +12,7 @@ class ParentAuthManager {
     init() {
         // 處理從統一登入頁面傳來的認證資訊
         this.handleAuthFromURL();
-        
+
         // 檢查是否已登入
         if (this.isLoggedIn()) {
             this.updateUI();
@@ -34,15 +34,15 @@ class ParentAuthManager {
 
         if (token && userInfo) {
             console.log('從URL接收到認證資訊');
-            
+
             // 儲存到localStorage
             localStorage.setItem(this.tokenKey, token);
             localStorage.setItem(this.userKey, userInfo);
-            
+
             // 清除URL參數
             const newURL = window.location.protocol + "//" + window.location.host + window.location.pathname;
             window.history.replaceState({}, document.title, newURL);
-            
+
             // 更新認證狀態
             this.updateUI();
         }
@@ -57,7 +57,7 @@ class ParentAuthManager {
     async login(email, password) {
         try {
             showLoading();
-            
+
             const response = await apiClient.post('/auth/parent/login', {
                 email: email,
                 password: password
@@ -67,13 +67,13 @@ class ParentAuthManager {
                 // 儲存 token 和用戶資訊
                 this.setToken(response.data.token);
                 this.setUser(response.data.user);
-                
+
                 // 更新 UI
                 this.updateUI();
-                
+
                 // 重定向到儀表板
                 window.location.href = 'index.html';
-                
+
                 return { success: true, message: '登入成功' };
             } else {
                 return { success: false, message: response.message || '登入失敗' };
@@ -93,7 +93,7 @@ class ParentAuthManager {
         // 清除本地儲存的認證資訊
         localStorage.removeItem(this.tokenKey);
         localStorage.removeItem(this.userKey);
-        
+
         // 重定向到統一登入頁面
         window.location.href = 'http://localhost/login.html';
     }
@@ -226,13 +226,13 @@ class ParentAuthManager {
 // 初始化認證管理器
 const parentAuth = new ParentAuthManager();
 
-// 全域登出事件處理
-document.addEventListener('DOMContentLoaded', function() {
-    const logoutBtn = document.getElementById('logout-btn');
+// 全域登出事件處理（與頁面一致使用 #logoutBtn）
+document.addEventListener('DOMContentLoaded', function () {
+    const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
-        logoutBtn.addEventListener('click', function(e) {
+        logoutBtn.addEventListener('click', function (e) {
             e.preventDefault();
             parentAuth.logout();
         });
     }
-}); 
+});

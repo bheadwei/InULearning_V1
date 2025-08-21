@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>認證調試</title>
+    <script src="../js/api-client.js"></script>
+</head>
+<body>
+    <h1>認證調試頁面</h1>
+    
+    <div id="auth-status">
+        <h2>認證狀態</h2>
+        <div id="token-info"></div>
+        <div id="login-status"></div>
+    </div>
+    
+    <div id="test-apis">
+        <h2>API 測試</h2>
+        <button onclick="testAuth()">測試認證</button>
+        <button onclick="testClasses()">測試班級載入</button>
+        <button onclick="clearTokens()">清除 Token</button>
+    </div>
+    
+    <div id="results">
+        <h2>測試結果</h2>
+        <pre id="output"></pre>
+    </div>
+
+    <script>
+        function log(message) {
+            const output = document.getElementById('output');
+            output.textContent += new Date().toISOString() + ': ' + message + '\n';
+        }
+
+        function updateAuthStatus() {
+            const tokenInfo = document.getElementById('token-info');
+            const loginStatus = document.getElementById('login-status');
+            
+            const authToken = localStorage.getItem('auth_token');
+            const teacherToken = localStorage.getItem('teacher_token');
+            const sessionAuthToken = sessionStorage.getItem('auth_token');
+            const sessionTeacherToken = sessionStorage.getItem('teacher_token');
+            
+            tokenInfo.innerHTML = `
+                <p><strong>localStorage.auth_token:</strong> ${authToken ? '存在' : '不存在'}</p>
+                <p><strong>localStorage.teacher_token:</strong> ${teacherToken ? '存在' : '不存在'}</p>
+                <p><strong>sessionStorage.auth_token:</strong> ${sessionAuthToken ? '存在' : '不存在'}</p>
+                <p><strong>sessionStorage.teacher_token:</strong> ${sessionTeacherToken ? '存在' : '不存在'}</p>
+            `;
+            
+            if (authToken || teacherToken || sessionAuthToken || sessionTeacherToken) {
+                loginStatus.innerHTML = '<p style="color: green;">✅ 已登入</p>';
+            } else {
+                loginStatus.innerHTML = '<p style="color: red;">❌ 未登入</p>';
+            }
+        }
+
+        async function testAuth() {
+            try {
+                log('🔍 測試認證狀態...');
+                const token = apiClient.getToken();
+                log(`Token: ${token ? '存在' : '不存在'}`);
+                
+                if (token) {
+                    log('✅ 有 Token，嘗試調用需要認證的 API...');
+                    const response = await apiClient.get('/teacher/classes');
+                    log(`✅ 班級載入成功: ${JSON.stringify(response)}`);
+                } else {
+                    log('❌ 沒有 Token，無法調用需要認證的 API');
+                }
+            } catch (error) {
+                log(`❌ 認證測試失敗: ${error.message}`);
+            }
+        }
+
+        async function testClasses() {
+            try {
+                log('🔍 測試班級載入...');
+                const response = await apiClient.get('/teacher/classes');
+                log(`✅ 班級載入成功: ${JSON.stringify(response)}`);
+            } catch (error) {
+                log(`❌ 班級載入失敗: ${error.message}`);
+            }
+        }
+
+        function clearTokens() {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('teacher_token');
+            sessionStorage.removeItem('auth_token');
+            sessionStorage.removeItem('teacher_token');
+            log('🗑️ 已清除所有 Token');
+            updateAuthStatus();
+        }
+
+        // 頁面載入時更新狀態
+        updateAuthStatus();
+    </script>
+</body>
+</html>

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>測試前端出考卷功能</title>
+    <link rel="stylesheet" href="/shared/css/components.css">
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .test-button { padding: 10px 20px; margin: 10px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .test-button:hover { background: #0056b3; }
+        .result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .info { background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <h1>測試前端出考卷功能</h1>
+    
+    <div class="test-section">
+        <h2>1. 測試基本頁面載入</h2>
+        <button class="test-button" onclick="testPageLoad()">測試頁面載入</button>
+        <div id="pageLoadResult"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. 測試 JavaScript 文件載入</h2>
+        <button class="test-button" onclick="testScriptLoad()">測試腳本載入</button>
+        <div id="scriptLoadResult"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. 測試模態框功能</h2>
+        <button class="test-button" onclick="testModal()">測試模態框</button>
+        <div id="modalResult"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>4. 測試出考卷按鈕</h2>
+        <button class="test-button" onclick="testQuizButton()">測試出考卷按鈕</button>
+        <div id="quizButtonResult"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>5. 測試完整流程</h2>
+        <button class="test-button" onclick="testFullFlow()">測試完整流程</button>
+        <div id="fullFlowResult"></div>
+    </div>
+
+    <!-- 測試模態框 -->
+    <div id="testModal" class="modal" style="display:none;">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 class="modal-title">測試模態框</h3>
+                <button class="modal-close" onclick="closeTestModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>這是一個測試模態框，用來驗證 CSS 樣式是否正常工作。</p>
+                <div id="modalContent">
+                    <p>模態框內容載入中...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="test-button" onclick="closeTestModal()">關閉</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 測試頁面載入
+        function testPageLoad() {
+            const result = document.getElementById('pageLoadResult');
+            try {
+                result.innerHTML = '<div class="result success">✅ 頁面載入成功</div>';
+            } catch (error) {
+                result.innerHTML = `<div class="result error">❌ 頁面載入失敗: ${error.message}</div>`;
+            }
+        }
+
+        // 測試腳本載入
+        async function testScriptLoad() {
+            const result = document.getElementById('scriptLoadResult');
+            try {
+                const scripts = [
+                    '../js/utils.js',
+                    '../js/api-client.js',
+                    '../js/auth.js',
+                    '../js/assignments-enhanced.js'
+                ];
+                
+                let allScriptsLoaded = true;
+                for (const script of scripts) {
+                    try {
+                        const response = await fetch(script);
+                        if (!response.ok) {
+                            allScriptsLoaded = false;
+                            console.log(`❌ ${script} 載入失敗: ${response.status}`);
+                        } else {
+                            console.log(`✅ ${script} 載入成功`);
+                        }
+                    } catch (error) {
+                        allScriptsLoaded = false;
+                        console.log(`❌ ${script} 載入失敗:`, error.message);
+                    }
+                }
+                
+                if (allScriptsLoaded) {
+                    result.innerHTML = '<div class="result success">✅ 所有腳本載入成功</div>';
+                } else {
+                    result.innerHTML = '<div class="result error">❌ 部分腳本載入失敗</div>';
+                }
+            } catch (error) {
+                result.innerHTML = `<div class="result error">❌ 腳本載入測試失敗: ${error.message}</div>`;
+            }
+        }
+
+        // 測試模態框
+        function testModal() {
+            const result = document.getElementById('modalResult');
+            try {
+                const modal = document.getElementById('testModal');
+                if (modal) {
+                    modal.style.display = 'flex';
+                    modal.classList.add('show');
+                    result.innerHTML = '<div class="result success">✅ 模態框打開成功</div>';
+                } else {
+                    result.innerHTML = '<div class="result error">❌ 找不到模態框元素</div>';
+                }
+            } catch (error) {
+                result.innerHTML = `<div class="result error">❌ 模態框測試失敗: ${error.message}</div>`;
+            }
+        }
+
+        // 關閉測試模態框
+        function closeTestModal() {
+            const modal = document.getElementById('testModal');
+            if (modal) {
+                modal.style.display = 'none';
+                modal.classList.remove('show');
+            }
+        }
+
+        // 測試出考卷按鈕
+        function testQuizButton() {
+            const result = document.getElementById('quizButtonResult');
+            try {
+                // 檢查必要的函數是否存在
+                if (typeof openQuizBuilder === 'function') {
+                    result.innerHTML = '<div class="result success">✅ openQuizBuilder 函數存在</div>';
+                } else {
+                    result.innerHTML = '<div class="result error">❌ openQuizBuilder 函數不存在</div>';
+                }
+            } catch (error) {
+                result.innerHTML = `<div class="result error">❌ 出考卷按鈕測試失敗: ${error.message}</div>`;
+            }
+        }
+
+        // 測試完整流程
+        async function testFullFlow() {
+            const result = document.getElementById('fullFlowResult');
+            try {
+                // 檢查必要的組件
+                const components = {
+                    'teacherAuth': typeof teacherAuth !== 'undefined',
+                    'apiClient': typeof apiClient !== 'undefined',
+                    'AssignmentsManager': typeof AssignmentsManager !== 'undefined',
+                    'QuizBuilder': typeof QuizBuilder !== 'undefined'
+                };
+                
+                const missingComponents = Object.entries(components)
+                    .filter(([name, exists]) => !exists)
+                    .map(([name]) => name);
+                
+                if (missingComponents.length === 0) {
+                    result.innerHTML = '<div class="result success">✅ 所有必要組件都存在</div>';
+                } else {
+                    result.innerHTML = `<div class="result error">❌ 缺少組件: ${missingComponents.join(', ')}</div>`;
+                }
+            } catch (error) {
+                result.innerHTML = `<div class="result error">❌ 完整流程測試失敗: ${error.message}</div>`;
+            }
+        }
+
+        // 點擊模態框背景關閉
+        document.getElementById('testModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeTestModal();
+            }
+        });
+    </script>
+</body>
+</html>

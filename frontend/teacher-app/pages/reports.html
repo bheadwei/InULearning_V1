@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="InULearning 教師台 - 學習報告">
+    <title>學習報告 - InULearning 教師台</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/design-tokens.css">
+    <link rel="stylesheet" href="../css/main.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .card { background:#fff; border-radius:12px; box-shadow: var(--shadow-sm); padding:1rem; }
+        .grid { display:grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        .toolbar { display:flex; gap:0.75rem; align-items:center; justify-content: space-between; margin-bottom: 0.75rem; }
+        .controls { display:flex; gap:0.5rem; align-items:center; flex-wrap: wrap; }
+        .controls input, .controls select { padding:0.5rem 0.7rem; border:1px solid var(--border); border-radius:8px; }
+        .btn { padding:0.5rem 0.9rem; border:1px solid var(--border); background:#fff; border-radius:8px; cursor:pointer; }
+        .chart { height: 260px; background: #F3F4F6; border-radius: 10px; position:relative; overflow:hidden; }
+        .empty { color: var(--text-light); display:flex; align-items:center; justify-content:center; height:100%; }
+        .legend { display:flex; gap:0.5rem; flex-wrap: wrap; margin-top:0.5rem; }
+        .legend-item { display:flex; align-items:center; gap:0.35rem; font-size:0.9rem; }
+        .legend-dot { width:10px; height:10px; border-radius:50%; }
+        .bar { height: 12px; background: var(--primary-blue); border-radius: 6px; }
+        .row { display:flex; align-items:center; gap:0.75rem; margin: 0.5rem 0; }
+        .row-label { width: 160px; color:var(--text-light); }
+        .skeleton { background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 37%, #f3f4f6 63%); background-size: 400% 100%; animation: shimmer 1.2s infinite; border-radius:8px; }
+        @keyframes shimmer { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
+    </style>
+</head>
+<body>
+    <a href="#main" class="skip-link" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;">跳至主要內容</a>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-brand"><i class="fas fa-chalkboard-teacher"></i><span>學習報告</span></div>
+            <div class="navbar-menu">
+                <a href="../index.html" class="nav-link"><i class="fas fa-tachometer-alt"></i><span>儀表板</span></a>
+                <a href="classes.html" class="nav-link"><i class="fas fa-users"></i><span>班級管理</span></a>
+                <a href="students-enhanced.html" class="nav-link"><i class="fas fa-user-graduate"></i><span>學生分析</span></a>
+                <a href="questions.html" class="nav-link"><i class="fas fa-question-circle"></i><span>題目管理</span></a>
+            </div>
+        </div>
+    </nav>
+    <main id="main" class="main-content">
+        <div class="container">
+            <div class="toolbar">
+                <div class="controls">
+                    <select id="klass">
+                        <option value="">全部班級</option>
+                        <option>七年三班</option>
+                        <option>七年四班</option>
+                    </select>
+                    <select id="subject">
+                        <option value="">全部科目</option>
+                        <option value="數學">數學</option>
+                        <option value="自然">自然</option>
+                        <option value="語文">語文</option>
+                    </select>
+                    <label>起</label><input id="start" type="date">
+                    <label>訖</label><input id="end" type="date">
+                </div>
+                <div class="controls">
+                    <button class="btn" id="refreshBtn">重新整理</button>
+                    <button class="btn" id="exportBtn">匯出 CSV</button>
+                </div>
+            </div>
+        </div>
+        <div class="container grid">
+            <section class="card">
+                <h2>班級平均分數趨勢</h2>
+                <div class="chart" id="trendChart">
+                    <svg id="trendSVG" viewBox="0 0 600 260" preserveAspectRatio="none" width="100%" height="100%"></svg>
+                </div>
+            </section>
+            <section class="card">
+                <h2>知識點正確率</h2>
+                <div class="chart" id="kpChart">
+                    <div id="kpDonut" style="width:160px;height:160px;border-radius:50%;margin:auto;position:absolute;inset:0;top:50%;transform:translateY(-50%);"></div>
+                </div>
+                <div class="legend" id="kpLegend"></div>
+            </section>
+            <section class="card" style="grid-column: 1 / -1;">
+                <h2>學生表現排行</h2>
+                <div class="chart" id="rankChart" style="height: 320px; padding: 1rem; background:#fff;"></div>
+            </section>
+        </div>
+    </main>
+    <script src="../js/utils.js"></script>
+    <script src="../js/api-client.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        let trendData = [];
+        let kpData = [];
+        let rankData = [];
+
+        async function loadAnalytics(){
+            // 依據日期推斷 window（後端支援 7d/30d/90d）
+            const startVal = document.getElementById('start').value;
+            const endVal = document.getElementById('end').value;
+            const diffDays = (()=>{ try { const s = new Date(startVal), e = new Date(endVal); return Math.max(1, Math.round((e - s)/(1000*60*60*24))); } catch(_) { return 30; }})();
+            const window = diffDays <= 10 ? '7d' : (diffDays <= 45 ? '30d' : '90d');
+            const subjectSel = document.getElementById('subject').value || '';
+            try {
+                const [tRes, kRes, rRes] = await Promise.all([
+                    apiClient.get(`/learning/trends/progress-chart?time_range=${encodeURIComponent(window)}${subjectSel?`&subject=${encodeURIComponent(subjectSel)}`:''}`),
+                    apiClient.get(`/learning/analytics/subjects/radar?window=${encodeURIComponent(window)}`),
+                    apiClient.get(`/learning/trends/subject-comparison?time_range=${encodeURIComponent(window)}`),
+                ]);
+                // 轉換趨勢資料
+                const chart = (tRes && tRes.chart_data) || { labels: [], scores: [] };
+                trendData = (chart.labels||[]).map((lbl, idx)=> ({ date: lbl, avg: Number((chart.scores||[])[idx]||0) }));
+                // 轉換科目掌握度資料（以 radar normalized.knowledge_mastery）
+                const subjects = (kRes && kRes.subjects) || [];
+                kpData = subjects.map(s=> ({ name: s.label || s.subject_id || '-', accuracy: Number(((s.normalized||{}).knowledge_mastery||0)) }));
+                // 轉換科目比較資料（以平均分數）
+                const comp = (rRes && rRes.comparison_data) || { subjects: [], scores: [] };
+                rankData = (comp.subjects||[]).map((name, i)=> ({ name, avg: Number((comp.scores||[])[i]||0) }));
+            } catch(e){
+                // 回退 Sample
+                trendData = [
+                    { date:'2025-08-01', avg:72 }, { date:'2025-08-05', avg:75 }, { date:'2025-08-10', avg:78 },
+                    { date:'2025-08-15', avg:80 }, { date:'2025-08-20', avg:79 }, { date:'2025-08-25', avg:83 },
+                ];
+                kpData = [
+                    { name:'數學', accuracy: 0.78 },
+                    { name:'自然', accuracy: 0.65 },
+                    { name:'語文', accuracy: 0.72 },
+                ];
+                rankData = [
+                    { name:'王小明', avg: 92 }, { name:'李小華', avg: 87 }, { name:'張小美', avg: 85 }, { name:'陳小強', avg: 80 }, { name:'林小雅', avg: 78 }
+                ];
+            }
+        }
+
+        function renderTrend(){
+            const svg = document.getElementById('trendSVG');
+            svg.innerHTML = '';
+            if (!trendData.length){
+                document.getElementById('trendChart').innerHTML = '<div class="empty">尚無資料</div>';
+                return;
+            }
+            const width = 600, height = 260, pad = 24;
+            const xs = trendData.map((_,i)=> i);
+            const ys = trendData.map(p=> p.avg||0);
+            const xMax = xs.length - 1; const yMax = Math.max(100, Math.max(...ys, 1));
+            const points = trendData.map((p,i)=>{
+                const x = pad + (width-2*pad) * (i / (xMax||1));
+                const y = height - pad - (height-2*pad) * ((p.avg||0) / yMax);
+                return `${x},${y}`;
+            }).join(' ');
+            const poly = document.createElementNS('http://www.w3.org/2000/svg','polyline');
+            poly.setAttribute('fill','none'); poly.setAttribute('stroke', 'var(--primary-blue)'); poly.setAttribute('stroke-width','3');
+            poly.setAttribute('points', points);
+            svg.appendChild(poly);
+            // dots
+            trendData.forEach((p,i)=>{
+                const x = pad + (width-2*pad) * (i / (xMax||1));
+                const y = height - pad - (height-2*pad) * ((p.avg||0) / yMax);
+                const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+                c.setAttribute('cx', x); c.setAttribute('cy', y); c.setAttribute('r','3'); c.setAttribute('fill','var(--accent-blue)');
+                svg.appendChild(c);
+            });
+        }
+
+        function renderKP(){
+            const donut = document.getElementById('kpDonut');
+            const legend = document.getElementById('kpLegend');
+            if (!kpData.length){ donut.innerHTML=''; donut.style.background=''; legend.innerHTML=''; donut.parentElement.innerHTML = '<div class="empty">尚無資料</div>'; return; }
+            const colors = ['#3B82F6','#10B981','#F59E0B','#EF4444','#8B5CF6','#06B6D4'];
+            let acc = 0; const slices = kpData.map((k,i)=>{ const v = Math.max(0, Math.min(1, k.accuracy||0)); return { label:k.name, value:v, color: colors[i%colors.length] }; });
+            const total = slices.reduce((s,x)=> s + x.value, 0) || 1;
+            const gradients = slices.map(s=> (s.value/total)*360);
+            let from = 0; const segs = gradients.map((deg,i)=>{ const to = from + deg; const seg = `${colors[i%colors.length]} ${from}deg ${to}deg`; from = to; return seg; });
+            donut.style.background = `conic-gradient(${segs.join(',')})`;
+            donut.style.mask = 'radial-gradient(#0000 56%, #000 57%)';
+            legend.innerHTML = slices.map((s,i)=>`<div class="legend-item"><span class="legend-dot" style="background:${colors[i%colors.length]}"></span>${s.label} ${(s.value*100).toFixed(0)}%</div>`).join('');
+        }
+
+        function renderRank(){
+            const wrap = document.getElementById('rankChart');
+            wrap.innerHTML = '';
+            if (!rankData.length){ wrap.innerHTML = '<div class="empty">尚無資料</div>'; return; }
+            const max = Math.max(...rankData.map(r=> r.avg||0), 1);
+            rankData.forEach(r=>{
+                const row = document.createElement('div'); row.className='row';
+                const lab = document.createElement('div'); lab.className='row-label'; lab.textContent = `${r.name}`;
+                const barBox = document.createElement('div'); barBox.style.flex='1'; barBox.style.background='#F3F4F6'; barBox.style.borderRadius='6px';
+                const bar = document.createElement('div'); bar.className='bar'; bar.style.width = `${Math.round(((r.avg||0)/max)*100)}%`;
+                barBox.appendChild(bar);
+                const val = document.createElement('div'); val.style.width='52px'; val.style.textAlign='right'; val.textContent = `${r.avg||0}`;
+                row.appendChild(lab); row.appendChild(barBox); row.appendChild(val);
+                wrap.appendChild(row);
+            });
+        }
+
+        function exportCSV(){
+            const rows = [ ['date','avg'], ...trendData.map(d=>[d.date, d.avg]) ];
+            const csv = rows.map(r=> r.map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+            const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'trend.csv'; a.click(); URL.revokeObjectURL(a.href);
+        }
+
+        async function refresh(){
+            // skeletons
+            document.getElementById('trendSVG').innerHTML = '';
+            document.getElementById('trendChart').innerHTML = '<div class="skeleton" style="height:100%;"></div>';
+            document.getElementById('kpDonut').style.background='';
+            document.getElementById('kpLegend').innerHTML='';
+            document.getElementById('rankChart').innerHTML = '<div class="skeleton" style="height:100%;"></div>';
+            await loadAnalytics();
+            document.getElementById('trendChart').innerHTML = '<svg id="trendSVG" viewBox="0 0 600 260" preserveAspectRatio="none" width="100%" height="100%"></svg>';
+            renderTrend(); renderKP(); renderRank();
+        }
+
+        document.addEventListener('DOMContentLoaded', async ()=>{
+            // 預設日期：近 30 天
+            const end = new Date(); const start = new Date(); start.setDate(end.getDate()-30);
+            const fmt = d=> `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+            document.getElementById('start').value = fmt(start);
+            document.getElementById('end').value = fmt(end);
+            await refresh();
+            document.getElementById('refreshBtn').addEventListener('click', refresh);
+            document.getElementById('exportBtn').addEventListener('click', exportCSV);
+            document.getElementById('klass').addEventListener('change', refresh);
+            document.getElementById('subject').addEventListener('change', refresh);
+            document.getElementById('start').addEventListener('change', refresh);
+            document.getElementById('end').addEventListener('change', refresh);
+        });
+    </script>
+</body>
+</html>
+

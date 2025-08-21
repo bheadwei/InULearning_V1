@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>調試頁面 - InULearning</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .debug-section { margin: 20px 0; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .log { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; padding: 10px; margin: 10px 0; font-family: monospace; }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .info { color: #007bff; }
+        .warning { color: #ffc107; }
+        button { padding: 8px 16px; margin: 5px; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-warning { background: #ffc107; color: black; }
+        .btn-danger { background: #dc3545; color: white; }
+        .hidden { display: none; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .card { background: white; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 20px 0; }
+        .stat-card { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; text-align: center; }
+        .stat-number { font-size: 2rem; font-weight: bold; color: #007bff; }
+        .stat-label { color: #6c757d; margin-top: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🔍 學生分析功能調試頁面</h1>
+    
+    <div class="debug-section">
+        <h2>📊 調試控制台</h2>
+        <button class="btn-primary" onclick="checkScriptLoading()">檢查腳本載入</button>
+        <button class="btn-success" onclick="testClassDefinition()">測試類定義</button>
+        <button class="btn-warning" onclick="testInstanceCreation()">測試實例創建</button>
+        <button class="btn-danger" onclick="clearLogs()">清除日誌</button>
+        <button class="btn-primary" onclick="testFullFunctionality()">測試完整功能</button>
+    </div>
+
+    <div class="debug-section">
+        <h2>📝 調試日誌</h2>
+        <div id="debugLogs"></div>
+    </div>
+
+    <!-- 學生分析功能區域 -->
+    <div class="debug-section">
+        <h2>🎓 學生分析功能</h2>
+        
+        <!-- 班級選擇區域 -->
+        <div class="card">
+            <h3>班級選擇</h3>
+            <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 20px;">
+                <label for="classSelector">選擇班級:</label>
+                <select id="classSelector" style="padding: 8px; border: 1px solid #dee2e6; border-radius: 4px; min-width: 200px;">
+                    <option value="">請選擇班級...</option>
+                </select>
+                <button id="refreshBtn" class="btn-primary">重新整理</button>
+            </div>
+        </div>
+
+        <!-- 載入指示器 -->
+        <div id="loadingIndicator" class="hidden">
+            <div class="card" style="text-align: center; padding: 40px;">
+                <div style="font-size: 2rem; margin-bottom: 10px;">⏳</div>
+                <p>載入中...</p>
+            </div>
+        </div>
+
+        <!-- 班級概覽內容 -->
+        <div id="classOverviewContent" class="hidden">
+            <div class="card">
+                <h3>班級概覽</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalStudents">0</div>
+                        <div class="stat-label">學生總數</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="averageAccuracy">0%</div>
+                        <div class="stat-label">平均正確率</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="averageSpeed">0 秒/題</div>
+                        <div class="stat-label">平均答題速度</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalSessions">0</div>
+                        <div class="stat-label">總學習會話</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 學生列表內容 -->
+        <div id="studentListContent" class="hidden">
+            <div class="card">
+                <h3>學生列表</h3>
+                <div id="studentGrid" class="grid"></div>
+            </div>
+        </div>
+
+        <!-- 無數據狀態 -->
+        <div id="noDataState" class="hidden">
+            <div class="card" style="text-align: center; padding: 40px;">
+                <div style="font-size: 2rem; margin-bottom: 10px;">📚</div>
+                <p>尚無班級數據</p>
+            </div>
+        </div>
+
+        <!-- 錯誤狀態 -->
+        <div id="errorState" class="hidden">
+            <div class="card" style="text-align: center; padding: 40px; border-color: #dc3545;">
+                <div style="font-size: 2rem; margin-bottom: 10px; color: #dc3545;">❌</div>
+                <p id="errorMessage">載入失敗</p>
+                <button id="retryBtn" class="btn-primary">重試</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="debug-section">
+        <h2>🧪 功能測試</h2>
+        <div id="testArea">
+            <p>點擊上方按鈕開始測試...</p>
+        </div>
+    </div>
+
+    <div class="debug-section">
+        <h2>📁 頁面元素</h2>
+        <div id="pageElements">
+            <p>檢查頁面元素載入狀態...</p>
+        </div>
+    </div>
+
+    <script>
+        // 調試日誌系統
+        const debugLogs = document.getElementById('debugLogs');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logDiv = document.createElement('div');
+            logDiv.className = `log ${type}`;
+            logDiv.innerHTML = `<strong>[${timestamp}]</strong> ${message}`;
+            debugLogs.appendChild(logDiv);
+            
+            // 同時輸出到瀏覽器控制台
+            console.log(`[${timestamp}] ${message}`);
+            
+            // 自動滾動到底部
+            debugLogs.scrollTop = debugLogs.scrollHeight;
+        }
+
+        function clearLogs() {
+            debugLogs.innerHTML = '';
+            log('日誌已清除', 'info');
+        }
+
+        // 檢查腳本載入狀態
+        function checkScriptLoading() {
+            log('🔍 開始檢查腳本載入狀態...', 'info');
+            
+            // 檢查 StudentsAnalysisManager 是否已定義
+            if (typeof StudentsAnalysisManager !== 'undefined') {
+                log('✅ StudentsAnalysisManager 類已成功載入', 'success');
+                log(`📋 類的類型: ${typeof StudentsAnalysisManager}`, 'info');
+                log(`📋 類的構造函數: ${StudentsAnalysisManager.constructor.name}`, 'info');
+            } else {
+                log('❌ StudentsAnalysisManager 類未定義', 'error');
+                log('🔍 檢查 window 對象...', 'info');
+                
+                // 檢查 window 對象上的屬性
+                const windowProps = Object.getOwnPropertyNames(window).filter(prop => 
+                    prop.toLowerCase().includes('student') || 
+                    prop.toLowerCase().includes('analysis') ||
+                    prop.toLowerCase().includes('manager')
+                );
+                
+                if (windowProps.length > 0) {
+                    log(`🔍 發現相關屬性: ${windowProps.join(', ')}`, 'warning');
+                } else {
+                    log('🔍 未發現相關屬性', 'warning');
+                }
+            }
+        }
+
+        // 測試類定義
+        function testClassDefinition() {
+            log('🧪 開始測試類定義...', 'info');
+            
+            if (typeof StudentsAnalysisManager === 'undefined') {
+                log('❌ StudentsAnalysisManager 未定義，無法測試', 'error');
+                return;
+            }
+            
+            try {
+                // 檢查類的屬性
+                log(`📋 類名稱: ${StudentsAnalysisManager.name}`, 'info');
+                log(`📋 類的長度: ${StudentsAnalysisManager.length}`, 'info');
+                
+                // 檢查原型
+                const prototype = StudentsAnalysisManager.prototype;
+                log(`📋 原型方法數量: ${Object.getOwnPropertyNames(prototype).length}`, 'info');
+                
+                // 列出主要方法
+                const methods = Object.getOwnPropertyNames(prototype).filter(name => 
+                    name !== 'constructor' && typeof prototype[name] === 'function'
+                );
+                log(`📋 主要方法: ${methods.join(', ')}`, 'info');
+                
+                log('✅ 類定義測試完成', 'success');
+            } catch (error) {
+                log(`❌ 類定義測試失敗: ${error.message}`, 'error');
+            }
+        }
+
+        // 測試實例創建
+        function testInstanceCreation() {
+            log('🧪 開始測試實例創建...', 'info');
+            
+            if (typeof StudentsAnalysisManager === 'undefined') {
+                log('❌ StudentsAnalysisManager 未定義，無法創建實例', 'error');
+                return;
+            }
+            
+            try {
+                const instance = new StudentsAnalysisManager();
+                log('✅ 實例創建成功', 'success');
+                log(`📋 實例類型: ${typeof instance}`, 'info');
+                log(`📋 實例構造函數: ${instance.constructor.name}`, 'info');
+                
+                // 檢查實例屬性
+                const instanceProps = Object.getOwnPropertyNames(instance);
+                log(`📋 實例屬性: ${instanceProps.join(', ')}`, 'info');
+                
+                // 檢查初始化狀態
+                if (instance.isInitialized !== undefined) {
+                    log(`📋 初始化狀態: ${instance.isInitialized}`, 'info');
+                }
+                
+                return instance;
+            } catch (error) {
+                log(`❌ 實例創建失敗: ${error.message}`, 'error');
+                log(`📋 錯誤堆疊: ${error.stack}`, 'error');
+                return null;
+            }
+        }
+
+        // 測試完整功能
+        function testFullFunctionality() {
+            log('🧪 開始測試完整功能...', 'info');
+            
+            const manager = testInstanceCreation();
+            if (!manager) {
+                log('❌ 無法創建管理器實例', 'error');
+                return;
+            }
+            
+            try {
+                // 測試班級載入
+                log('📚 測試班級載入...', 'info');
+                manager.loadClasses();
+                
+                // 等待班級載入完成後測試其他功能
+                setTimeout(() => {
+                    log('📊 檢查班級選擇狀態...', 'info');
+                    
+                    if (manager.currentClassId) {
+                        log(`✅ 已選擇班級 ID: ${manager.currentClassId}`, 'success');
+                        
+                        // 測試班級概覽
+                        log('📊 測試班級概覽...', 'info');
+                        manager.loadClassOverview(manager.currentClassId);
+                        
+                        // 測試學生列表
+                        setTimeout(() => {
+                            log('👥 測試學生列表...', 'info');
+                            manager.loadStudents(manager.currentClassId);
+                            
+                            // 測試視圖切換
+                            setTimeout(() => {
+                                log('🔄 測試視圖切換...', 'info');
+                                manager.switchView('list');
+                                
+                                setTimeout(() => {
+                                    manager.switchView('overview');
+                                    log('✅ 所有功能測試完成！', 'success');
+                                }, 1000);
+                            }, 1000);
+                        }, 1000);
+                    } else {
+                        log('⚠️ 沒有選中的班級，嘗試手動選擇...', 'warning');
+                        
+                        // 嘗試手動選擇第一個班級
+                        const selector = document.getElementById('classSelector');
+                        if (selector && selector.options.length > 1) {
+                            const firstOption = selector.options[1]; // 跳過第一個空選項
+                            selector.value = firstOption.value;
+                            manager.currentClassId = firstOption.value;
+                            log(`✅ 手動選擇班級: ${firstOption.textContent}`, 'success');
+                            
+                            // 觸發變更事件
+                            const event = new Event('change', { bubbles: true });
+                            selector.dispatchEvent(event);
+                        } else {
+                            log('❌ 班級選擇器沒有可用選項', 'error');
+                        }
+                    }
+                }, 1500);
+                
+                log('✅ 完整功能測試已啟動', 'success');
+            } catch (error) {
+                log(`❌ 完整功能測試失敗: ${error.message}`, 'error');
+            }
+        }
+
+        // 檢查頁面元素
+        function checkPageElements() {
+            log('🔍 檢查頁面元素...', 'info');
+            
+            const elements = [
+                'classSelector',
+                'refreshBtn',
+                'loadingIndicator',
+                'classOverviewContent',
+                'studentListContent',
+                'noDataState',
+                'errorState'
+            ];
+            
+            let foundCount = 0;
+            elements.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    log(`✅ 元素 ${id} 存在`, 'success');
+                    foundCount++;
+                } else {
+                    log(`❌ 元素 ${id} 不存在`, 'error');
+                }
+            });
+            
+            if (foundCount === elements.length) {
+                log(`🎉 所有 ${foundCount} 個必要元素都已找到！`, 'success');
+            } else {
+                log(`⚠️ 只找到 ${foundCount}/${elements.length} 個必要元素`, 'warning');
+            }
+        }
+
+        // 頁面載入完成後的初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            log('🚀 頁面載入完成', 'success');
+            log('🔍 開始自動檢查...', 'info');
+            
+            // 延遲檢查，確保腳本有時間載入
+            setTimeout(() => {
+                checkScriptLoading();
+                checkPageElements();
+            }, 1000);
+        });
+
+        // 錯誤處理
+        window.addEventListener('error', (e) => {
+            log(`❌ JavaScript 錯誤: ${e.message}`, 'error');
+            log(`📋 錯誤文件: ${e.filename}`, 'error');
+            log(`📋 錯誤行號: ${e.lineno}`, 'error');
+        });
+
+        // 未處理的 Promise 拒絕
+        window.addEventListener('unhandledrejection', (e) => {
+            log(`❌ 未處理的 Promise 拒絕: ${e.reason}`, 'error');
+        });
+
+        // 定期檢查腳本載入狀態
+        let checkCount = 0;
+        const maxChecks = 10;
+        const checkInterval = setInterval(() => {
+            checkCount++;
+            if (typeof StudentsAnalysisManager !== 'undefined') {
+                log(`✅ 腳本在第 ${checkCount} 次檢查時載入成功`, 'success');
+                clearInterval(checkInterval);
+            } else if (checkCount >= maxChecks) {
+                log(`❌ 腳本載入超時 (${maxChecks} 次檢查)`, 'error');
+                clearInterval(checkInterval);
+            } else {
+                log(`⏳ 第 ${checkCount} 次檢查: 腳本尚未載入...`, 'warning');
+            }
+        }, 500);
+    </script>
+
+    <!-- 載入學生分析管理器 -->
+    <script src="js/students-enhanced.js"></script>
+</body>
+</html>

@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>課程管理 - InULearning</title>
+    <link rel="stylesheet" href="../shared/css/components.css">
+    <link rel="stylesheet" href="../shared/css/responsive.css">
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="css/courses.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- 導航欄 -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-brand">
+                <i class="fas fa-chalkboard-teacher"></i>
+                <span>InULearning 教師台</span>
+            </div>
+            <div class="navbar-menu">
+                <a href="../index.html" class="nav-link">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>儀表板</span>
+                </a>
+                <a href="courses.html" class="nav-link active">
+                    <i class="fas fa-book"></i>
+                    <span>課程管理</span>
+                </a>
+                <a href="students-enhanced.html" class="nav-link">
+                    <i class="fas fa-user-graduate"></i>
+                    <span>學生分析</span>
+                </a>
+                <a href="assignments.html" class="nav-link">
+                    <i class="fas fa-clipboard-check"></i>
+                    <span>作業管理</span>
+                </a>
+                <a href="announcements.html" class="nav-link">
+                    <i class="fas fa-bullhorn"></i>
+                    <span>公告管理</span>
+                </a>
+            </div>
+            <div class="navbar-user">
+                <div class="user-dropdown">
+                    <button class="user-dropdown-toggle">
+                        <i class="fas fa-user-circle" id="teacher-avatar"></i>
+                        <span id="teacher-name">教師</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="user-dropdown-menu">
+                        <a href="profile.html" class="dropdown-item">
+                            <i class="fas fa-user"></i>
+                            <span>個人資料</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item" id="logout-btn">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>登出</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要內容區域 -->
+    <main class="main-content">
+        <div class="container">
+            <!-- 頁面標題和操作 -->
+            <div class="page-header">
+                <div class="page-title">
+                    <h1>課程管理</h1>
+                    <p>管理您的課程內容和學生</p>
+                </div>
+                <div class="page-actions">
+                    <button class="btn btn-primary" id="create-course-btn">
+                        <i class="fas fa-plus"></i>
+                        新增課程
+                    </button>
+                    <button class="btn btn-outline-secondary" id="import-course-btn">
+                        <i class="fas fa-upload"></i>
+                        匯入課程
+                    </button>
+                </div>
+            </div>
+
+            <!-- 篩選和搜尋 -->
+            <div class="filters-section">
+                <div class="filters-row">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="course-search" placeholder="搜尋課程名稱或描述...">
+                    </div>
+                    <div class="filter-group">
+                        <select id="status-filter" class="form-select">
+                            <option value="">所有狀態</option>
+                            <option value="active">進行中</option>
+                            <option value="draft">草稿</option>
+                            <option value="completed">已完成</option>
+                            <option value="archived">已封存</option>
+                        </select>
+                        <select id="subject-filter" class="form-select">
+                            <option value="">所有科目</option>
+                            <option value="math">數學</option>
+                            <option value="science">科學</option>
+                            <option value="language">語文</option>
+                            <option value="social">社會</option>
+                        </select>
+                        <select id="grade-filter" class="form-select">
+                            <option value="">所有年級</option>
+                            <option value="grade1">一年級</option>
+                            <option value="grade2">二年級</option>
+                            <option value="grade3">三年級</option>
+                            <option value="grade4">四年級</option>
+                            <option value="grade5">五年級</option>
+                            <option value="grade6">六年級</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 課程統計 -->
+            <div class="stats-cards">
+                <div class="stat-card">
+                    <div class="stat-icon primary">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 class="stat-value" id="total-courses">0</h3>
+                        <p class="stat-title">總課程數</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon success">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 class="stat-value" id="total-students">0</h3>
+                        <p class="stat-title">總學生數</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon warning">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 class="stat-value" id="active-courses">0</h3>
+                        <p class="stat-title">進行中課程</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon info">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 class="stat-value" id="avg-completion">0%</h3>
+                        <p class="stat-title">平均完成率</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 課程列表 -->
+            <div class="courses-section">
+                <div class="section-header">
+                    <h2>我的課程</h2>
+                    <div class="view-options">
+                        <button class="view-toggle active" data-view="grid">
+                            <i class="fas fa-th"></i>
+                        </button>
+                        <button class="view-toggle" data-view="list">
+                            <i class="fas fa-list"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="courses-grid" id="courses-container">
+                    <!-- 課程卡片將在這裡動態生成 -->
+                </div>
+
+                <!-- 分頁 -->
+                <div class="pagination-container">
+                    <div class="pagination-info">
+                        <span id="pagination-info">顯示 0-0 項，共 0 項</span>
+                    </div>
+                    <div class="pagination" id="pagination">
+                        <!-- 分頁按鈕將在這裡動態生成 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 新增/編輯課程模態框 -->
+    <div class="modal fade" id="course-modal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="course-modal-title">新增課程</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="course-form">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="form-group">
+                                    <label for="course-name" class="form-label">課程名稱 *</label>
+                                    <input type="text" id="course-name" name="name" class="form-control" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="course-code" class="form-label">課程代碼</label>
+                                    <input type="text" id="course-code" name="code" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="course-description" class="form-label">課程描述</label>
+                            <textarea id="course-description" name="description" class="form-control" rows="3"></textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="course-subject" class="form-label">科目 *</label>
+                                    <select id="course-subject" name="subject" class="form-select" required>
+                                        <option value="">選擇科目</option>
+                                        <option value="math">數學</option>
+                                        <option value="science">科學</option>
+                                        <option value="language">語文</option>
+                                        <option value="social">社會</option>
+                                        <option value="english">英語</option>
+                                        <option value="art">藝術</option>
+                                        <option value="music">音樂</option>
+                                        <option value="pe">體育</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="course-grade" class="form-label">年級 *</label>
+                                    <select id="course-grade" name="grade" class="form-select" required>
+                                        <option value="">選擇年級</option>
+                                        <option value="grade1">一年級</option>
+                                        <option value="grade2">二年級</option>
+                                        <option value="grade3">三年級</option>
+                                        <option value="grade4">四年級</option>
+                                        <option value="grade5">五年級</option>
+                                        <option value="grade6">六年級</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="course-status" class="form-label">狀態</label>
+                                    <select id="course-status" name="status" class="form-select">
+                                        <option value="draft">草稿</option>
+                                        <option value="active">進行中</option>
+                                        <option value="completed">已完成</option>
+                                        <option value="archived">已封存</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="course-start-date" class="form-label">開始日期</label>
+                                    <input type="date" id="course-start-date" name="startDate" class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="course-end-date" class="form-label">結束日期</label>
+                                    <input type="date" id="course-end-date" name="endDate" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="course-image" class="form-label">課程封面圖片</label>
+                            <input type="file" id="course-image" name="image" class="form-control" accept="image/*">
+                            <div class="form-text">建議尺寸：800x600 像素，最大 2MB</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">課程設定</label>
+                            <div class="checkbox-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="course-public" name="isPublic">
+                                    <span class="checkmark"></span>
+                                    公開課程（學生可以自行加入）
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="course-notifications" name="enableNotifications">
+                                    <span class="checkmark"></span>
+                                    啟用通知
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="course-discussions" name="enableDiscussions">
+                                    <span class="checkmark"></span>
+                                    啟用討論區
+                                </label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="save-course-btn">
+                        <span class="btn-text">儲存課程</span>
+                        <span class="btn-loading" style="display: none;">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            儲存中...
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 刪除確認模態框 -->
+    <div class="modal fade" id="delete-modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">確認刪除</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>您確定要刪除課程 "<span id="delete-course-name"></span>" 嗎？</p>
+                    <p class="text-danger">此操作無法復原，課程中的所有資料都將被刪除。</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-danger" id="confirm-delete-btn">確認刪除</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../shared/js/utils.js"></script>
+    <script src="../shared/js/api-client.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/main.js"></script>
+    <script src="js/courses.js"></script>
+</body>
+</html> 

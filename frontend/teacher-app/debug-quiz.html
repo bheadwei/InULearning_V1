@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>調試出考卷功能</title>
+    <link rel="stylesheet" href="/shared/css/components.css">
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .debug-section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .debug-button { padding: 10px 20px; margin: 10px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .debug-button:hover { background: #218838; }
+        .log { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px; padding: 10px; margin: 10px 0; font-family: monospace; white-space: pre-wrap; }
+        .error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+    </style>
+</head>
+<body>
+    <h1>調試出考卷功能</h1>
+    
+    <div class="debug-section">
+        <h2>1. 載入必要的腳本</h2>
+        <button class="debug-button" onclick="loadScripts()">載入腳本</button>
+        <div id="scriptStatus"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>2. 檢查組件狀態</h2>
+        <button class="debug-button" onclick="checkComponents()">檢查組件</button>
+        <div id="componentStatus"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>3. 測試出考卷按鈕</h2>
+        <button class="debug-button" onclick="testQuizButton()">測試出考卷</button>
+        <div id="quizStatus"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>4. 檢查瀏覽器控制台</h2>
+        <p>請打開瀏覽器的開發者工具 (F12)，查看 Console 標籤頁的錯誤訊息</p>
+        <div id="consoleStatus"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>5. 日誌記錄</h2>
+        <div id="logContainer" class="log"></div>
+        <button class="debug-button" onclick="clearLog()">清空日誌</button>
+    </div>
+
+    <script>
+        // 日誌記錄
+        function log(message, type = 'info') {
+            const logContainer = document.getElementById('logContainer');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${type.toUpperCase()}: ${message}\n`;
+            logContainer.textContent += logEntry;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        function clearLog() {
+            document.getElementById('logContainer').textContent = '';
+        }
+
+        // 載入腳本
+        async function loadScripts() {
+            const status = document.getElementById('scriptStatus');
+            status.innerHTML = '<div class="log">載入腳本中...</div>';
+            
+            try {
+                const scripts = [
+                    { src: '../js/utils.js', name: 'utils.js' },
+                    { src: '../js/api-client.js', name: 'api-client.js' },
+                    { src: '../js/auth.js', name: 'auth.js' },
+                    { src: '../js/assignments-enhanced.js', name: 'assignments-enhanced.js' }
+                ];
+                
+                for (const script of scripts) {
+                    try {
+                        log(`正在載入 ${script.name}...`);
+                        const scriptElement = document.createElement('script');
+                        scriptElement.src = script.src;
+                        scriptElement.onload = () => log(`✅ ${script.name} 載入成功`);
+                        scriptElement.onerror = () => log(`❌ ${script.name} 載入失敗`, 'error');
+                        document.head.appendChild(scriptElement);
+                        
+                        // 等待腳本載入
+                        await new Promise((resolve, reject) => {
+                            scriptElement.onload = resolve;
+                            scriptElement.onerror = reject;
+                        });
+                        
+                    } catch (error) {
+                        log(`❌ ${script.name} 載入失敗: ${error.message}`, 'error');
+                    }
+                }
+                
+                status.innerHTML = '<div class="log success">腳本載入完成</div>';
+                log('所有腳本載入完成');
+                
+            } catch (error) {
+                status.innerHTML = `<div class="log error">腳本載入失敗: ${error.message}</div>`;
+                log(`腳本載入失敗: ${error.message}`, 'error');
+            }
+        }
+
+        // 檢查組件
+        function checkComponents() {
+            const status = document.getElementById('componentStatus');
+            const components = {
+                'teacherAuth': typeof teacherAuth !== 'undefined',
+                'apiClient': typeof apiClient !== 'undefined',
+                'AssignmentsManager': typeof AssignmentsManager !== 'undefined',
+                'QuizBuilder': typeof QuizBuilder !== 'undefined',
+                'openQuizBuilder': typeof openQuizBuilder !== 'undefined'
+            };
+            
+            let statusHtml = '<div class="log">組件檢查結果:</div>';
+            for (const [name, exists] of Object.entries(components)) {
+                const icon = exists ? '✅' : '❌';
+                const color = exists ? 'success' : 'error';
+                statusHtml += `<div class="${color}">${icon} ${name}: ${exists ? '存在' : '不存在'}</div>`;
+                log(`${name}: ${exists ? '存在' : '不存在'}`);
+            }
+            
+            status.innerHTML = statusHtml;
+        }
+
+        // 測試出考卷按鈕
+        function testQuizButton() {
+            const status = document.getElementById('quizStatus');
+            
+            try {
+                if (typeof openQuizBuilder === 'function') {
+                    log('嘗試調用 openQuizBuilder...');
+                    openQuizBuilder();
+                    status.innerHTML = '<div class="log success">✅ openQuizBuilder 調用成功</div>';
+                    log('openQuizBuilder 調用成功');
+                } else {
+                    status.innerHTML = '<div class="log error">❌ openQuizBuilder 函數不存在</div>';
+                    log('openQuizBuilder 函數不存在', 'error');
+                }
+            } catch (error) {
+                status.innerHTML = `<div class="log error">❌ 出考卷測試失敗: ${error.message}</div>`;
+                log(`出考卷測試失敗: ${error.message}`, 'error');
+            }
+        }
+
+        // 頁面載入完成後的檢查
+        window.addEventListener('load', function() {
+            log('頁面載入完成');
+            setTimeout(() => {
+                log('延遲檢查組件狀態...');
+                checkComponents();
+            }, 2000);
+        });
+
+        // 錯誤處理
+        window.addEventListener('error', function(event) {
+            log(`JavaScript 錯誤: ${event.message}`, 'error');
+            log(`錯誤位置: ${event.filename}:${event.lineno}:${event.colno}`, 'error');
+        });
+
+        // 未處理的 Promise 拒絕
+        window.addEventListener('unhandledrejection', function(event) {
+            log(`未處理的 Promise 拒絕: ${event.reason}`, 'error');
+        });
+    </script>
+</body>
+</html>

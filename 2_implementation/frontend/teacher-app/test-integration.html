@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>學生分析功能測試 - InULearning</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-3xl font-bold text-gray-800 mb-8">學生分析功能整合測試</h1>
+        
+        <!-- 測試區域 -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">功能測試</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <button id="testInit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                    測試初始化
+                </button>
+                <button id="testClassSelector" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                    測試班級選擇器
+                </button>
+                <button id="testViewToggle" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">
+                    測試視圖切換
+                </button>
+                <button id="testStudentCards" class="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700">
+                    測試學生卡片
+                </button>
+            </div>
+            
+            <div id="testResults" class="bg-gray-50 p-4 rounded-lg">
+                <p class="text-gray-600">點擊上方按鈕開始測試...</p>
+            </div>
+        </div>
+
+        <!-- 模擬頁面元素 -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">模擬頁面元素</h2>
+            
+            <!-- 班級選擇器 -->
+            <div class="mb-6">
+                <label for="classSelector" class="text-sm font-medium text-gray-700">選擇班級:</label>
+                <select id="classSelector" class="mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">請選擇班級...</option>
+                </select>
+                <button id="refreshBtn" class="ml-4 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                    重新整理
+                </button>
+            </div>
+
+            <!-- 載入指示器 -->
+            <div id="loadingIndicator" class="hidden flex items-center justify-center py-8">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <span class="ml-3 text-gray-600">載入中...</span>
+            </div>
+
+            <!-- 班級概覽內容 -->
+            <div id="classOverviewContent" class="hidden">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">班級概覽</h3>
+                
+                <!-- 統計卡片 -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <p class="text-sm text-blue-600">學生總數</p>
+                        <p id="totalStudents" class="text-2xl font-bold text-blue-800">0</p>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <p class="text-sm text-green-600">平均正確率</p>
+                        <p id="averageAccuracy" class="text-2xl font-bold text-green-800">0%</p>
+                    </div>
+                    <div class="bg-purple-50 p-4 rounded-lg">
+                        <p class="text-sm text-purple-600">平均答題速度</p>
+                        <p id="averageSpeed" class="text-2xl font-bold text-purple-800">0 秒/題</p>
+                    </div>
+                    <div class="bg-orange-50 p-4 rounded-lg">
+                        <p class="text-sm text-orange-600">總學習會話</p>
+                        <p id="totalSessions" class="text-2xl font-bold text-orange-800">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 學生列表內容 -->
+            <div id="studentListContent" class="hidden">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">學生列表</h3>
+                
+                <!-- 搜尋與篩選 -->
+                <div class="mb-6">
+                    <input type="text" id="searchInput" placeholder="搜尋學生姓名..." 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <!-- 學生卡片網格 -->
+                <div id="studentGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                    <!-- 學生卡片將在這裡動態生成 -->
+                </div>
+
+                <!-- 分頁導航 -->
+                <div id="pagination" class="flex items-center justify-between">
+                    <div class="text-sm text-gray-700">
+                        顯示 <span id="startIndex">0</span> 到 <span id="endIndex">0</span> 項，共 <span id="totalCount">0</span> 項
+                    </div>
+                </div>
+            </div>
+
+            <!-- 無數據狀態 -->
+            <div id="noDataState" class="hidden text-center py-12">
+                <span class="material-icons text-6xl text-gray-300 mb-4">analytics_off</span>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">尚無班級數據</h3>
+                <p class="text-gray-500">請先選擇班級或創建班級來查看學習分析</p>
+            </div>
+
+            <!-- 錯誤狀態 -->
+            <div id="errorState" class="hidden text-center py-12">
+                <span class="material-icons text-6xl text-red-300 mb-4">error_outline</span>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">載入失敗</h3>
+                <p id="errorMessage" class="text-gray-500 mb-4">無法載入班級數據</p>
+                <button id="retryBtn" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                    重試
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 測試用的 JavaScript -->
+    <script>
+        // 模擬 API 客戶端
+        window.apiClient = {
+            getToken: () => 'mock-token',
+            request: async (url) => ({ ok: true, json: async () => ({}) }),
+            showLoading: (id) => console.log('Loading:', id),
+            hideLoading: (id) => console.log('Loading finished:', id)
+        };
+
+        // 測試函數
+        function addTestResult(message, type = 'info') {
+            const results = document.getElementById('testResults');
+            const div = document.createElement('div');
+            div.className = `p-2 mb-2 rounded ${
+                type === 'success' ? 'bg-green-100 text-green-800' :
+                type === 'error' ? 'bg-red-100 text-red-800' :
+                'bg-blue-100 text-blue-800'
+            }`;
+            div.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            results.appendChild(div);
+        }
+
+        // 測試初始化
+        document.getElementById('testInit').addEventListener('click', () => {
+            addTestResult('開始測試初始化...', 'info');
+            
+            try {
+                if (typeof StudentsAnalysisManager !== 'undefined') {
+                    window.studentsManager = new StudentsAnalysisManager();
+                    addTestResult('✅ StudentsAnalysisManager 初始化成功', 'success');
+                } else {
+                    addTestResult('❌ StudentsAnalysisManager 未定義', 'error');
+                }
+            } catch (error) {
+                addTestResult(`❌ 初始化失敗: ${error.message}`, 'error');
+            }
+        });
+
+        // 測試班級選擇器
+        document.getElementById('testClassSelector').addEventListener('click', () => {
+            addTestResult('測試班級選擇器...', 'info');
+            
+            const selector = document.getElementById('classSelector');
+            if (selector.options.length > 1) {
+                addTestResult('✅ 班級選擇器已填充選項', 'success');
+            } else {
+                addTestResult('❌ 班級選擇器未填充選項', 'error');
+            }
+        });
+
+        // 測試視圖切換
+        document.getElementById('testViewToggle').addEventListener('click', () => {
+            addTestResult('測試視圖切換...', 'info');
+            
+            if (window.studentsManager) {
+                try {
+                    window.studentsManager.switchView('list');
+                    addTestResult('✅ 視圖切換到學生列表成功', 'success');
+                    
+                    setTimeout(() => {
+                        window.studentsManager.switchView('overview');
+                        addTestResult('✅ 視圖切換到班級概覽成功', 'success');
+                    }, 1000);
+                } catch (error) {
+                    addTestResult(`❌ 視圖切換失敗: ${error.message}`, 'error');
+                }
+            } else {
+                addTestResult('❌ 請先初始化 StudentsAnalysisManager', 'error');
+            }
+        });
+
+        // 測試學生卡片
+        document.getElementById('testStudentCards').addEventListener('click', () => {
+            addTestResult('測試學生卡片生成...', 'info');
+            
+            if (window.studentsManager) {
+                try {
+                    // 模擬載入學生數據
+                    window.studentsManager.loadStudents(1);
+                    addTestResult('✅ 學生卡片生成成功', 'success');
+                } catch (error) {
+                    addTestResult(`❌ 學生卡片生成失敗: ${error.message}`, 'error');
+                }
+            } else {
+                addTestResult('❌ 請先初始化 StudentsAnalysisManager', 'error');
+            }
+        });
+
+        // 頁面載入完成後顯示狀態
+        document.addEventListener('DOMContentLoaded', () => {
+            addTestResult('頁面載入完成，準備開始測試', 'info');
+        });
+    </script>
+
+    <!-- 載入學生分析管理器 -->
+    <script src="js/students-enhanced.js"></script>
+</body>
+</html>

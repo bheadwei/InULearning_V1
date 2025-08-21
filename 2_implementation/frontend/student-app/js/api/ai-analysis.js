@@ -6,9 +6,10 @@
 // AI 分析 API 客戶端
 class AIAnalysisAPI {
     constructor() {
-        // 經由 Nginx 反向代理，統一走同源 /api/v1/ai
-        this.baseURL = '/api/v1';
-        this.aiBase = '/api/v1/ai';
+        // 經由 API Gateway (nginx，對外 http://localhost/api) 做反向代理
+        // 避免在 8080 靜態前端容器上以相對路徑呼叫造成 502
+        this.baseURL = (window?.Utils?.config?.API_BASE_URL) || 'http://localhost/api/v1';
+        this.aiBase = `${this.baseURL}/ai`;
     }
 
     // 獲取認證頭
@@ -265,12 +266,41 @@ class AIAnalysisAPI {
         }
     }
 
+    // ================= 新增：單一端點一次生成並持久化 =================
+
+    async generateCombinedAnalysis(question, studentAnswer, exerciseRecordId, temperature = 1.0, maxOutputTokens = 512) {
+        try {
+            const response = await fetch(`${this.aiBase}/analysis/generate`, {
+                method: 'POST',
+                headers: this.getAuthHeaders(),
+                body: JSON.stringify({
+                    question: question,
+                    student_answer: studentAnswer,
+                    temperature: temperature,
+                    max_output_tokens: maxOutputTokens,
+                    exercise_record_id: exerciseRecordId
+                })
+            });
+
+            if (!response.ok) {
+                const txt = await response.text();
+                throw new Error(`HTTP ${response.status}: ${txt}`);
+            }
+
+            const result = await response.json();
+            return { success: true, ...result };
+        } catch (error) {
+            console.error('整合端點生成失敗:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
     // 顯示開發中提示
     showUnderDevelopmentModal(feature = "AI分析") {
         const modal = document.createElement('div');
         modal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50';
         modal.id = 'aiAnalysisModal';
-        
+
         modal.innerHTML = `
             <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-1/2 shadow-lg rounded-md bg-white">
                 <div class="mt-3 text-center">
@@ -308,15 +338,15 @@ class AIAnalysisAPI {
                 </div>
             </div>
         `;
-        
+
         document.body.appendChild(modal);
-        
+
         // 綁定關閉事件
         const closeBtn = document.getElementById('closeAIModal');
         const closeModal = () => {
             document.body.removeChild(modal);
         };
-        
+
         closeBtn.addEventListener('click', closeModal);
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {

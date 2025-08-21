@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="InULearning 教師台 - 題目管理增強版">
+    <title>題目管理 - InULearning 教師台</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/shared/css/components.css">
+    <link rel="stylesheet" href="/shared/css/responsive.css">
+    <link rel="stylesheet" href="../css/design-tokens.css">
+    <link rel="stylesheet" href="../css/navigation.css">
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/modern-design-system.css">
+    <link rel="stylesheet" href="../css/navbar-unified.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .questions-container {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 1.5rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .main-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            border-left: 4px solid var(--primary-blue);
+            transition: all 0.2s ease;
+        }
+
+        .stat-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .stat-card.math {
+            border-left-color: #3B82F6;
+        }
+
+        .stat-card.chinese {
+            border-left-color: #EF4444;
+        }
+
+        .stat-card.english {
+            border-left-color: #10B981;
+        }
+
+        .stat-card.science {
+            border-left-color: #F59E0B;
+        }
+
+        .stat-number {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .questions-card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .filters-toolbar {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            position: relative;
+            min-width: 250px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.6rem 0.8rem 0.6rem 2.5rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 0.8rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+        }
+
+        .filter-select {
+            padding: 0.6rem 0.8rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: #fff;
+            font-size: 0.9rem;
+            min-width: 120px;
+        }
+
+        .questions-list {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .question-item {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            transition: background-color 0.2s ease;
+        }
+
+        .question-item:hover {
+            background: #F8FAFC;
+        }
+
+        .question-item:last-child {
+            border-bottom: none;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+
+        .question-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 0.25rem;
+        }
+
+        .question-meta {
+            display: flex;
+            gap: 1rem;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .difficulty-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .difficulty-easy {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        .difficulty-medium {
+            background: #FEF3C7;
+            color: #92400E;
+        }
+
+        .difficulty-hard {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+
+        .subject-tag {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-right: 0.5rem;
+        }
+
+        .tag-math {
+            background: #DBEAFE;
+            color: #1E40AF;
+        }
+
+        .tag-chinese {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+
+        .tag-english {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        .tag-science {
+            background: #FEF3C7;
+            color: #92400E;
+        }
+
+        .question-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-btn {
+            padding: 0.5rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+        }
+
+        .action-btn.primary {
+            background: var(--primary-blue);
+            color: #fff;
+        }
+
+        .action-btn.secondary {
+            background: #F3F4F6;
+            color: var(--text-dark);
+        }
+
+        .action-btn.danger {
+            background: #FEE2E2;
+            color: #DC2626;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .sidebar-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .quick-actions-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .quick-actions-card h3 {
+            margin-bottom: 1rem;
+            color: var(--text-dark);
+            font-size: 1.1rem;
+        }
+
+        .quick-action-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            width: 100%;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 8px;
+            background: #F8FAFC;
+            color: var(--text-dark);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 0.5rem;
+            text-align: left;
+        }
+
+        .quick-action-btn:hover {
+            background: var(--primary-blue);
+            color: #fff;
+        }
+
+        .knowledge-points-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .kp-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #F3F4F6;
+        }
+
+        .kp-item:last-child {
+            border-bottom: none;
+        }
+
+        .kp-name {
+            font-size: 0.9rem;
+            color: var(--text-dark);
+        }
+
+        .kp-count {
+            background: #F3F4F6;
+            color: var(--text-light);
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-backdrop.show {
+            display: flex;
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-dark);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: var(--primary-blue);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-blue);
+        }
+
+        .btn-secondary {
+            background: #F3F4F6;
+            color: var(--text-dark);
+        }
+
+        .btn-secondary:hover {
+            background: #E5E7EB;
+        }
+
+        .btn-danger {
+            background: #EF4444;
+            color: #fff;
+        }
+
+        .btn-danger:hover {
+            background: #DC2626;
+        }
+
+        @media (max-width: 768px) {
+            .questions-container {
+                grid-template-columns: 1fr;
+            }
+
+            .filters-toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-box {
+                min-width: auto;
+            }
+        }
+    </style>
+</head>
+
+<body class="navbar-unified-reset">
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-brand">
+                <i class="fas fa-chalkboard-teacher"></i>
+                <span>題目管理</span>
+            </div>
+            <div class="navbar-menu">
+                <a href="/index.html" class="nav-link">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>儀表板</span>
+                </a>
+                <a href="/pages/classes-enhanced.html" class="nav-link">
+                    <i class="fas fa-users"></i>
+                    <span>班級管理</span>
+                </a>
+                <a href="/pages/students-enhanced.html" class="nav-link">
+                    <i class="fas fa-user-graduate"></i>
+                    <span>學生分析</span>
+                </a>
+                <a href="/pages/assignments-enhanced.html" class="nav-link">
+                    <i class="fas fa-tasks"></i>
+                    <span>作業管理</span>
+                </a>
+                <a href="/pages/questions-enhanced.html" class="nav-link active">
+                    <i class="fas fa-question-circle"></i>
+                    <span>題目管理</span>
+                </a>
+                <a href="/pages/grades-enhanced.html" class="nav-link">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>成績管理</span>
+                </a>
+                <a href="/pages/analytics-enhanced.html" class="nav-link">
+                    <i class="fas fa-analytics"></i>
+                    <span>學習分析</span>
+                </a>
+            </div>
+            <div class="navbar-user">
+                <div class="user-dropdown">
+                    <button class="user-dropdown-toggle">
+                        <i class="fas fa-user-circle"></i>
+                        <span id="teacher-name">教師</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="user-dropdown-menu">
+                        <a href="/pages/profile.html" class="dropdown-item">
+                            <i class="fas fa-user"></i>
+                            <span>個人資料</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item" id="logout-btn">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>登出</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main id="main" class="main-content">
+        <div class="container">
+        <div class="page-header">
+            <div class="header-content">
+                <h1 class="page-title">
+                    <i class="fas fa-question-circle"></i>
+                    題目管理
+                </h1>
+                <p class="page-subtitle">管理和組織教學題目庫</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-secondary" onclick="importQuestions()">
+                    <i class="fas fa-upload"></i>
+                    匯入題目
+                </button>
+                <button class="btn btn-primary" onclick="createQuestion()">
+                    <i class="fas fa-plus"></i>
+                    新增題目
+                </button>
+            </div>
+        </div>
+
+        <div class="questions-container">
+            <div class="main-panel">
+                <!-- 統計卡片 -->
+                <div class="stats-grid">
+                    <div class="stat-card math">
+                        <div class="stat-number" id="mathQuestions">45</div>
+                        <div class="stat-label">數學題目</div>
+                    </div>
+                    <div class="stat-card chinese">
+                        <div class="stat-number" id="chineseQuestions">32</div>
+                        <div class="stat-label">國文題目</div>
+                    </div>
+                    <div class="stat-card english">
+                        <div class="stat-number" id="englishQuestions">28</div>
+                        <div class="stat-label">英文題目</div>
+                    </div>
+                    <div class="stat-card science">
+                        <div class="stat-number" id="scienceQuestions">21</div>
+                        <div class="stat-label">自然題目</div>
+                    </div>
+                </div>
+
+                <!-- 題目列表 -->
+                <div class="questions-card">
+                    <div class="card-header">
+                        <h2>題目列表</h2>
+                        <div class="filters-toolbar">
+                            <div class="search-box">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="searchInput" placeholder="搜尋題目內容或知識點...">
+                            </div>
+                            <select class="filter-select" id="subjectFilter">
+                                <option value="">所有科目</option>
+                                <option value="math">數學</option>
+                                <option value="chinese">國文</option>
+                                <option value="english">英文</option>
+                                <option value="science">自然</option>
+                            </select>
+                            <select class="filter-select" id="difficultyFilter">
+                                <option value="">所有難度</option>
+                                <option value="easy">簡單</option>
+                                <option value="medium">中等</option>
+                                <option value="hard">困難</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="questionsList" class="questions-list">
+                        <!-- 題目項目將由 JavaScript 動態生成 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 側邊欄 -->
+            <div class="sidebar-panel">
+                <!-- 快速操作 -->
+                <div class="quick-actions-card">
+                    <h3>快速操作</h3>
+                    <button class="quick-action-btn" onclick="createQuestion()">
+                        <i class="fas fa-plus"></i>
+                        新增題目
+                    </button>
+                    <button class="quick-action-btn" onclick="importQuestions()">
+                        <i class="fas fa-upload"></i>
+                        匯入題目
+                    </button>
+                    <button class="quick-action-btn" onclick="exportQuestions()">
+                        <i class="fas fa-download"></i>
+                        匯出題目
+                    </button>
+                    <button class="quick-action-btn" onclick="bulkEdit()">
+                        <i class="fas fa-edit"></i>
+                        批量編輯
+                    </button>
+                    <button class="quick-action-btn" onclick="generateQuiz()">
+                        <i class="fas fa-magic"></i>
+                        生成測驗
+                    </button>
+                </div>
+
+                <!-- 知識點分布 -->
+                <div class="knowledge-points-card">
+                    <h3>知識點分布</h3>
+                    <div id="knowledgePointsList">
+                        <!-- 知識點將由 JavaScript 動態生成 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 新增/編輯題目模態框 -->
+    <div id="questionModal" class="modal-backdrop">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modalTitle">新增題目</h3>
+                <button onclick="closeModal()"
+                    style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="questionForm">
+                    <div class="form-group">
+                        <label for="questionSubject">科目</label>
+                        <select id="questionSubject" required>
+                            <option value="">請選擇科目</option>
+                            <option value="math">數學</option>
+                            <option value="chinese">國文</option>
+                            <option value="english">英文</option>
+                            <option value="science">自然</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="questionKnowledgePoint">知識點</label>
+                        <input type="text" id="questionKnowledgePoint" placeholder="例：二次函數" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="questionDifficulty">難度</label>
+                        <select id="questionDifficulty" required>
+                            <option value="">請選擇難度</option>
+                            <option value="easy">簡單</option>
+                            <option value="medium">中等</option>
+                            <option value="hard">困難</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="questionContent">題目內容</label>
+                        <textarea id="questionContent" placeholder="請輸入題目內容..." required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="questionOptions">選項 (每行一個選項)</label>
+                        <textarea id="questionOptions" placeholder="A. 選項1&#10;B. 選項2&#10;C. 選項3&#10;D. 選項4"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="questionAnswer">正確答案</label>
+                        <input type="text" id="questionAnswer" placeholder="例：A" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="questionExplanation">解題說明</label>
+                        <textarea id="questionExplanation" placeholder="請輸入解題說明..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveQuestion()">儲存</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/utils.js"></script>
+    <script src="../js/api-client.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/api-health-check.js"></script>
+    <!-- 移除會覆蓋導覽樣式的現代化導航腳本，統一使用首頁樣式 -->
+    <script src="../js/questions-enhanced.js"></script>
+</body>
+
+</html>

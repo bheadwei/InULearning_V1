@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
+
 <head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>家長控制台 - InU Learning【因你而學】</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
     <link rel="stylesheet" href="../shared/css/components.css">
     <link rel="stylesheet" href="../shared/css/responsive.css">
     <link rel="stylesheet" href="css/main.css">
@@ -15,13 +17,15 @@
         }
     </style>
 </head>
+
 <body class="bg-gray-100">
     <div class="flex h-screen bg-white">
         <!-- 側邊欄 -->
         <aside class="w-64 bg-blue-800 text-white flex flex-col">
             <a class="block" href="index.html">
                 <div class="flex items-center justify-center p-6 hover:bg-blue-700">
-                    <img alt="InU Learning Logo" class="w-24 h-24 rounded-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBkUkYI-c0qBm9BcHamuWBs9ebu6mgGni1SlXL6giHvgu2WnHxHaQYkRoAlzI_OZ8yNf6Rn90d73q13vLeMoBfFP0mQHcxlf2YHE9__XhpOUl-OvECBnRad91AKcE4dKkTJtEoAm_alktSTzu_Aw9Fah_2IQ6YeqBALwAqrLNP2oghwOkLSyBMdfpOrW24nKk3dnl3z6piT9-S0cISDfJ5rhAlBYvIzoAhypgUHvJCzxlSG9ag8QMkltK1Hu_rX4jqdQgGuOD2JLzo"/>
+                    <img alt="InU Learning Logo" class="w-24 h-24 rounded-full"
+                        src="http://localhost/shared/image/InULearning_logo.png" />
                 </div>
                 <div class="px-6 pb-4 hover:bg-blue-700">
                     <h1 class="text-xl font-bold text-center">InU Learning</h1>
@@ -33,29 +37,35 @@
                     <span class="material-icons">dashboard</span>
                     <span class="ml-3">家長控制台</span>
                 </a>
-                <a class="flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg" href="pages/children.html">
+                <a class="flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg"
+                    href="pages/children.html">
                     <span class="material-icons">child_care</span>
                     <span class="ml-3">子女管理</span>
                 </a>
-                <a class="flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg" href="pages/progress.html">
+                <a class="flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg"
+                    href="pages/progress.html">
                     <span class="material-icons">trending_up</span>
                     <span class="ml-3">學習進度</span>
                 </a>
-                <a class="flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg" href="pages/reports.html">
+                <a class="flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg"
+                    href="pages/reports.html">
                     <span class="material-icons">assessment</span>
                     <span class="ml-3">學習報告</span>
                 </a>
-                <a class="flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg" href="pages/communication.html">
+                <a class="flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg"
+                    href="pages/communication.html">
                     <span class="material-icons">chat</span>
                     <span class="ml-3">師生溝通</span>
                 </a>
-                <a class="flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg" href="pages/profile.html">
+                <a class="flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg"
+                    href="pages/profile.html">
                     <span class="material-icons">person</span>
                     <span class="ml-3">個人資料</span>
                 </a>
             </nav>
             <div class="p-4 border-t border-blue-700">
-                <button id="logoutBtn" class="w-full flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg">
+                <button id="logoutBtn"
+                    class="w-full flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg">
                     <span class="material-icons">logout</span>
                     <span class="ml-3">登出</span>
                 </button>
@@ -76,20 +86,26 @@
                                 <span class="material-icons">search</span>
                             </button>
                         </span>
-                        <input autocomplete="off" class="py-2 text-sm text-gray-700 bg-gray-200 rounded-md pl-10 focus:outline-none focus:bg-white focus:text-gray-900 w-full" name="q" placeholder="搜尋子女或學習內容..." type="search"/>
+                        <input autocomplete="off"
+                            class="py-2 text-sm text-gray-700 bg-gray-200 rounded-md pl-10 focus:outline-none focus:bg-white focus:text-gray-900 w-full"
+                            name="q" placeholder="搜尋子女或學習內容..." type="search" />
                     </div>
                 </div>
                 <div class="flex items-center space-x-4">
                     <div id="userInfo" class="hidden flex items-center space-x-2">
                         <span class="text-sm text-gray-600">歡迎，</span>
                         <span id="userName" class="text-sm font-medium text-blue-600"></span>
-                        <button id="logoutBtn" class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition-colors" onclick="parentAuth.logout()">
+                        <button id="logoutBtn"
+                            class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition-colors"
+                            onclick="parentAuth.logout()">
                             登出
                         </button>
                     </div>
                     <div id="authButtons">
-                        <a class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors" href="http://localhost/login.html">登入</a>
-                        <a class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors" href="pages/register.html">註冊</a>
+                        <a class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                            href="http://localhost/login.html">登入</a>
+                        <a class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+                            href="http://localhost/register.html">註冊</a>
                     </div>
                 </div>
             </header>
@@ -102,11 +118,13 @@
                         <h1 class="text-3xl font-bold mb-4">歡迎來到家長控制台</h1>
                         <p class="text-xl mb-6">掌握您孩子的學習狀況，與老師保持良好溝通</p>
                         <div class="flex flex-wrap gap-4">
-                            <button onclick="location.href='pages/children.html'" class="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+                            <button onclick="location.href='pages/children.html'"
+                                class="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
                                 <span class="material-icons mr-2">child_care</span>
                                 查看子女
                             </button>
-                            <button onclick="location.href='pages/progress.html'" class="bg-blue-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-400 transition-colors">
+                            <button onclick="location.href='pages/progress.html'"
+                                class="bg-blue-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-400 transition-colors">
                                 <span class="material-icons mr-2">trending_up</span>
                                 學習進度
                             </button>
@@ -166,7 +184,8 @@
 
                     <!-- 快速功能區 -->
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                        <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer" onclick="location.href='pages/progress.html'">
+                        <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer"
+                            onclick="location.href='pages/progress.html'">
                             <div class="flex items-center mb-4">
                                 <div class="bg-blue-100 p-3 rounded-lg">
                                     <span class="material-icons text-blue-600 text-2xl">trending_up</span>
@@ -176,7 +195,8 @@
                             <p class="text-gray-600 text-sm">即時掌握孩子的學習狀況</p>
                         </div>
 
-                        <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer" onclick="location.href='pages/reports.html'">
+                        <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer"
+                            onclick="location.href='pages/reports.html'">
                             <div class="flex items-center mb-4">
                                 <div class="bg-green-100 p-3 rounded-lg">
                                     <span class="material-icons text-green-600 text-2xl">assessment</span>
@@ -186,7 +206,8 @@
                             <p class="text-gray-600 text-sm">查看詳細的學習分析報告</p>
                         </div>
 
-                        <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer" onclick="location.href='pages/communication.html'">
+                        <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer"
+                            onclick="location.href='pages/communication.html'">
                             <div class="flex items-center mb-4">
                                 <div class="bg-purple-100 p-3 rounded-lg">
                                     <span class="material-icons text-purple-600 text-2xl">chat</span>
@@ -196,7 +217,8 @@
                             <p class="text-gray-600 text-sm">與老師溝通孩子的學習情況</p>
                         </div>
 
-                        <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer" onclick="location.href='pages/schedule.html'">
+                        <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer"
+                            onclick="location.href='pages/schedule.html'">
                             <div class="flex items-center mb-4">
                                 <div class="bg-orange-100 p-3 rounded-lg">
                                     <span class="material-icons text-orange-600 text-2xl">calendar_today</span>
@@ -261,5 +283,7 @@
     <script src="js/auth.js"></script>
     <script src="js/dashboard.js"></script>
     <script src="js/main.js"></script>
+
 </body>
-</html> 
+
+</html>

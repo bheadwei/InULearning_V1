@@ -1,0 +1,108 @@
+/* 統一為首頁 index.html 導覽樣式（玻璃效果 + sticky） */
+
+/* 首頁使用的玻璃效果變數（若 design-tokens 未定義時提供預設） */
+:root {
+    --glass-bg: rgba(255, 255, 255, 0.25);
+    --glass-border: rgba(255, 255, 255, 0.18);
+}
+
+/* 讓各內頁背景為純白（不要顏色），導覽保持玻璃效果 */
+body.navbar-unified-reset {
+    background: var(--bg-light, #F3F4F6); /* 淡灰背景，避免整頁純白 */
+    min-height: 100vh;
+}
+
+.navbar {
+    /* 統一藍色漸層導覽；使用 !important 保證不被內聯或其他檔案覆蓋 */
+    background: linear-gradient(135deg, var(--primary-blue, #3B82F6) 0%, var(--accent-blue, #1E40AF) 100%) !important;
+    color: #ffffff !important;
+    border-bottom: 0 !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    padding: 0;
+}
+
+.navbar-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 2rem;
+}
+
+.navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: #ffffff;
+}
+
+.navbar-brand i {
+    font-size: 1.5rem;
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.navbar-menu { display: flex; gap: 0.5rem; }
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    text-decoration: none;
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 500;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.nav-link:hover { background: rgba(255,255,255,0.1); color: #fff; transform: translateY(-2px); }
+.nav-link.active { background: rgba(255,255,255,0.2); color: #fff; }
+
+.navbar-user { position: relative; }
+
+
+/* 統一使用首頁樣式的使用者下拉切換按鈕（權威設定） */
+.user-dropdown-toggle {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: #ffffff !important;
+    cursor: pointer !important;
+    padding: 0.5rem 1rem !important;
+    border-radius: 9999px !important; /* 膠囊形狀 */
+    transition: all 0.3s ease !important;
+}
+
+.user-dropdown-toggle:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+    transform: translateY(-2px) !important;
+}
+
+/* 下拉選單與首頁一致為白底卡片風格 */
+.user-dropdown-menu {
+    background: #ffffff !important;
+    border: 1px solid var(--border, #E5E7EB) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+    min-width: 200px !important;
+}
+
+.dropdown-item {
+    color: #333 !important;
+}
+
+.dropdown-item:hover {
+    background-color: #f8f9fa !important;
+}

@@ -180,9 +180,14 @@ class QuestionCRUD:
         cursor = collection.find(query).skip(criteria.skip).limit(criteria.limit)
         
         questions = []
+        seen_ids = set()
         async for question in cursor:
             # 轉換數據格式以匹配API模型
             question = QuestionCRUD._transform_question_data(question)
+            qid = question.get("id")
+            if qid in seen_ids:
+                continue
+            seen_ids.add(qid)
             questions.append(question)
         
         return {
@@ -300,6 +305,7 @@ class QuestionCRUD:
         cursor = collection.find(query).limit(limit)
         
         questions = []
+        seen_ids = set()
         async for question in cursor:
             # 字段映射：資料庫字段 -> API 模型字段
             mapped_question = {
@@ -319,6 +325,9 @@ class QuestionCRUD:
                 "created_at": question.get("created_at") or datetime.utcnow(),
                 "updated_at": question.get("updated_at") or datetime.utcnow()
             }
+            if mapped_question["id"] in seen_ids:
+                continue
+            seen_ids.add(mapped_question["id"])
             questions.append(mapped_question)
         
         return questions

@@ -5,6 +5,8 @@ WORKDIR /app
 # 安裝系統依賴
 RUN apt-get update && apt-get install -y \
     gcc \
+    curl \
+    ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
 # 複製依賴檔案

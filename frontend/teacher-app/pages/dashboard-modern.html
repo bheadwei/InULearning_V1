@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InULearning - 現代化教師控制台</title>
+    <meta name="description" content="InULearning 現代化教師控制台：管理班級、學生、題庫與作業，查看學習報告。">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../css/design-tokens.css">
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/modern-design-system.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* 頁面特定樣式 */
+        .hero-section {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-2xl);
+            padding: 3rem 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            box-shadow: var(--shadow-soft);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--success-gradient);
+        }
+
+        .hero-title {
+            font-size: 3rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.6;
+        }
+
+        .hero-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .hero-stat {
+            text-align: center;
+        }
+
+        .hero-stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 0.5rem;
+        }
+
+        .hero-stat-label {
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.7);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .main-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .sidebar-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .chart-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-2xl);
+            padding: 2rem;
+            box-shadow: var(--shadow-soft);
+            transition: var(--transition-smooth);
+        }
+
+        .chart-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .chart-subtitle {
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 0.25rem;
+        }
+
+        .chart-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .chart-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: transparent;
+            border-radius: var(--radius-lg);
+            color: rgba(255, 255, 255, 0.8);
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: var(--transition-smooth);
+        }
+
+        .chart-btn.active {
+            background: var(--success-gradient);
+            color: white;
+            border-color: transparent;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        .quick-actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .quick-action {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-xl);
+            padding: 1.5rem;
+            text-decoration: none;
+            color: white;
+            transition: var(--transition-smooth);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .quick-action::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--primary-gradient);
+            transform: scaleX(0);
+            transition: var(--transition-smooth);
+        }
+
+        .quick-action:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
+            text-decoration: none;
+            color: white;
+        }
+
+        .quick-action:hover::before {
+            transform: scaleX(1);
+        }
+
+        .quick-action-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .quick-action-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .quick-action-desc {
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.4;
+        }
+
+        .activity-feed {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-2xl);
+            padding: 2rem;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .activity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .activity-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .activity-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-content h5 {
+            font-weight: 600;
+            color: white;
+            margin-bottom: 0.25rem;
+        }
+
+        .activity-content p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.875rem;
+            line-height: 1.4;
+        }
+
+        .activity-time {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 20px;
+            height: 20px;
+            background: var(--danger-gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1rem;
+            }
+
+            .hero-stats {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+            }
+
+            .quick-actions-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 現代化導航欄 -->
+    <nav class="navbar"></nav>
+
+    <!-- 主要內容 -->
+    <main class="main-content">
+        <!-- API 狀態指示器 -->
+        <div id="apiStatus" class="api-status" style="display: none;">
+            <i class="fas fa-wifi"></i>
+            <strong>系統狀態：</strong>
+            <span id="statusText">檢查中...</span>
+        </div>
+
+        <!-- 英雄區塊 -->
+        <section class="hero-section fade-in-up">
+            <h1 class="hero-title">歡迎回來，王老師！</h1>
+            <p class="hero-subtitle">
+                今天是 <span id="current-date"></span><br>
+                讓我們一起創造更好的學習體驗
+            </p>
+
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <div class="hero-stat-number" id="hero-classes">3</div>
+                    <div class="hero-stat-label">管理班級</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-number" id="hero-students">96</div>
+                    <div class="hero-stat-label">學生總數</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-number" id="hero-assignments">12</div>
+                    <div class="hero-stat-label">活躍作業</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-number" id="hero-score">85.7%</div>
+                    <div class="hero-stat-label">平均成績</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 儀表板網格 -->
+        <div class="dashboard-grid">
+            <!-- 主面板 -->
+            <div class="main-panel">
+                <!-- 學習趨勢圖表 -->
+                <div class="chart-card fade-in-left">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">學習趨勢分析</h3>
+                            <p class="chart-subtitle">追蹤班級整體學習表現</p>
+                        </div>
+                        <div class="chart-controls">
+                            <button class="chart-btn active" data-period="week">週</button>
+                            <button class="chart-btn" data-period="month">月</button>
+                            <button class="chart-btn" data-period="semester">學期</button>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="learningTrendChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- 快速操作 -->
+                <div class="fade-in-up">
+                    <h2 class="text-2xl font-bold text-white mb-6 text-center">快速操作</h2>
+                    <div class="quick-actions-grid">
+                        <a href="students-enhanced.html" class="quick-action">
+                            <div class="quick-action-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <h4 class="quick-action-title">學生管理</h4>
+                            <p class="quick-action-desc">查看學生學習狀況與進度分析</p>
+                        </a>
+
+                        <a href="assignments-enhanced.html" class="quick-action">
+                            <div class="quick-action-icon">
+                                <i class="fas fa-tasks"></i>
+                            </div>
+                            <h4 class="quick-action-title">作業管理</h4>
+                            <p class="quick-action-desc">創建和管理學生作業任務</p>
+                        </a>
+
+                        <a href="questions-enhanced.html" class="quick-action">
+                            <div class="quick-action-icon">
+                                <i class="fas fa-question-circle"></i>
+                            </div>
+                            <h4 class="quick-action-title">題目管理</h4>
+                            <p class="quick-action-desc">編輯和組織教學題目庫</p>
+                        </a>
+
+                        <a href="grades-enhanced.html" class="quick-action">
+                            <div class="quick-action-icon">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                            <h4 class="quick-action-title">成績管理</h4>
+                            <p class="quick-action-desc">追蹤和分析學生成績表現</p>
+                        </a>
+
+                        <a href="analytics-enhanced.html" class="quick-action">
+                            <div class="quick-action-icon">
+                                <i class="fas fa-analytics"></i>
+                            </div>
+                            <h4 class="quick-action-title">學習分析</h4>
+                            <p class="quick-action-desc">深度分析學習數據和趨勢</p>
+                        </a>
+
+                        <a href="classes-enhanced.html" class="quick-action">
+                            <div class="quick-action-icon">
+                                <i class="fas fa-chalkboard"></i>
+                            </div>
+                            <h4 class="quick-action-title">班級管理</h4>
+                            <p class="quick-action-desc">管理班級資訊和學生名單</p>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 側邊欄面板 -->
+            <div class="sidebar-panel">
+                <!-- 今日重點 -->
+                <div class="chart-card fade-in-right">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">今日重點</h3>
+                            <p class="chart-subtitle">需要關注的重要事項</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-3 p-3 rounded-xl"
+                            style="background: rgba(59, 130, 246, 0.1);">
+                            <div class="w-10 h-10 rounded-lg flex items-center justify-center"
+                                style="background: var(--info-gradient);">
+                                <i class="fas fa-clock text-white"></i>
+                            </div>
+                            <div>
+                                <h5 class="font-semibold text-white">今日課程</h5>
+                                <p class="text-sm text-white-80">3 堂課程安排</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-3 p-3 rounded-xl"
+                            style="background: rgba(245, 158, 11, 0.1);">
+                            <div class="w-10 h-10 rounded-lg flex items-center justify-center"
+                                style="background: var(--warning-gradient);">
+                                <i class="fas fa-exclamation-triangle text-white"></i>
+                            </div>
+                            <div>
+                                <h5 class="font-semibold text-white">待批改</h5>
+                                <p class="text-sm text-white-80">12 份作業待處理</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-3 p-3 rounded-xl" style="background: rgba(239, 68, 68, 0.1);">
+                            <div class="w-10 h-10 rounded-lg flex items-center justify-center"
+                                style="background: var(--danger-gradient);">
+                                <i class="fas fa-user-clock text-white"></i>
+                            </div>
+                            <div>
+                                <h5 class="font-semibold text-white">需關注</h5>
+                                <p class="text-sm text-white-80">3 位學生需要輔導</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 最近活動 -->
+                <div class="activity-feed fade-in-right">
+                    <div class="activity-header">
+                        <h3 class="activity-title">最近活動</h3>
+                        <button class="btn btn-sm btn-secondary" onclick="refreshActivity()">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+
+                    <div class="activity-list" id="activityList">
+                        <!-- 活動項目將由 JavaScript 動態載入 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 載入指示器 -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- 腳本 -->
+    <script src="../js/api-health-check.js"></script>
+    <!-- 移除會覆蓋導覽樣式的現代化導航腳本，統一使用首頁樣式 -->
+    <script>
+        // 現代化儀表板功能
+        class ModernDashboard {
+            constructor() {
+                this.chart = null;
+                this.init();
+            }
+
+            async init() {
+                this.updateCurrentDate();
+                this.initChart();
+                this.loadRecentActivity();
+                this.setupEventListeners();
+                this.animateNumbers();
+            }
+
+            updateCurrentDate() {
+                const dateElement = document.getElementById('current-date');
+                if (dateElement) {
+                    const now = new Date();
+                    const options = {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        weekday: 'long'
+                    };
+                    dateElement.textContent = now.toLocaleDateString('zh-TW', options);
+                }
+            }
+
+            initChart() {
+                const ctx = document.getElementById('learningTrendChart');
+                if (!ctx) return;
+
+                this.chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['週一', '週二', '週三', '週四', '週五', '週六', '週日'],
+                        datasets: [{
+                            label: '班級平均表現',
+                            data: [78, 82, 85, 83, 87, 89, 86],
+                            borderColor: '#10B981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            pointRadius: 6,
+                            pointHoverRadius: 8,
+                            pointBackgroundColor: '#10B981',
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                min: 60,
+                                max: 100,
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                },
+                                ticks: {
+                                    color: 'rgba(255, 255, 255, 0.8)'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                },
+                                ticks: {
+                                    color: 'rgba(255, 255, 255, 0.8)'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            loadRecentActivity() {
+                const activities = [
+                    {
+                        icon: 'fas fa-user-plus',
+                        gradient: 'var(--success-gradient)',
+                        title: '新學生加入',
+                        description: '張小明已加入三年一班',
+                        time: '5分鐘前'
+                    },
+                    {
+                        icon: 'fas fa-tasks',
+                        gradient: 'var(--info-gradient)',
+                        title: '作業已提交',
+                        description: '李小華提交了數學作業',
+                        time: '15分鐘前'
+                    },
+                    {
+                        icon: 'fas fa-star',
+                        gradient: 'var(--warning-gradient)',
+                        title: '優秀表現',
+                        description: '王小美在測驗中獲得滿分',
+                        time: '1小時前'
+                    },
+                    {
+                        icon: 'fas fa-question-circle',
+                        gradient: 'var(--primary-gradient)',
+                        title: '新題目上傳',
+                        description: '已添加5道三角函數練習題',
+                        time: '2小時前'
+                    },
+                    {
+                        icon: 'fas fa-chart-line',
+                        gradient: 'var(--success-gradient)',
+                        title: '成績提升',
+                        description: '三年二班平均成績提升3.2分',
+                        time: '3小時前'
+                    }
+                ];
+
+                const activityList = document.getElementById('activityList');
+                if (activityList) {
+                    activityList.innerHTML = activities.map(activity => `
+                        <div class="activity-item">
+                            <div class="activity-icon" style="background: ${activity.gradient};">
+                                <i class="${activity.icon}"></i>
+                            </div>
+                            <div class="activity-content">
+                                <h5>${activity.title}</h5>
+                                <p>${activity.description}</p>
+                                <div class="activity-time">${activity.time}</div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            }
+
+            setupEventListeners() {
+                // 圖表控制按鈕
+                document.querySelectorAll('.chart-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('.chart-btn').forEach(b => b.classList.remove('active'));
+                        e.target.classList.add('active');
+                        this.updateChart(e.target.dataset.period);
+                    });
+                });
+            }
+
+            updateChart(period) {
+                if (!this.chart) return;
+
+                const data = {
+                    week: {
+                        labels: ['週一', '週二', '週三', '週四', '週五', '週六', '週日'],
+                        data: [78, 82, 85, 83, 87, 89, 86]
+                    },
+                    month: {
+                        labels: ['第1週', '第2週', '第3週', '第4週'],
+                        data: [80, 83, 85, 87]
+                    },
+                    semester: {
+                        labels: ['第1月', '第2月', '第3月', '第4月', '第5月'],
+                        data: [75, 78, 82, 85, 87]
+                    }
+                };
+
+                const periodData = data[period] || data.week;
+                this.chart.data.labels = periodData.labels;
+                this.chart.data.datasets[0].data = periodData.data;
+                this.chart.update();
+            }
+
+            animateNumbers() {
+                const numbers = [
+                    { id: 'hero-classes', target: 3 },
+                    { id: 'hero-students', target: 96 },
+                    { id: 'hero-assignments', target: 12 },
+                    { id: 'hero-score', target: 85.7, suffix: '%' }
+                ];
+
+                numbers.forEach(({ id, target, suffix = '' }) => {
+                    const element = document.getElementById(id);
+                    if (!element) return;
+
+                    let current = 0;
+                    const increment = target / 50;
+                    const timer = setInterval(() => {
+                        current += increment;
+                        if (current >= target) {
+                            current = target;
+                            clearInterval(timer);
+                        }
+                        element.textContent = Math.round(current * 10) / 10 + suffix;
+                    }, 30);
+                });
+            }
+        }
+
+        function refreshActivity() {
+            const dashboard = new ModernDashboard();
+            dashboard.loadRecentActivity();
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            new ModernDashboard();
+        });
+    </script>
+</body>
+
+</html>

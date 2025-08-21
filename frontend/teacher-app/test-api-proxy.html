@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API 代理測試</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { background: #f5f5f5; padding: 20px; margin: 20px 0; border-radius: 8px; }
+        .result { background: white; padding: 10px; margin: 10px 0; border-radius: 4px; border: 1px solid #ddd; }
+        .success { border-color: #4caf50; background: #e8f5e8; }
+        .error { border-color: #f44336; background: #ffebee; }
+        button { padding: 10px 20px; margin: 5px; background: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #1976d2; }
+        pre { background: #f8f8f8; padding: 10px; border-radius: 4px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🔍 API 代理測試頁面</h1>
+    
+    <div class="test-section">
+        <h2>📋 測試說明</h2>
+        <p>這個頁面用來測試 API 代理是否正常工作。點擊下方按鈕來測試不同的 API 端點。</p>
+    </div>
+
+    <div class="test-section">
+        <h2>🧪 API 測試</h2>
+        
+        <button onclick="testAPI('/api/v1/relationships/teacher-class', '教師班級關係（不包含已刪除）')">
+            測試教師班級關係
+        </button>
+        
+        <button onclick="testAPI('/api/v1/relationships/teacher-class?include_deleted=true', '教師班級關係（包含已刪除）')">
+            測試已刪除班級
+        </button>
+        
+        <button onclick="testAPI('/api/v1/relationships/teacher/removed-students', '已移除學生')">
+            測試已移除學生
+        </button>
+        
+        <button onclick="testAPI('/api/v1/auth/health', '認證服務健康檢查')">
+            測試認證服務
+        </button>
+        
+        <button onclick="clearResults()">
+            清除結果
+        </button>
+    </div>
+
+    <div class="test-section">
+        <h2>📊 測試結果</h2>
+        <div id="results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔧 手動測試</h2>
+        <p>您也可以在瀏覽器控制台中手動測試：</p>
+        <pre>
+// 測試 API 客戶端
+console.log('API 客戶端:', window.apiClient);
+
+// 測試直接請求
+fetch('/api/v1/relationships/teacher-class')
+    .then(res => res.json())
+    .then(data => console.log('直接請求結果:', data))
+    .catch(err => console.error('直接請求錯誤:', err));
+        </pre>
+    </div>
+
+    <script>
+        async function testAPI(endpoint, description) {
+            const resultsDiv = document.getElementById('results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = 'result';
+            resultDiv.innerHTML = `
+                <h3>${description}</h3>
+                <p><strong>端點:</strong> ${endpoint}</p>
+                <p><strong>狀態:</strong> <span id="status-${Date.now()}">測試中...</span></p>
+                <p><strong>結果:</strong></p>
+                <pre id="result-${Date.now()}">載入中...</pre>
+            `;
+            resultsDiv.appendChild(resultDiv);
+            
+            const statusId = `status-${Date.now()}`;
+            const resultId = `result-${Date.now()}`;
+            
+            try {
+                console.log(`🔍 開始測試: ${endpoint}`);
+                
+                const response = await fetch(endpoint);
+                const statusElement = document.getElementById(statusId);
+                const resultElement = document.getElementById(resultId);
+                
+                console.log(`📊 響應狀態: ${response.status}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    statusElement.innerHTML = `<span style="color: green;">✅ 成功 (${response.status})</span>`;
+                    resultElement.textContent = JSON.stringify(data, null, 2);
+                    resultDiv.classList.add('success');
+                } else {
+                    const errorText = await response.text();
+                    statusElement.innerHTML = `<span style="color: red;">❌ 失敗 (${response.status})</span>`;
+                    resultElement.textContent = `錯誤: ${response.status} ${response.statusText}\n\n${errorText}`;
+                    resultDiv.classList.add('error');
+                }
+                
+            } catch (error) {
+                console.error(`❌ 測試失敗: ${endpoint}`, error);
+                const statusElement = document.getElementById(statusId);
+                const resultElement = document.getElementById(resultId);
+                
+                statusElement.innerHTML = `<span style="color: red;">❌ 錯誤</span>`;
+                resultElement.textContent = `請求失敗: ${error.message}`;
+                resultDiv.classList.add('error');
+            }
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+
+        // 頁面載入完成後的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 API 代理測試頁面已載入');
+            console.log('當前頁面 URL:', window.location.href);
+            console.log('API 基礎路徑:', '/api/v1');
+            
+            // 檢查是否有 API 客戶端
+            if (window.apiClient) {
+                console.log('✅ 找到 API 客戶端:', window.apiClient);
+            } else {
+                console.log('❌ 未找到 API 客戶端');
+            }
+        });
+    </script>
+</body>
+</html>

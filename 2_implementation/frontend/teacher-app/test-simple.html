@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>簡單測試 - InULearning</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ccc; border-radius: 5px; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+    </style>
+</head>
+<body>
+    <h1>學生分析功能簡單測試</h1>
+    
+    <div class="test-section">
+        <h2>測試結果</h2>
+        <div id="results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>測試按鈕</h2>
+        <button onclick="testBasic()">基本測試</button>
+        <button onclick="testClass()">班級選擇器測試</button>
+        <button onclick="testViewToggle()">視圖切換測試</button>
+    </div>
+
+    <div class="test-section">
+        <h2>模擬頁面元素</h2>
+        
+        <!-- 班級選擇器 -->
+        <div>
+            <label for="classSelector">選擇班級:</label>
+            <select id="classSelector">
+                <option value="">請選擇班級...</option>
+            </select>
+            <button id="refreshBtn">重新整理</button>
+        </div>
+
+        <!-- 載入指示器 -->
+        <div id="loadingIndicator" style="display: none;">
+            <p>載入中...</p>
+        </div>
+
+        <!-- 班級概覽內容 -->
+        <div id="classOverviewContent" style="display: none;">
+            <h3>班級概覽</h3>
+            <div>
+                <p>學生總數: <span id="totalStudents">0</span></p>
+                <p>平均正確率: <span id="averageAccuracy">0%</span></p>
+                <p>平均答題速度: <span id="averageSpeed">0 秒/題</span></p>
+                <p>總學習會話: <span id="totalSessions">0</span></p>
+            </div>
+        </div>
+
+        <!-- 學生列表內容 -->
+        <div id="studentListContent" style="display: none;">
+            <h3>學生列表</h3>
+            <div id="studentGrid"></div>
+        </div>
+
+        <!-- 無數據狀態 -->
+        <div id="noDataState" style="display: none;">
+            <p>尚無班級數據</p>
+        </div>
+
+        <!-- 錯誤狀態 -->
+        <div id="errorState" style="display: none;">
+            <p id="errorMessage">載入失敗</p>
+            <button id="retryBtn">重試</button>
+        </div>
+    </div>
+
+    <script>
+        // 測試結果顯示函數
+        function addResult(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = type;
+            div.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            results.appendChild(div);
+        }
+
+        // 基本測試
+        function testBasic() {
+            addResult('開始基本測試...', 'info');
+            
+            try {
+                if (typeof StudentsAnalysisManager !== 'undefined') {
+                    addResult('✅ StudentsAnalysisManager 類已定義', 'success');
+                    
+                    const manager = new StudentsAnalysisManager();
+                    addResult('✅ StudentsAnalysisManager 實例創建成功', 'success');
+                    
+                    return manager;
+                } else {
+                    addResult('❌ StudentsAnalysisManager 類未定義', 'error');
+                    return null;
+                }
+            } catch (error) {
+                addResult(`❌ 基本測試失敗: ${error.message}`, 'error');
+                return null;
+            }
+        }
+
+        // 班級選擇器測試
+        function testClass() {
+            addResult('測試班級選擇器...', 'info');
+            
+            const manager = testBasic();
+            if (!manager) return;
+            
+            try {
+                // 檢查班級選擇器是否被填充
+                const selector = document.getElementById('classSelector');
+                if (selector.options.length > 1) {
+                    addResult('✅ 班級選擇器已填充選項', 'success');
+                } else {
+                    addResult('❌ 班級選擇器未填充選項', 'error');
+                }
+            } catch (error) {
+                addResult(`❌ 班級選擇器測試失敗: ${error.message}`, 'error');
+            }
+        }
+
+        // 視圖切換測試
+        function testViewToggle() {
+            addResult('測試視圖切換...', 'info');
+            
+            const manager = testBasic();
+            if (!manager) return;
+            
+            try {
+                // 測試切換到學生列表
+                manager.switchView('list');
+                addResult('✅ 視圖切換到學生列表成功', 'success');
+                
+                // 測試切換到班級概覽
+                setTimeout(() => {
+                    manager.switchView('overview');
+                    addResult('✅ 視圖切換到班級概覽成功', 'success');
+                }, 1000);
+            } catch (error) {
+                addResult(`❌ 視圖切換測試失敗: ${error.message}`, 'error');
+            }
+        }
+
+        // 頁面載入完成後顯示狀態
+        document.addEventListener('DOMContentLoaded', () => {
+            addResult('頁面載入完成，準備開始測試', 'info');
+        });
+
+        // 檢查 JavaScript 文件載入狀態
+        window.addEventListener('error', (e) => {
+            addResult(`❌ JavaScript 錯誤: ${e.message}`, 'error');
+        });
+    </script>
+
+    <!-- 載入學生分析管理器 -->
+    <script src="js/students-enhanced.js"></script>
+</body>
+</html>

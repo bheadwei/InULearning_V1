@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="InULearning 教師台 - 成績管理增強版">
+    <title>成績管理 - InULearning 教師台</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/shared/css/components.css">
+    <link rel="stylesheet" href="/shared/css/responsive.css">
+    <link rel="stylesheet" href="../css/design-tokens.css">
+    <link rel="stylesheet" href="../css/navigation.css">
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/modern-design-system.css">
+    <link rel="stylesheet" href="../css/navbar-unified.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .grades-container {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 1.5rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .main-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            border-left: 4px solid var(--primary-blue);
+            transition: all 0.2s ease;
+        }
+
+        .stat-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .stat-card.excellent {
+            border-left-color: #10B981;
+        }
+
+        .stat-card.good {
+            border-left-color: #3B82F6;
+        }
+
+        .stat-card.average {
+            border-left-color: #F59E0B;
+        }
+
+        .stat-card.poor {
+            border-left-color: #EF4444;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .grades-card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .filters-toolbar {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            position: relative;
+            min-width: 250px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.6rem 0.8rem 0.6rem 2.5rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 0.8rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+        }
+
+        .filter-select {
+            padding: 0.6rem 0.8rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: #fff;
+            font-size: 0.9rem;
+            min-width: 120px;
+        }
+
+        .view-toggle {
+            display: flex;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .view-btn {
+            padding: 0.6rem 0.8rem;
+            border: none;
+            background: #fff;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .view-btn.active {
+            background: var(--primary-blue);
+            color: #fff;
+        }
+
+        .grades-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .grades-table th {
+            background: #F8FAFC;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-dark);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .grades-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #F3F4F6;
+            vertical-align: middle;
+        }
+
+        .grades-table tbody tr:hover {
+            background: #F8FAFC;
+        }
+
+        .student-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .student-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-blue), var(--accent-blue));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .student-details h4 {
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 0.25rem;
+        }
+
+        .student-details p {
+            color: var(--text-light);
+            font-size: 0.8rem;
+        }
+
+        .grade-cell {
+            text-align: center;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .grade-excellent {
+            color: #10B981;
+        }
+
+        .grade-good {
+            color: #3B82F6;
+        }
+
+        .grade-average {
+            color: #F59E0B;
+        }
+
+        .grade-poor {
+            color: #EF4444;
+        }
+
+        .trend-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.8rem;
+        }
+
+        .trend-up {
+            color: #10B981;
+        }
+
+        .trend-down {
+            color: #EF4444;
+        }
+
+        .trend-stable {
+            color: #6B7280;
+        }
+
+        .chart-container {
+            background: #fff;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .chart-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .chart-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .chart-btn {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid var(--border);
+            background: #fff;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s ease;
+        }
+
+        .chart-btn.active {
+            background: var(--primary-blue);
+            color: #fff;
+            border-color: var(--primary-blue);
+        }
+
+        .sidebar-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .quick-actions-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .quick-actions-card h3 {
+            margin-bottom: 1rem;
+            color: var(--text-dark);
+            font-size: 1.1rem;
+        }
+
+        .quick-action-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            width: 100%;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 8px;
+            background: #F8FAFC;
+            color: var(--text-dark);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 0.5rem;
+            text-align: left;
+        }
+
+        .quick-action-btn:hover {
+            background: var(--primary-blue);
+            color: #fff;
+        }
+
+        .class-summary-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #F3F4F6;
+        }
+
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+
+        .summary-label {
+            font-size: 0.9rem;
+            color: var(--text-dark);
+        }
+
+        .summary-value {
+            font-weight: 600;
+            color: var(--primary-blue);
+        }
+
+        .grade-distribution {
+            background: #fff;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .distribution-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .distribution-label {
+            min-width: 60px;
+            font-size: 0.9rem;
+            color: var(--text-dark);
+        }
+
+        .distribution-bar {
+            flex: 1;
+            height: 8px;
+            background: #F3F4F6;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .distribution-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .distribution-count {
+            min-width: 30px;
+            text-align: right;
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        @media (max-width: 768px) {
+            .grades-container {
+                grid-template-columns: 1fr;
+            }
+
+            .filters-toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-box {
+                min-width: auto;
+            }
+
+            .grades-table {
+                font-size: 0.8rem;
+            }
+
+            .grades-table th,
+            .grades-table td {
+                padding: 0.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body class="navbar-unified-reset">
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-brand">
+                <i class="fas fa-chalkboard-teacher"></i>
+                <span>成績管理</span>
+            </div>
+            <div class="navbar-menu">
+                <a href="/index.html" class="nav-link">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>儀表板</span>
+                </a>
+                <a href="/pages/classes-enhanced.html" class="nav-link">
+                    <i class="fas fa-users"></i>
+                    <span>班級管理</span>
+                </a>
+                <a href="/pages/students-enhanced.html" class="nav-link">
+                    <i class="fas fa-user-graduate"></i>
+                    <span>學生分析</span>
+                </a>
+                <a href="/pages/assignments-enhanced.html" class="nav-link">
+                    <i class="fas fa-tasks"></i>
+                    <span>作業管理</span>
+                </a>
+                <a href="/pages/questions-enhanced.html" class="nav-link">
+                    <i class="fas fa-question-circle"></i>
+                    <span>題目管理</span>
+                </a>
+                <a href="/pages/grades-enhanced.html" class="nav-link active">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>成績管理</span>
+                </a>
+                <a href="/pages/analytics-enhanced.html" class="nav-link">
+                    <i class="fas fa-analytics"></i>
+                    <span>學習分析</span>
+                </a>
+            </div>
+            <div class="navbar-user">
+                <div class="user-dropdown">
+                    <button class="user-dropdown-toggle">
+                        <i class="fas fa-user-circle"></i>
+                        <span id="teacher-name">教師</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="user-dropdown-menu">
+                        <a href="/pages/profile.html" class="dropdown-item">
+                            <i class="fas fa-user"></i>
+                            <span>個人資料</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item" id="logout-btn">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>登出</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main id="main" class="main-content">
+        <div class="container">
+        <div class="page-header">
+            <div class="header-content">
+                <h1 class="page-title">
+                    <i class="fas fa-chart-bar"></i>
+                    成績管理
+                </h1>
+                <p class="page-subtitle">追蹤和分析學生學習成效</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-secondary" onclick="exportGrades()">
+                    <i class="fas fa-download"></i>
+                    匯出成績
+                </button>
+                <button class="btn btn-primary" onclick="inputGrades()">
+                    <i class="fas fa-plus"></i>
+                    輸入成績
+                </button>
+            </div>
+        </div>
+
+        <div class="grades-container">
+            <div class="main-panel">
+                <!-- 統計卡片 -->
+                <div class="stats-grid">
+                    <div class="stat-card excellent">
+                        <div class="stat-number" id="excellentCount">8</div>
+                        <div class="stat-label">優秀 (90+)</div>
+                    </div>
+                    <div class="stat-card good">
+                        <div class="stat-number" id="goodCount">15</div>
+                        <div class="stat-label">良好 (80-89)</div>
+                    </div>
+                    <div class="stat-card average">
+                        <div class="stat-number" id="averageCount">7</div>
+                        <div class="stat-label">普通 (70-79)</div>
+                    </div>
+                    <div class="stat-card poor">
+                        <div class="stat-number" id="poorCount">2</div>
+                        <div class="stat-label">待加強 (<70)< /div>
+                        </div>
+                    </div>
+
+                    <!-- 成績趨勢圖表 -->
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <h3 class="chart-title">成績趨勢分析</h3>
+                            <div class="chart-controls">
+                                <button class="chart-btn active" data-period="week">週</button>
+                                <button class="chart-btn" data-period="month">月</button>
+                                <button class="chart-btn" data-period="semester">學期</button>
+                            </div>
+                        </div>
+                        <canvas id="gradesChart" width="400" height="200"></canvas>
+                    </div>
+
+                    <!-- 成績列表 -->
+                    <div class="grades-card">
+                        <div class="card-header">
+                            <h2>學生成績</h2>
+                            <div class="filters-toolbar">
+                                <div class="search-box">
+                                    <i class="fas fa-search"></i>
+                                    <input type="text" id="searchInput" placeholder="搜尋學生姓名...">
+                                </div>
+                                <select class="filter-select" id="subjectFilter">
+                                    <option value="">所有科目</option>
+                                    <option value="math">數學</option>
+                                    <option value="chinese">國文</option>
+                                    <option value="english">英文</option>
+                                    <option value="science">自然</option>
+                                </select>
+                                <select class="filter-select" id="gradeFilter">
+                                    <option value="">所有成績</option>
+                                    <option value="excellent">優秀 (90+)</option>
+                                    <option value="good">良好 (80-89)</option>
+                                    <option value="average">普通 (70-79)</option>
+                                    <option value="poor">待加強 (<70)< /option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div style="overflow-x: auto;">
+                            <table class="grades-table">
+                                <thead>
+                                    <tr>
+                                        <th>學生</th>
+                                        <th>數學</th>
+                                        <th>國文</th>
+                                        <th>英文</th>
+                                        <th>自然</th>
+                                        <th>平均</th>
+                                        <th>趨勢</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="gradesTableBody">
+                                    <!-- 成績資料將由 JavaScript 動態生成 -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 側邊欄 -->
+                <div class="sidebar-panel">
+                    <!-- 快速操作 -->
+                    <div class="quick-actions-card">
+                        <h3>快速操作</h3>
+                        <button class="quick-action-btn" onclick="inputGrades()">
+                            <i class="fas fa-plus"></i>
+                            輸入成績
+                        </button>
+                        <button class="quick-action-btn" onclick="batchInput()">
+                            <i class="fas fa-upload"></i>
+                            批量輸入
+                        </button>
+                        <button class="quick-action-btn" onclick="exportGrades()">
+                            <i class="fas fa-download"></i>
+                            匯出成績
+                        </button>
+                        <button class="quick-action-btn" onclick="generateReport()">
+                            <i class="fas fa-file-alt"></i>
+                            生成報告
+                        </button>
+                        <button class="quick-action-btn" onclick="sendNotifications()">
+                            <i class="fas fa-bell"></i>
+                            通知家長
+                        </button>
+                    </div>
+
+                    <!-- 班級摘要 -->
+                    <div class="class-summary-card">
+                        <h3>班級摘要</h3>
+                        <div class="summary-item">
+                            <span class="summary-label">班級平均</span>
+                            <span class="summary-value" id="classAverage">82.5</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">最高分</span>
+                            <span class="summary-value" id="highestScore">96</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">最低分</span>
+                            <span class="summary-value" id="lowestScore">58</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">及格率</span>
+                            <span class="summary-value" id="passRate">87.5%</span>
+                        </div>
+                    </div>
+
+                    <!-- 成績分布 -->
+                    <div class="grade-distribution">
+                        <h3>成績分布</h3>
+                        <div class="distribution-item">
+                            <span class="distribution-label">90-100</span>
+                            <div class="distribution-bar">
+                                <div class="distribution-fill" style="width: 25%; background: #10B981;"></div>
+                            </div>
+                            <span class="distribution-count">8</span>
+                        </div>
+                        <div class="distribution-item">
+                            <span class="distribution-label">80-89</span>
+                            <div class="distribution-bar">
+                                <div class="distribution-fill" style="width: 47%; background: #3B82F6;"></div>
+                            </div>
+                            <span class="distribution-count">15</span>
+                        </div>
+                        <div class="distribution-item">
+                            <span class="distribution-label">70-79</span>
+                            <div class="distribution-bar">
+                                <div class="distribution-fill" style="width: 22%; background: #F59E0B;"></div>
+                            </div>
+                            <span class="distribution-count">7</span>
+                        </div>
+                        <div class="distribution-item">
+                            <span class="distribution-label">60-69</span>
+                            <div class="distribution-bar">
+                                <div class="distribution-fill" style="width: 6%; background: #EF4444;"></div>
+                            </div>
+                            <span class="distribution-count">2</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </main>
+
+    <script src="../js/utils.js"></script>
+    <script src="../js/api-client.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/api-health-check.js"></script>
+    <!-- 移除會覆蓋導覽樣式的現代化導航腳本，統一使用首頁樣式 -->
+    <script src="../js/grades-enhanced.js"></script>
+</body>
+
+</html>

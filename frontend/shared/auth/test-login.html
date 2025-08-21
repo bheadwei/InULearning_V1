@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登入頁面測試</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover {
+            background: #0056b3;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <h1>InU Learning 登入頁面測試</h1>
+    
+    <div class="test-section">
+        <h2>1. 登入頁面訪問測試</h2>
+        <button class="test-button" onclick="testLoginPage()">測試登入頁面</button>
+        <div id="loginTestResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. 各前端應用跳轉測試</h2>
+        <button class="test-button" onclick="testStudentApp()">學生應用 (8080)</button>
+        <button class="test-button" onclick="testAdminApp()">管理員應用 (8081)</button>
+        <button class="test-button" onclick="testParentApp()">家長應用 (8082)</button>
+        <button class="test-button" onclick="testTeacherApp()">教師應用 (8083)</button>
+        <div id="redirectTestResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. API 連接測試</h2>
+        <button class="test-button" onclick="testAuthAPI()">測試認證 API</button>
+        <div id="apiTestResult"></div>
+    </div>
+
+    <script>
+        function showResult(elementId, message, isSuccess = true) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="status ${isSuccess ? 'success' : 'error'}">${message}</div>`;
+        }
+
+        function testLoginPage() {
+            try {
+                // 檢查登入頁面是否存在
+                fetch('./login.html')
+                    .then(response => {
+                        if (response.ok) {
+                            showResult('loginTestResult', '✅ 登入頁面可以正常訪問', true);
+                        } else {
+                            showResult('loginTestResult', '❌ 登入頁面無法訪問', false);
+                        }
+                    })
+                    .catch(error => {
+                        showResult('loginTestResult', `❌ 登入頁面訪問錯誤: ${error.message}`, false);
+                    });
+            } catch (error) {
+                showResult('loginTestResult', `❌ 測試失敗: ${error.message}`, false);
+            }
+        }
+
+        function testStudentApp() {
+            testAppRedirect('http://localhost:8080', '學生應用');
+        }
+
+        function testAdminApp() {
+            testAppRedirect('http://localhost:8081', '管理員應用');
+        }
+
+        function testParentApp() {
+            testAppRedirect('http://localhost:8082', '家長應用');
+        }
+
+        function testTeacherApp() {
+            testAppRedirect('http://localhost:8083', '教師應用');
+        }
+
+        function testAppRedirect(url, appName) {
+            try {
+                // 模擬跳轉測試
+                const testUrl = `${url}?test=true`;
+                showResult('redirectTestResult', `🔄 正在測試 ${appName} 跳轉到: ${testUrl}`, true);
+                
+                // 實際跳轉（可選）
+                // window.open(testUrl, '_blank');
+            } catch (error) {
+                showResult('redirectTestResult', `❌ ${appName} 跳轉測試失敗: ${error.message}`, false);
+            }
+        }
+
+        function testAuthAPI() {
+            try {
+                fetch('/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: 'test@example.com',
+                        password: 'testpassword'
+                    })
+                })
+                .then(response => {
+                    if (response.status === 401) {
+                        showResult('apiTestResult', '✅ 認證 API 可以連接（返回 401 是正常的，表示認證失敗）', true);
+                    } else if (response.ok) {
+                        showResult('apiTestResult', '✅ 認證 API 連接成功', true);
+                    } else {
+                        showResult('apiTestResult', `⚠️ 認證 API 返回狀態碼: ${response.status}`, false);
+                    }
+                })
+                .catch(error => {
+                    showResult('apiTestResult', `❌ 認證 API 連接失敗: ${error.message}`, false);
+                });
+            } catch (error) {
+                showResult('apiTestResult', `❌ API 測試失敗: ${error.message}`, false);
+            }
+        }
+
+        // 頁面載入時自動執行基本測試
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                testLoginPage();
+            }, 1000);
+        });
+    </script>
+</body>
+</html> 

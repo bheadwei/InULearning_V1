@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>簡單 API 測試 - InULearning</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .test-section { margin: 20px 0; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .info { color: #007bff; }
+        .warning { color: #ffc107; }
+        .btn { padding: 8px 16px; margin: 5px; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .log { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; padding: 10px; margin: 10px 0; font-family: monospace; }
+        .status { padding: 5px 10px; border-radius: 4px; color: white; font-size: 12px; }
+        .status-ok { background: #28a745; }
+        .status-error { background: #dc3545; }
+    </style>
+</head>
+<body>
+    <h1>🔗 簡單 API 連接測試</h1>
+    
+    <div class="test-section">
+        <h2>📊 連接狀態</h2>
+        <div id="connectionStatus">
+            <p>檢查連接狀態...</p>
+        </div>
+        <button class="btn btn-primary" onclick="checkConnection()">檢查連接</button>
+        <button class="btn btn-success" onclick="testLogin()">測試登入</button>
+    </div>
+
+    <div class="test-section">
+        <h2>📝 測試日誌</h2>
+        <button class="btn btn-primary" onclick="clearLogs()">清除日誌</button>
+        <div id="testLogs"></div>
+    </div>
+
+    <script>
+        const testLogs = document.getElementById('testLogs');
+        const connectionStatus = document.getElementById('connectionStatus');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logDiv = document.createElement('div');
+            logDiv.className = `log ${type}`;
+            logDiv.innerHTML = `<strong>[${timestamp}]</strong> ${message}`;
+            testLogs.appendChild(logDiv);
+            console.log(`[${timestamp}] ${message}`);
+        }
+
+        function clearLogs() {
+            testLogs.innerHTML = '';
+            log('日誌已清除', 'info');
+        }
+
+        // 檢查連接狀態
+        async function checkConnection() {
+            log('🔍 開始檢查連接狀態...', 'info');
+            
+            const services = [
+                { name: '認證服務 (nginx代理)', url: '/api/v1/auth/health' },
+                { name: '學習服務 (nginx代理)', url: '/api/v1/learning/health' },
+                { name: '題庫服務 (nginx代理)', url: '/api/v1/questions/health' },
+                { name: '認證服務 (直接)', url: 'http://localhost:8001/health' },
+                { name: '教師管理服務 (直接)', url: 'http://localhost:8007/health' },
+                { name: '學習服務 (直接)', url: 'http://localhost:8003/health' },
+                { name: '題庫服務 (直接)', url: 'http://localhost:8002/health' }
+            ];
+            
+            let statusHTML = '<h3>服務狀態:</h3>';
+            let allHealthy = true;
+            
+            for (const service of services) {
+                try {
+                    const response = await fetch(service.url);
+                    const isHealthy = response.ok;
+                    const statusClass = isHealthy ? 'status-ok' : 'status-error';
+                    const statusText = isHealthy ? '正常' : '異常';
+                    
+                    statusHTML += `
+                        <p>
+                            <span class="status ${statusClass}">${statusText}</span>
+                            ${service.name}: ${service.url}
+                        </p>
+                    `;
+                    
+                    if (!isHealthy) allHealthy = false;
+                    
+                    log(`${service.name}: ${statusText}`, isHealthy ? 'success' : 'error');
+                } catch (error) {
+                    statusHTML += `
+                        <p>
+                            <span class="status status-error">連接失敗</span>
+                            ${service.name}: ${service.url}
+                        </p>
+                    `;
+                    allHealthy = false;
+                    log(`${service.name}: 連接失敗 - ${error.message}`, 'error');
+                }
+            }
+            
+            if (allHealthy) {
+                statusHTML += '<p style="color: green; font-weight: bold;">🎉 所有服務都正常運行！</p>';
+                log('✅ 所有服務都正常運行', 'success');
+            } else {
+                statusHTML += '<p style="color: red; font-weight: bold;">⚠️ 部分服務有問題</p>';
+                log('⚠️ 部分服務有問題', 'warning');
+            }
+            
+            connectionStatus.innerHTML = statusHTML;
+        }
+
+        // 測試登入
+        async function testLogin() {
+            log('🔐 開始測試登入...', 'info');
+            
+            try {
+                // 使用 nginx 代理路徑
+                const response = await fetch('/api/v1/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: 'teacher@example.com',
+                        password: 'password123'
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    log('✅ 登入成功！', 'success');
+                    log(`📋 回應數據: ${JSON.stringify(data, null, 2)}`, 'info');
+                } else {
+                    const errorData = await response.json();
+                    log(`❌ 登入失敗: ${response.status} - ${JSON.stringify(errorData)}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ 登入請求失敗: ${error.message}`, 'error');
+                
+                if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+                    log('💡 這通常是 CORS 問題，請檢查：', 'warning');
+                    log('1. 後端服務是否正在運行', 'warning');
+                    log('2. 瀏覽器控制台是否有 CORS 錯誤', 'warning');
+                    log('3. 嘗試使用 Postman 或 curl 測試 API', 'warning');
+                }
+            }
+        }
+
+        // 頁面載入完成後的初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            log('🚀 簡單 API 測試頁面載入完成', 'success');
+            log('💡 點擊 "檢查連接" 開始測試', 'info');
+        });
+    </script>
+</body>
+</html>

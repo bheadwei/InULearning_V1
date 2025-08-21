@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>班級管理 - InULearning 教師控制台</title>
+    <meta name="description" content="InULearning 教師控制台：管理班級、學生、題庫與作業，查看學習報告。">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body class="bg-gray-100">
+    <div class="flex h-screen bg-white">
+        <!-- 側邊欄 -->
+        <aside class="w-64 bg-blue-800 text-white flex flex-col">
+            <a class="block" href="../index.html">
+                <div class="flex items-center justify-center p-6 hover:bg-blue-700">
+                    <div class="w-24 h-24 rounded-full bg-blue-600 flex items-center justify-center">
+                        <span class="material-icons text-3xl">school</span>
+            </div>
+                </div>
+                <div class="px-6 pb-4 hover:bg-blue-700">
+                    <h1 class="text-xl font-bold text-center">InU Learning</h1>
+                    <p class="text-sm text-center">【因你而學】</p>
+                </div>
+            </a>
+            <nav class="flex-1 px-4 py-4 space-y-2">
+                <a class="flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg" href="../index.html">
+                    <span class="material-icons">dashboard</span>
+                    <span class="ml-3">教師控制台</span>
+                </a>
+                <a class="flex items-center px-4 py-2 text-gray-100 bg-blue-700 rounded-lg" href="classes-enhanced.html">
+                    <span class="material-icons">class</span>
+                    <span class="ml-3">班級管理</span>
+                </a>
+                <a class="flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg" href="students-enhanced.html">
+                    <span class="material-icons">people</span>
+                    <span class="ml-3">學生分析</span>
+                </a>
+                <a class="flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg" href="assignments-enhanced.html">
+                    <span class="material-icons">assignment</span>
+                    <span class="ml-3">作業管理</span>
+                </a>
+                <a class="flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg" href="questions-enhanced.html">
+                    <span class="material-icons">quiz</span>
+                    <span class="ml-3">題庫管理</span>
+                </a>
+                <a class="flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg" href="grades-enhanced.html">
+                    <span class="material-icons">analytics</span>
+                    <span class="ml-3">成績管理</span>
+                </a>
+                <a class="flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg" href="analytics-enhanced.html">
+                    <span class="material-icons">analytics</span>
+                    <span class="ml-3">學習分析</span>
+                </a>
+            </nav>
+            <div class="p-4 border-t border-blue-700">
+                <button id="logoutBtn" class="w-full flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg">
+                    <span class="material-icons">logout</span>
+                    <span class="ml-3">登出</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- 主要內容區域 -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- 頂部導航 -->
+            <header class="flex justify-between items-center p-4 bg-white border-b">
+                <div class="flex items-center flex-1">
+                    <button class="text-gray-500 focus:outline-none lg:hidden">
+                        <span class="material-icons">menu</span>
+                </button>
+                    <div class="relative text-gray-600 focus-within:text-gray-400 ml-4 flex-1 max-w-md">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-2">
+                            <button class="p-1 focus:outline-none" type="submit">
+                                <span class="material-icons">search</span>
+                            </button>
+                        </span>
+                        <input id="classSearchInput" autocomplete="off" class="py-2 text-sm text-gray-700 bg-gray-200 rounded-md pl-10 focus:outline-none focus:bg-white focus:text-gray-900 w-full" name="q" placeholder="搜尋班級..." type="search"/>
+            </div>
+        </div>
+                <div class="flex items-center space-x-4">
+                    <div id="userInfo" class="hidden flex items-center space-x-2">
+                        <span class="text-sm text-gray-600">歡迎，</span>
+                        <span id="userName" class="text-sm font-medium text-blue-600">王老師</span>
+                        <button id="logoutBtn" class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition-colors">
+                            登出
+                        </button>
+            </div>
+                    <div id="authButtons">
+                        <a class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors" href="http://localhost/login.html">登入</a>
+                        <a class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors" href="register.html">註冊</a>
+                    </div>
+                </div>
+            </header>
+
+            <!-- 主要內容 -->
+            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100">
+                <div class="container mx-auto px-6 py-8">
+                    <!-- 歡迎區塊 -->
+                    <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-lg p-8 mb-8">
+                        <h1 class="text-3xl font-bold mb-4">班級管理</h1>
+                        <p class="text-xl mb-6">管理您的班級、學生和課程安排</p>
+                        <div class="flex flex-wrap gap-4">
+                            <button class="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors btn-create-class">
+                                <span class="material-icons mr-2">add</span>
+                                建立新班級
+                            </button>
+                            <button class="bg-blue-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-400 transition-colors" onclick="openStudentSearchModal()">
+                                <span class="material-icons mr-2">group_add</span>
+                                新增學生
+                </button>
+                        </div>
+            </div>
+
+                    <!-- 快速操作區 -->
+                    <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-xl font-semibold text-gray-800">快速操作</h2>
+                        </div>
+                        <div class="flex flex-wrap gap-4">
+                            <button class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors btn-create-class">
+                                <span class="material-icons mr-2">add</span>
+                                建立新班級
+                </button>
+                            <button class="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors" onclick="openStudentSearchModal()">
+                                <span class="material-icons mr-2">group_add</span>
+                                新增學生
+                </button>
+                            <button class="bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors" onclick="showDeletedClasses()">
+                                <span class="material-icons mr-2">restore</span>
+                                管理已刪除班級
+                </button>
+                        </div>
+            </div>
+
+                    <!-- 統計卡片 -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <div class="flex items-center">
+                                <div class="bg-blue-100 p-3 rounded-lg mr-4">
+                                    <i class="fas fa-users text-blue-600 text-2xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-2xl font-bold text-gray-800" id="totalClasses">0</h3>
+                                    <p class="text-gray-600">總班級數</p>
+                                </div>
+                            </div>
+                </div>
+
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <div class="flex items-center">
+                                <div class="bg-green-100 p-3 rounded-lg mr-4">
+                                    <i class="fas fa-check-circle text-green-600 text-2xl"></i>
+                    </div>
+                                <div>
+                                    <h3 class="text-2xl font-bold text-gray-800" id="activeClasses">0</h3>
+                                    <p class="text-gray-600">活躍班級</p>
+                                </div>
+                </div>
+            </div>
+
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <div class="flex items-center">
+                                <div class="bg-yellow-100 p-3 rounded-lg mr-4">
+                                    <i class="fas fa-pause-circle text-yellow-600 text-2xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-2xl font-bold text-gray-800" id="inactiveClasses">0</h3>
+                                    <p class="text-gray-600">停用班級</p>
+                                </div>
+                            </div>
+                </div>
+                
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <div class="flex items-center">
+                                <div class="bg-red-100 p-3 rounded-lg mr-4">
+                                    <i class="fas fa-trash text-red-600 text-2xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-2xl font-bold text-gray-800" id="deletedClasses">0</h3>
+                                    <p class="text-gray-600">已刪除</p>
+                                </div>
+                            </div>
+                        </div>
+                </div>
+
+                    <!-- 篩選和視圖控制 -->
+                    <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+                            <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
+                                <select id="classStatusFilter" class="form-control">
+                                    <option value="">所有狀態</option>
+                                    <option value="active">活躍</option>
+                                    <option value="inactive">停用</option>
+                                    <option value="deleted">已刪除</option>
+                                </select>
+                                <select id="classSubjectFilter" class="form-control">
+                                    <option value="">所有科目</option>
+                                    <option value="math">數學</option>
+                                    <option value="chinese">國文</option>
+                                    <option value="english">英文</option>
+                                    <option value="science">自然</option>
+                                    <option value="history">歷史</option>
+                                    <option value="geography">地理</option>
+                                </select>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button class="view-btn active px-4 py-2 rounded-lg bg-blue-600 text-white" data-view="list">
+                                    <i class="fas fa-list mr-2"></i>列表視圖
+                    </button>
+                                <button class="view-btn px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300" data-view="grid">
+                                    <i class="fas fa-th-large mr-2"></i>卡片視圖
+                    </button>
+                </div>
+            </div>
+                </div>
+                
+                    <!-- 班級列表 -->
+                    <div id="classesList">
+                        <!-- 列表視圖 -->
+                        <div id="listView">
+                            <!-- 動態載入班級列表 -->
+                </div>
+
+                        <!-- 卡片視圖 -->
+                        <div id="gridView" class="hidden">
+                            <!-- 動態載入班級卡片 -->
+                </div>
+            </div>
+        </div>
+    </main>
+        </div>
+    </div>
+
+    <!-- 班級編輯 Modal -->
+    <div id="classModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="classModalTitle" class="modal-title">新增班級</h3>
+                <button id="classModalClose" class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                    <form id="classForm">
+                        <div class="form-group">
+                        <label for="className" class="form-label">班級名稱 *</label>
+                        <input type="text" id="className" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                        <label for="classSubject" class="form-label">科目 *</label>
+                            <select id="classSubject" class="form-control" required>
+                                <option value="">請選擇科目</option>
+                            <option value="math">數學</option>
+                            <option value="chinese">國文</option>
+                            <option value="english">英文</option>
+                            <option value="science">自然</option>
+                            <option value="history">歷史</option>
+                            <option value="geography">地理</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                        <label for="classGrade" class="form-label">年級</label>
+                        <select id="classGrade" class="form-control">
+                            <option value="">請選擇年級</option>
+                            <option value="7A">七年級上學期</option>
+                            <option value="7B">七年級下學期</option>
+                            <option value="8A">八年級上學期</option>
+                            <option value="8B">八年級下學期</option>
+                            <option value="9A">九年級上學期</option>
+                            <option value="9B">九年級下學期</option>
+                        </select>
+                        </div>
+                    <div class="form-group">
+                        <label for="classDescription" class="form-label">描述</label>
+                        <textarea id="classDescription" class="form-control" rows="3" placeholder="班級描述..."></textarea>
+                        </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button id="classModalCancel" class="btn btn-secondary">取消</button>
+                <button id="classModalSave" class="btn btn-primary">儲存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 學生管理 Modal -->
+    <div id="studentModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h3 class="modal-title">管理學生</h3>
+                <button id="studentModalClose" class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-4">
+                    <button id="addStudentBtn" class="btn btn-primary">
+                        <i class="fas fa-plus mr-2"></i>新增學生
+                </button>
+            </div>
+                <div id="studentList">
+                    <!-- 動態載入學生列表 -->
+        </div>
+    </div>
+                            </div>
+                            </div>
+
+    <!-- 學生搜尋 Modal -->
+    <div id="studentSearchModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 class="modal-title">搜尋並新增學生</h3>
+                <button id="studentSearchModalClose" class="modal-close">&times;</button>
+                            </div>
+            <div class="modal-body">
+                <div class="form-group mb-4">
+                    <label for="studentSearchInput" class="form-label">搜尋學生</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="studentSearchInput" class="form-control flex-1" placeholder="輸入學生姓名或郵箱...">
+                        <button id="searchStudentBtn" class="btn btn-primary">搜尋</button>
+                            </div>
+                        </div>
+                <div id="searchResults" class="mb-4">
+                    <!-- 搜尋結果將在這裡顯示 -->
+                        </div>
+                <div class="form-group mb-4">
+                    <label for="targetClassSelect" class="form-label">選擇目標班級</label>
+                    <select id="targetClassSelect" class="form-control">
+                        <option value="">請選擇班級</option>
+                    </select>
+                    </div>
+                            </div>
+                            </div>
+                        </div>
+
+    <!-- 已刪除班級 Modal -->
+    <div id="deletedClassesModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h3 class="modal-title">已刪除的班級</h3>
+                <button id="deletedClassesModalClose" class="modal-close">&times;</button>
+                    </div>
+            <div class="modal-body">
+                <div id="deletedClassesList">
+                    <!-- 已刪除班級列表 -->
+                    </div>
+                </div>
+                    </div>
+                            </div>
+
+    <!-- JavaScript 檔案載入 -->
+    <script src="../js/auth.js"></script>
+    <script src="../js/api-client.js"></script>
+    <script src="../js/classes-enhanced.js"></script>
+    
+    <script>
+        // 頁面載入完成後的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 更新認證狀態和歡迎訊息
+            if (typeof teacherAuth !== 'undefined') {
+                teacherAuth.updateUI();
+            }
+            
+            // 登出功能
+            document.getElementById('logoutBtn').addEventListener('click', function() {
+                if (confirm('確定要登出嗎？')) {
+                    if (typeof teacherAuth !== 'undefined') {
+                        teacherAuth.logout();
+                } else {
+                        alert('已登出');
+                    }
+                }
+            });
+        });
+
+        // 全域函數
+        function openStudentSearchModal() {
+            const modal = document.getElementById('studentSearchModal');
+            if (modal) {
+                modal.style.display = 'flex';
+                loadTeacherClasses();
+            }
+        }
+
+        function showDeletedClasses() {
+            const modal = document.getElementById('deletedClassesModal');
+            if (modal) {
+                modal.style.display = 'flex';
+                loadDeletedClasses();
+            }
+        }
+
+        async function loadTeacherClasses() {
+            try {
+                const response = await apiClient.get('/relationships/teacher-class?include_deleted=true');
+                const classSelect = document.getElementById('targetClassSelect');
+                if (classSelect && response) {
+                    classSelect.innerHTML = '<option value="">請選擇班級</option>';
+                    response.forEach(cls => {
+                        if (cls.is_active) {
+                            const option = document.createElement('option');
+                            option.value = cls.class_id;
+                            option.textContent = `${cls.class_name} (${cls.subject})`;
+                            classSelect.appendChild(option);
+                        }
+                    });
+                        }
+                    } catch (error) {
+                console.error('載入班級失敗:', error);
+            }
+        }
+
+        async function loadDeletedClasses() {
+            try {
+                const response = await apiClient.get('/relationships/teacher-class?include_deleted=true');
+                const container = document.getElementById('deletedClassesList');
+                if (container && response) {
+                    const deletedClasses = response.filter(cls => !cls.is_active);
+                    if (deletedClasses.length === 0) {
+                        container.innerHTML = '<p class="text-gray-500 text-center py-4">沒有已刪除的班級</p>';
+                    return;
+                }
+
+                    container.innerHTML = deletedClasses.map(cls => `
+                        <div class="flex items-center justify-between p-4 border-b border-gray-200">
+                        <div>
+                                <h4 class="font-semibold">${cls.class_name}</h4>
+                                <p class="text-sm text-gray-600">科目: ${cls.subject}</p>
+                        </div>
+                            <button class="btn btn-secondary btn-sm" onclick="restoreClass(${cls.class_id})">
+                                恢復
+                            </button>
+                    </div>
+                `).join('');
+                        }
+                    } catch (error) {
+                console.error('載入已刪除班級失敗:', error);
+            }
+        }
+
+        async function restoreClass(classId) {
+            try {
+                await apiClient.patch(`/relationships/teacher-class/${classId}/restore`);
+                alert('班級恢復成功');
+                loadDeletedClasses();
+                if (typeof classesManager !== 'undefined') {
+                    classesManager.loadClasses();
+                        }
+                    } catch (error) {
+                alert('恢復失敗：' + error.message);
+            }
+        }
+    </script>
+</body>
+
+</html>

@@ -14,7 +14,7 @@ class MainApp {
     init() {
         // 處理從統一登入頁面傳來的認證資訊
         this.handleAuthFromURL();
-        
+
         this.bindEvents();
         // 延遲載入儀表板資料，確保認證狀態已初始化
         setTimeout(() => {
@@ -32,15 +32,19 @@ class MainApp {
 
         if (token && userInfo) {
             console.log('從URL接收到認證資訊');
-            
+
             // 儲存到localStorage
             localStorage.setItem('auth_token', token);
             localStorage.setItem('user_info', userInfo);
-            
+            if (window.Utils) {
+                try { Utils.setStorageItem('auth_token', token); } catch (e) { }
+                try { Utils.setStorageItem('user_info', userInfo); } catch (e) { }
+            }
+
             // 清除URL參數
             const newURL = window.location.protocol + "//" + window.location.host + window.location.pathname;
             window.history.replaceState({}, document.title, newURL);
-            
+
             // 更新認證狀態
             if (typeof authManager !== 'undefined') {
                 authManager.updateAuthUI();
@@ -81,10 +85,10 @@ class MainApp {
      */
     handleSearch(query) {
         if (!query.trim()) return;
-        
+
         // 儲存搜尋查詢到 localStorage
         localStorage.setItem('searchQuery', query);
-        
+
         // 導向搜尋結果頁面或練習頁面
         window.location.href = `pages/exercise.html?search=${encodeURIComponent(query)}`;
     }
@@ -94,7 +98,7 @@ class MainApp {
      */
     handleQuickCardClick(card) {
         const title = card.querySelector('h3')?.textContent;
-        
+
         switch (title) {
             case '客製化題庫練習':
                 window.location.href = 'pages/exercise.html';
@@ -126,10 +130,10 @@ class MainApp {
         try {
             // 載入學習統計
             await this.loadLearningStats();
-            
+
             // 載入推薦練習
             await this.loadRecommendedExercises();
-            
+
         } catch (error) {
             console.error('載入儀表板資料錯誤:', error);
         }
@@ -140,42 +144,55 @@ class MainApp {
      */
     async loadLearningStats() {
         try {
-            const stats = await learningAPI.getLearningStats();
-            this.updateStatsDisplay(stats);
+            // 與 dashboard 相同：同時抓 statistics 與 recent 做為後備
+            const [statsResp, recentList] = await Promise.all([
+                learningAPI.getLearningStatistics(),
+                learningAPI.getRecentLearningRecords(5)
+            ]);
+            const stats = statsResp && statsResp.success ? statsResp.data : null;
+            this.updateStatsDisplay(stats, recentList && recentList.data ? recentList.data : null);
         } catch (error) {
             console.error('載入學習統計錯誤:', error);
             // 顯示預設值
-            this.updateStatsDisplay({
-                today_questions: 0,
-                accuracy_rate: 0,
-                streak_days: 0
-            });
+            this.updateStatsDisplay(null, null);
         }
     }
 
     /**
      * 更新統計顯示
      */
-    updateStatsDisplay(stats) {
+    updateStatsDisplay(stats, recentData) {
         const learningStats = document.getElementById('learningStats');
         if (!learningStats) return;
 
         learningStats.classList.remove('hidden');
 
-        // 更新統計數值
-        const todayQuestions = document.getElementById('todayQuestions');
-        const accuracyRate = document.getElementById('accuracyRate');
-        const streakDays = document.getElementById('streakDays');
+        // 更新統計數值（與 dashboard/history 一致）
+        const totalQuestionsEl = document.getElementById('totalQuestions');
+        const avgAccuracyEl = document.getElementById('avgAccuracy');
+        const totalTimeEl = document.getElementById('totalTime');
 
-        if (todayQuestions) {
-            todayQuestions.textContent = stats.today_questions || 0;
+        let totalQuestions = 0;
+        let accuracy = 0;
+        let minutes = 0;
+
+        if (stats) {
+            totalQuestions = stats.total_questions || 0;
+            accuracy = Math.round(stats.overall_accuracy || 0);
+            minutes = Math.round((stats.total_time_spent || 0) / 60);
+        } else if (recentData) {
+            // 後備來源：由最近紀錄彙總
+            const sessions = recentData.sessions || [];
+            const correct = sessions.reduce((sum, s) => sum + (s.correct_count || 0), 0);
+            totalQuestions = sessions.reduce((sum, s) => sum + (s.question_count || 0), 0);
+            accuracy = totalQuestions > 0 ? Math.round((correct / totalQuestions) * 100) : 0;
+            const timeSpent = sessions.reduce((sum, s) => sum + (s.time_spent || 0), 0);
+            minutes = Math.round(timeSpent / 60);
         }
-        if (accuracyRate) {
-            accuracyRate.textContent = `${stats.accuracy_rate || 0}%`;
-        }
-        if (streakDays) {
-            streakDays.textContent = stats.streak_days || 0;
-        }
+
+        if (totalQuestionsEl) totalQuestionsEl.textContent = totalQuestions;
+        if (avgAccuracyEl) avgAccuracyEl.textContent = `${accuracy}%`;
+        if (totalTimeEl) totalTimeEl.textContent = `${minutes} 分`;
     }
 
     /**
@@ -250,7 +267,7 @@ class MainApp {
     createRecommendationCard(recommendation) {
         const card = document.createElement('div');
         card.className = 'bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer card-hover';
-        
+
         const difficultyColor = {
             '簡單': 'text-green-600',
             '中等': 'text-yellow-600',
@@ -314,11 +331,10 @@ class MainApp {
      */
     showNotification(message, type = 'info') {
         const notification = document.createElement('div');
-        notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
-            type === 'success' ? 'bg-green-500 text-white' :
+        notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${type === 'success' ? 'bg-green-500 text-white' :
             type === 'error' ? 'bg-red-500 text-white' :
-            'bg-blue-500 text-white'
-        }`;
+                'bg-blue-500 text-white'
+            }`;
         notification.textContent = message;
 
         document.body.appendChild(notification);

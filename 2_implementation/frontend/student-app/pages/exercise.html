@@ -1,214 +1,284 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>練習測驗 - InULearning</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="../css/style.css">
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>練習測驗 - InU Learning【因你而學】</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <link rel="stylesheet" href="../css/main.css">
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+    </style>
 </head>
-<body class="bg-gray-50">
-    <!-- 導航欄 -->
-    <nav class="bg-blue-600 shadow-lg">
-        <div class="max-w-7xl mx-auto px-4">
-            <div class="flex justify-between items-center py-4">
-                <div class="flex items-center">
-                    <h1 class="text-white text-xl font-bold">InULearning 練習測驗</h1>
+
+<body class="bg-gray-100">
+    <div class="flex h-screen bg-white">
+        <!-- 側邊欄 -->
+        <aside class="w-64 bg-blue-800 text-white flex flex-col">
+            <a class="block" href="../index.html">
+                <div class="flex items-center justify-center p-6 hover:bg-blue-700">
+                    <img alt="InU Learning Logo" class="w-24 h-24 rounded-full"
+                        src="http://localhost/shared/image/InULearning_logo.png" />
+                </div>
+                <div class="px-6 pb-4 hover:bg-blue-700">
+                    <h1 class="text-xl font-bold text-center">InU Learning</h1>
+                    <p class="text-sm text-center">【因你而學】</p>
+                </div>
+            </a>
+            <nav class="flex-1 px-4 py-4 space-y-2">
+                <a class="flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg" href="../index.html">
+                    <span class="material-icons">school</span>
+                    <span class="ml-3">學生練功專區</span>
+                </a>
+                <a class="flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg" href="dashboard.html">
+                    <span class="material-icons">dashboard</span>
+                    <span class="ml-3">學習儀表板</span>
+                </a>
+                <a class="flex items-center px-4 py-2 text-gray-100 bg-blue-700 rounded-lg" href="exercise.html">
+                    <span class="material-icons">quiz</span>
+                    <span class="ml-3">開始練習</span>
+                </a>
+                <a class="flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg" href="history.html">
+                    <span class="material-icons">history</span>
+                    <span class="ml-3">學習歷程</span>
+                </a>
+                <a class="flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg" href="profile.html">
+                    <span class="material-icons">person</span>
+                    <span class="ml-3">個人資料</span>
+                </a>
+            </nav>
+            <div class="p-4 border-t border-blue-700">
+                <button id="logoutBtn"
+                    class="w-full flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg">
+                    <span class="material-icons">logout</span>
+                    <span class="ml-3">登出</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- 主要內容區 -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- 頂部導航 -->
+            <header class="flex justify-between items-center p-4 bg-white border-b">
+                <div class="flex items-center flex-1">
+                    <button class="text-gray-500 focus:outline-none lg:hidden">
+                        <span class="material-icons">menu</span>
+                    </button>
+                    <div class="relative text-gray-600 focus-within:text-gray-400 ml-4 flex-1 max-w-md">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-2">
+                            <button class="p-1 focus:outline-none" type="submit">
+                                <span class="material-icons">search</span>
+                            </button>
+                        </span>
+                        <input autocomplete="off"
+                            class="py-2 text-sm text-gray-700 bg-gray-200 rounded-md pl-10 focus:outline-none focus:bg-white focus:text-gray-900 w-full"
+                            name="q" placeholder="搜尋題目或知識點..." type="search" />
+                    </div>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <div id="userInfo" class="text-white">
-                        <span id="userName">載入中...</span>
-                        <button id="logoutBtn" class="ml-4 bg-blue-700 hover:bg-blue-800 px-3 py-1 rounded text-sm">登出</button>
+                    <div id="userInfo" class="hidden">
+                        <span class="text-sm text-gray-600">歡迎，</span>
+                        <span id="userName" class="text-sm font-medium text-blue-600"></span>
+                    </div>
+                    <div id="authButtons">
+                        <a class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                            href="http://localhost/login.html">登入</a>
+                        <a class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+                            href="register.html">註冊</a>
                     </div>
                 </div>
-            </div>
+            </header>
+
+            <!-- 主要內容 -->
+            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100">
+                <div class="container mx-auto px-6 py-8">
+                    <!-- 原有內容開始 -->
+                    <div class="max-w-4xl mx-auto">
+                        <!-- 載入訊息 -->
+                        <div id="loadingMessage" class="hidden text-center py-8">
+                            <div
+                                class="inline-flex items-center px-4 py-2 font-semibold leading-6 text-sm shadow rounded-md text-blue-500 bg-blue-100">
+                                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-500"
+                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                        stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                    </path>
+                                </svg>
+                                載入中...
+                            </div>
+                        </div>
+
+                        <!-- 錯誤訊息 -->
+                        <div id="errorMessage"
+                            class="hidden mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded"></div>
+
+                        <!-- 練習設置 -->
+                        <div id="exerciseSetup">
+                            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                                <h2 class="text-2xl font-bold text-gray-800 mb-6">設定練習條件</h2>
+
+                                <!-- 練習條件選擇 -->
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">年級</label>
+                                        <select id="gradeSelect"
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                            <option value="">請選擇年級</option>
+                                            <option value="7A">七年級上學期</option>
+                                            <option value="7B">七年級下學期</option>
+                                            <option value="8A">八年級上學期</option>
+                                            <option value="8B">八年級下學期</option>
+                                            <option value="9A">九年級上學期</option>
+                                            <option value="9B">九年級下學期</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">版本</label>
+                                        <select id="editionSelect"
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                            <option value="">請選擇版本</option>
+                                            <option value="南一">南一</option>
+                                            <option value="康軒">康軒</option>
+                                            <option value="翰林">翰林</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">科目</label>
+                                        <select id="subjectSelect"
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                            <option value="">請選擇科目</option>
+                                            <option value="國文">國文</option>
+                                            <option value="英文">英文</option>
+                                            <option value="數學">數學</option>
+                                            <option value="自然">自然</option>
+                                            <option value="地理">地理</option>
+                                            <option value="歷史">歷史</option>
+                                            <option value="公民">公民</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">章節</label>
+                                        <select id="chapterSelect"
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                            disabled>
+                                            <option value="">請先選擇年級、版本和科目</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">題目數量</label>
+                                        <input id="questionCountInput" type="number" min="1" max="50" value="10"
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                            placeholder="1-50題">
+                                        <div id="questionCountHint" class="text-xs text-gray-500 mt-1">可選擇1-50題</div>
+                                    </div>
+                                </div>
+
+                                <div id="questionsInfo" class="mb-6">
+                                    <!-- 練習資訊將在這裡動態載入 -->
+                                </div>
+
+                                <!-- 額外過濾條件 -->
+                                <div class="mb-6">
+                                    <label class="inline-flex items-center">
+                                        <input id="onlyUnseenCheckbox" type="checkbox"
+                                            class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+                                        <span class="ml-2 text-sm text-gray-700">只出我沒做過的題目</span>
+                                    </label>
+                                </div>
+
+                                <div class="text-center">
+                                    <button id="checkQuestionsBtn"
+                                        class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg transition duration-300 mr-4">
+                                        檢查題庫
+                                    </button>
+                                    <button id="startExerciseBtn"
+                                        class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        disabled>
+                                        開始練習
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 練習介面 -->
+                        <div id="exerciseInterface" class="hidden">
+                            <!-- 進度條 -->
+                            <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-sm font-medium text-blue-700">練習進度</span>
+                                    <span id="progressText" class="text-sm text-gray-500">已完成 0 / 10 題</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                    <div id="exerciseProgress"
+                                        class="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
+                                        style="width: 0%"></div>
+                                </div>
+                            </div>
+
+                            <!-- 題目容器 -->
+                            <div id="questionContainer">
+                                <!-- 題目將在這裡動態載入 -->
+                            </div>
+
+                            <!-- 導航按鈕 -->
+                            <div class="flex justify-between items-center mt-6">
+                                <button id="prevQuestionBtn"
+                                    class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    上一題
+                                </button>
+
+                                <button id="submitExerciseBtn"
+                                    class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    disabled>
+                                    提交答案
+                                </button>
+
+                                <button id="nextQuestionBtn"
+                                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    下一題
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 練習結果 -->
+                        <div id="exerciseResults" class="hidden">
+                            <div id="resultsContainer">
+                                <!-- 結果將在這裡動態載入 -->
+                            </div>
+
+                            <div class="text-center mt-6">
+                                <button id="restartExerciseBtn"
+                                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition duration-300">
+                                    重新開始
+                                </button>
+                                <a href="../index.html"
+                                    class="ml-4 bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-8 rounded-lg transition duration-300 inline-block">
+                                    返回首頁
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 原有內容結束 -->
+                </div>
+            </main>
         </div>
-    </nav>
+    </div>
 
-    <!-- 主要內容 -->
-    <main class="max-w-4xl mx-auto py-8 px-4">
-        <!-- 載入訊息 -->
-        <div id="loadingMessage" class="hidden text-center py-8">
-            <div class="inline-flex items-center px-4 py-2 font-semibold leading-6 text-sm shadow rounded-md text-blue-500 bg-blue-100">
-                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                載入中...
-            </div>
-        </div>
-
-        <!-- 錯誤訊息 -->
-        <div id="errorMessage" class="hidden mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded"></div>
-
-        <!-- 練習設置 -->
-        <div id="exerciseSetup">
-            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                <h2 class="text-2xl font-bold text-gray-800 mb-6">設定練習條件</h2>
-                
-                <!-- 練習條件選擇 -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">年級</label>
-                        <select id="gradeSelect" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                            <option value="">請選擇年級</option>
-                            <option value="7A">七年級上學期</option>
-                            <option value="7B">七年級下學期</option>
-                            <option value="8A">八年級上學期</option>
-                            <option value="8B">八年級下學期</option>
-                            <option value="9A">九年級上學期</option>
-                            <option value="9B">九年級下學期</option>
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">版本</label>
-                        <select id="editionSelect" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                            <option value="">請選擇版本</option>
-                            <option value="南一">南一</option>
-                            <option value="康軒">康軒</option>
-                            <option value="翰林">翰林</option>
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">科目</label>
-                        <select id="subjectSelect" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                            <option value="">請選擇科目</option>
-                            <option value="國文">國文</option>
-                            <option value="英文">英文</option>
-                            <option value="數學">數學</option>
-                            <option value="自然">自然</option>
-                            <option value="地理">地理</option>
-                            <option value="歷史">歷史</option>
-                            <option value="公民">公民</option>
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">章節</label>
-                        <select id="chapterSelect" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" disabled>
-                            <option value="">請先選擇年級、版本和科目</option>
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">題目數量</label>
-                        <input id="questionCountInput" type="number" min="1" max="50" value="10" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="1-50題">
-                        <div id="questionCountHint" class="text-xs text-gray-500 mt-1">可選擇1-50題</div>
-                    </div>
-                </div>
-
-                <div id="questionsInfo" class="mb-6">
-                    <!-- 練習資訊將在這裡動態載入 -->
-                </div>
-
-                <div class="text-center">
-                    <button id="checkQuestionsBtn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg transition duration-300 mr-4">
-                        檢查題庫
-                    </button>
-                    <button id="startExerciseBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-                        開始練習
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- 練習介面 -->
-        <div id="exerciseInterface" class="hidden">
-            <!-- 進度條 -->
-            <div class="bg-white rounded-lg shadow-md p-4 mb-6">
-                <div class="flex justify-between items-center mb-2">
-                    <span class="text-sm font-medium text-blue-700">練習進度</span>
-                    <span id="progressText" class="text-sm text-gray-500">已完成 0 / 10 題</span>
-                </div>
-                <div class="w-full bg-gray-200 rounded-full h-2.5">
-                    <div id="exerciseProgress" class="bg-blue-600 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
-                </div>
-            </div>
-
-            <!-- 題目容器 -->
-            <div id="questionContainer">
-                <!-- 題目將在這裡動態載入 -->
-            </div>
-
-            <!-- 導航按鈕 -->
-            <div class="flex justify-between items-center mt-6">
-                <button id="prevQuestionBtn" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
-                    上一題
-                </button>
-                
-                <button id="submitExerciseBtn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-                    提交答案
-                </button>
-                
-                <button id="nextQuestionBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
-                    下一題
-                </button>
-            </div>
-        </div>
-
-        <!-- 練習結果 -->
-        <div id="exerciseResults" class="hidden">
-            <div id="resultsContainer">
-                <!-- 結果將在這裡動態載入 -->
-            </div>
-            
-            <div class="text-center mt-6">
-                <button id="restartExerciseBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition duration-300">
-                    重新開始
-                </button>
-                <a href="../index.html" class="ml-4 bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-8 rounded-lg transition duration-300 inline-block">
-                    返回首頁
-                </a>
-            </div>
-        </div>
-    </main>
-
-    <!-- JavaScript -->
     <script src="../js/utils/auth.js"></script>
     <script src="../js/api/learning.js"></script>
-    <script>
-        // 認證檢查和初始化
-        document.addEventListener('DOMContentLoaded', function() {
-            const authManager = new AuthManager();
-            
-            // 檢查是否已登入
-            if (!authManager.isLoggedIn()) {
-                console.log('用戶未登入，重定向到登入頁面');
-                window.location.href = '/login.html';
-                return;
-            }
-            
-            // 檢查用戶角色
-            const user = authManager.getUser();
-            if (user && user.role !== 'student') {
-                console.log('用戶角色不符，重定向到登入頁面');
-                window.location.href = '/login.html';
-                return;
-            }
-            
-            // 顯示用戶資訊
-            if (user) {
-                const userNameElement = document.getElementById('userName');
-                if (userNameElement) {
-                    userNameElement.textContent = user.name || user.email || '學生';
-                }
-            }
-            
-            // 登出按鈕事件
-            const logoutBtn = document.getElementById('logoutBtn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', function() {
-                    authManager.logout();
-                    window.location.href = '/login.html';
-                });
-            }
-            
-            // 初始化練習管理器
-            window.exerciseManager = new ExerciseManager();
-        });
-    </script>
+    <script src="../js/api/ai-analysis.js"></script>
     <script src="../js/pages/exercise.js"></script>
 </body>
-</html> 
+
+</html>

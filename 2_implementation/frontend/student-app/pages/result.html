@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
+
 <head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>練習結果 - InU Learning【因你而學】</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
     <link rel="stylesheet" href="../css/main.css">
-    
+
     <!-- MathJax 配置和載入 -->
     <script>
         window.MathJax = {
@@ -25,30 +26,90 @@
     </script>
     <script async src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script async id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    
+
     <style>
         body {
             font-family: 'Noto Sans TC', sans-serif;
+            overflow-x: hidden;
         }
+
         .scrollbar-hide::-webkit-scrollbar {
             display: none;
         }
+
         .scrollbar-hide {
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
+
+        /* 題目導航滾動容器樣式 */
+        .question-nav-container {
+            width: 100% !important;
+            max-width: 100% !important;
+            overflow-x: auto !important;
+            scrollbar-width: thin;
+            -ms-overflow-style: auto;
+            border: 1px solid transparent;
+            /* 強制容器有邊界 */
+            box-sizing: border-box;
+        }
+
+        .question-nav-container::-webkit-scrollbar {
+            height: 8px;
+            display: block;
+        }
+
+        .question-nav-container::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+            margin: 2px 0;
+        }
+
+        .question-nav-container::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 4px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .question-nav-container::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+
+        .question-nav-container::-webkit-scrollbar-thumb:active {
+            background: #475569;
+        }
+
+        .question-nav-wrapper {
+            display: flex;
+            gap: 0.5rem;
+            /* 等同於 space-x-2 */
+            flex-wrap: nowrap;
+            width: max-content;
+            min-width: max-content;
+            flex-shrink: 0;
+        }
+
+        /* 確保整個頁面不會過寬 */
+        .main-content {
+            max-width: 100vw;
+            overflow-x: hidden;
+        }
     </style>
 </head>
+
 <body class="bg-gray-100 flex">
     <!-- 側邊欄 -->
     <aside class="w-64 h-screen bg-blue-800 text-white flex flex-col fixed">
-        <div class="p-6 text-center">
-            <div class="bg-yellow-400 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
-                <span class="text-blue-800 font-bold text-lg">InU<br/>Learning</span>
+        <a class="block" href="../index.html">
+            <div class="flex items-center justify-center p-6 hover:bg-blue-700">
+                <img alt="InU Learning Logo" class="w-24 h-24 rounded-full"
+                    src="http://localhost/shared/image/InULearning_logo.png" />
             </div>
-            <h1 class="text-xl font-bold">InU Learning</h1>
-            <p class="text-sm text-blue-300">【因你而學】</p>
-        </div>
+            <div class="px-6 pb-4 hover:bg-blue-700">
+                <h1 class="text-xl font-bold text-center">InU Learning</h1>
+                <p class="text-sm text-center">【因你而學】</p>
+            </div>
+        </a>
         <nav class="flex-grow">
             <ul>
                 <li class="mb-2">
@@ -78,7 +139,8 @@
             </ul>
         </nav>
         <div class="p-4 border-t border-blue-700">
-            <button id="logoutBtn" class="w-full flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg">
+            <button id="logoutBtn"
+                class="w-full flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg">
                 <span class="material-icons">logout</span>
                 <span class="ml-3">登出</span>
             </button>
@@ -86,7 +148,7 @@
     </aside>
 
     <!-- 主要內容區 -->
-    <div class="ml-64 flex-1 flex flex-col min-h-screen">
+    <div class="ml-64 flex-1 flex flex-col min-h-screen overflow-x-hidden">
         <!-- 頂部導航 -->
         <header class="bg-white shadow-sm p-4 flex justify-between items-center w-full sticky top-0 z-10">
             <div class="flex items-center space-x-4">
@@ -101,18 +163,20 @@
                     <span id="userName" class="text-sm font-medium text-blue-600"></span>
                 </div>
                 <div id="authButtons">
-                    <a class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors" href="login.html">登入</a>
-                    <a class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors" href="register.html">註冊</a>
+                    <a class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                        href="http://localhost/login.html">登入</a>
+                    <a class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+                        href="register.html">註冊</a>
                 </div>
             </div>
         </header>
 
         <!-- 主要內容 -->
-        <main class="flex-1 p-8">
+        <main class="flex-1 p-8 w-full overflow-x-hidden main-content">
             <!-- 結果摘要 -->
             <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
                 <h2 class="text-3xl font-bold text-center mb-6">練習結果</h2>
-                
+
                 <!-- 成績統計 -->
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                     <div class="bg-blue-50 p-6 rounded-lg text-center">
@@ -135,17 +199,27 @@
 
                 <!-- 操作按鈕 -->
                 <div class="flex justify-center space-x-4 mb-8">
-                    <button onclick="location.href='exercise.html'" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 flex items-center">
+
+                    <button onclick="location.href='exercise.html'"
+                        class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 flex items-center">
                         <span class="material-icons mr-2">refresh</span>
                         再次練習
                     </button>
-                    <button onclick="location.href='dashboard.html'" class="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 flex items-center">
+                    <button onclick="location.href='dashboard.html'"
+                        class="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 flex items-center">
                         <span class="material-icons mr-2">dashboard</span>
                         查看分析
                     </button>
-                    <button onclick="location.href='history.html'" class="bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-700 flex items-center">
+                    <button onclick="location.href='history.html'"
+                        class="bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-700 flex items-center">
                         <span class="material-icons mr-2">history</span>
                         學習歷程
+                    </button>
+                    <button id="retryWrongBtn"
+                        class="bg-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled>
+                        <span class="material-icons mr-2">replay</span>
+                        錯題重練
                     </button>
                 </div>
             </div>
@@ -153,9 +227,9 @@
             <!-- 題目導航 -->
             <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
                 <h3 class="text-xl font-bold mb-4">題目導航</h3>
-                <div class="relative mb-6">
-                    <div class="overflow-x-auto scrollbar-hide pb-4">
-                        <div id="questionNav" class="flex space-x-2 w-max mx-auto">
+                <div class="relative mb-6 w-full">
+                    <div class="question-nav-container pb-6 w-full">
+                        <div id="questionNav" class="question-nav-wrapper">
                             <!-- 題目導航將由 JavaScript 動態生成 -->
                         </div>
                     </div>
@@ -167,11 +241,13 @@
                 <div class="flex justify-between items-center mb-6">
                     <h3 class="text-xl font-bold">題目詳解</h3>
                     <div class="flex space-x-2">
-                        <button id="prevQuestionBtn" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 flex items-center">
+                        <button id="prevQuestionBtn"
+                            class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 flex items-center">
                             <span class="material-icons mr-1">arrow_back</span>
                             上一題
                         </button>
-                        <button id="nextQuestionBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center">
+                        <button id="nextQuestionBtn"
+                            class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center">
                             下一題
                             <span class="material-icons ml-1">arrow_forward</span>
                         </button>
@@ -224,4 +300,5 @@
     <script src="../js/api/ai-analysis.js"></script>
     <script src="../js/pages/result.js"></script>
 </body>
-</html> 
+
+</html>

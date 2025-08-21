@@ -47,7 +47,7 @@
         <aside class="w-64 bg-blue-800 text-white flex-col hidden lg:flex">
             <div class="flex items-center justify-center p-6">
                 <img alt="InU Learning Logo" class="w-24 h-24 rounded-full"
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuBkUkYI-c0qBm9BcHamuWBs9ebu6mgGni1SlXL6giHvgu2WnHxHaQYkRoAlzI_OZ8yNf6Rn90d73q13vLeMoBfFP0mQHcxlf2YHE9__XhpOUl-OvECBnRad91AKcE4dKkTJtEoAm_alktSTzu_Aw9Fah_2IQ6YeqBALwAqrLNP2oghwOkLSyBMdfpOrW24nKk3dnl3z6piT9-S0cISDfJ5rhAlBYvIzoAhypgUHvJCzxlSG9ag8QMkltK1Hu_rX4jqdQgGuOD2JLzo">
+                    src="http://localhost/shared/image/InULearning_logo.png">
             </div>
             <div class="px-6 pb-4">
                 <h1 class="text-xl font-bold text-center">InU Learning</h1>
@@ -96,7 +96,7 @@
                             <!-- Logo (小螢幕顯示) -->
                             <div class="flex justify-center mb-6">
                                 <img alt="InU Learning Logo" class="w-20 h-20 rounded-full lg:hidden"
-                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuBkUkYI-c0qBm9BcHamuWBs9ebu6mgGni1SlXL6giHvgu2WnHxHaQYkRoAlzI_OZ8yNf6Rn90d73q13vLeMoBfFP0mQHcxlf2YHE9__XhpOUl-OvECBnRad91AKcE4dKkTJtEoAm_alktSTzu_Aw9Fah_2IQ6YeqBALwAqrLNP2oghwOkLSyBMdfpOrW24nKk3dnl3z6piT9-S0cISDfJ5rhAlBYvIzoAhypgUHvJCzxlSG9ag8QMkltK1Hu_rX4jqdQgGuOD2JLzo">
+                                    src="http://localhost/shared/image/InULearning_logo.png">
                             </div>
 
                             <!-- 標題 -->
@@ -313,6 +313,10 @@
                     // 儲存認證資訊
                     localStorage.setItem('auth_token', response.access_token);
                     localStorage.setItem('user_info', JSON.stringify(userInfo));
+                    if (window.Utils) {
+                        try { Utils.setStorageItem('auth_token', response.access_token); } catch (e) {}
+                        try { Utils.setStorageItem('user_info', JSON.stringify(userInfo)); } catch (e) {}
+                    }
 
                     this.showSuccess('登入成功！正在跳轉...');
 
@@ -330,7 +334,7 @@
             }
 
             async callLoginAPI(email, password) {
-                const response = await fetch('/api/v1/auth/login', {
+                const response = await fetch('http://localhost/api/v1/auth/login', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

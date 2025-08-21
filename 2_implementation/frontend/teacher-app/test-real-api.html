@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>真實 API 測試 - InULearning</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .test-section { margin: 20px 0; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .info { color: #007bff; }
+        .warning { color: #ffc107; }
+        .btn { padding: 8px 16px; margin: 5px; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-warning { background: #ffc107; color: black; }
+        .btn-danger { background: #dc3545; color: white; }
+        .log { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; padding: 10px; margin: 10px 0; font-family: monospace; }
+        .form-group { margin: 15px 0; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        .status-indicator { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 8px; }
+        .status-healthy { background: #28a745; }
+        .status-unhealthy { background: #dc3545; }
+        .status-unknown { background: #6c757d; }
+    </style>
+</head>
+<body>
+    <h1>🔗 真實 API 連接測試</h1>
+    
+    <div class="test-section">
+        <h2>📊 服務健康狀態</h2>
+        <div id="serviceHealth">
+            <p>檢查服務健康狀態...</p>
+        </div>
+        <button class="btn btn-primary" onclick="checkServiceHealth()">檢查服務健康狀態</button>
+    </div>
+
+    <div class="test-section">
+        <h2>🔐 認證測試</h2>
+        <div class="form-group">
+            <label for="email">電子郵件:</label>
+            <input type="email" id="email" placeholder="teacher@example.com" value="teacher@example.com">
+        </div>
+        <div class="form-group">
+            <label for="password">密碼:</label>
+            <input type="password" id="password" placeholder="密碼" value="password123">
+        </div>
+        <button class="btn btn-success" onclick="testLogin()">測試登入</button>
+        <button class="btn btn-warning" onclick="testLogout()">測試登出</button>
+        <button class="btn btn-info" onclick="checkAuthStatus()">檢查認證狀態</button>
+    </div>
+
+    <div class="test-section">
+        <h2>📚 API 功能測試</h2>
+        <button class="btn btn-primary" onclick="testGetClasses()">獲取班級列表</button>
+        <button class="btn btn-primary" onclick="testGetClassOverview()">獲取班級概覽</button>
+        <button class="btn btn-primary" onclick="testGetStudents()">獲取學生分析</button>
+        <button class="btn btn-primary" onclick="testGetStudentProfile()">獲取學生檔案</button>
+    </div>
+
+    <div class="test-section">
+        <h2>📝 測試日誌</h2>
+        <button class="btn btn-danger" onclick="clearLogs()">清除日誌</button>
+        <div id="testLogs"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔗 快速連結</h2>
+        <a href="index.html" class="btn btn-primary" target="_blank">主頁面</a>
+        <a href="pages/students-enhanced.html" class="btn btn-primary" target="_blank">學生分析頁面</a>
+        <a href="debug.html" class="btn btn-primary" target="_blank">調試頁面</a>
+    </div>
+
+    <script>
+        const testLogs = document.getElementById('testLogs');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logDiv = document.createElement('div');
+            logDiv.className = `log ${type}`;
+            logDiv.innerHTML = `<strong>[${timestamp}]</strong> ${message}`;
+            testLogs.appendChild(logDiv);
+            console.log(`[${timestamp}] ${message}`);
+        }
+
+        function clearLogs() {
+            testLogs.innerHTML = '';
+            log('日誌已清除', 'info');
+        }
+
+        // 檢查服務健康狀態
+        async function checkServiceHealth() {
+            log('🔍 開始檢查服務健康狀態...', 'info');
+            
+            try {
+                if (window.realAPIClient) {
+                    const health = await window.realAPIClient.checkServiceHealth();
+                    
+                    const healthDiv = document.getElementById('serviceHealth');
+                    healthDiv.innerHTML = '<h3>服務狀態:</h3>';
+                    
+                    Object.entries(health).forEach(([service, status]) => {
+                        const statusClass = status === 'healthy' ? 'status-healthy' : 'status-unhealthy';
+                        healthDiv.innerHTML += `
+                            <p>
+                                <span class="status-indicator ${statusClass}"></span>
+                                ${service}: ${status}
+                            </p>
+                        `;
+                    });
+                    
+                    log('✅ 服務健康檢查完成', 'success');
+                } else {
+                    log('❌ realAPIClient 未定義', 'error');
+                }
+            } catch (error) {
+                log(`❌ 服務健康檢查失敗: ${error.message}`, 'error');
+            }
+        }
+
+        // 測試登入
+        async function testLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            if (!email || !password) {
+                log('❌ 請輸入電子郵件和密碼', 'error');
+                return;
+            }
+            
+            log(`🔐 嘗試登入: ${email}`, 'info');
+            
+            try {
+                if (window.realAPIClient) {
+                    const result = await window.realAPIClient.login(email, password);
+                    log('✅ 登入成功', 'success');
+                    log(`👤 用戶: ${result.user.name}`, 'info');
+                } else {
+                    log('❌ realAPIClient 未定義', 'error');
+                }
+            } catch (error) {
+                log(`❌ 登入失敗: ${error.message}`, 'error');
+            }
+        }
+
+        // 測試登出
+        async function testLogout() {
+            log('🚪 嘗試登出...', 'info');
+            
+            try {
+                if (window.realAPIClient) {
+                    await window.realAPIClient.logout();
+                    log('✅ 登出成功', 'success');
+                } else {
+                    log('❌ realAPIClient 未定義', 'error');
+                }
+            } catch (error) {
+                log(`❌ 登出失敗: ${error.message}`, 'error');
+            }
+        }
+
+        // 檢查認證狀態
+        function checkAuthStatus() {
+            log('🔍 檢查認證狀態...', 'info');
+            
+            if (window.realAPIClient) {
+                const status = window.realAPIClient.getAuthStatus();
+                log(`📋 認證狀態: ${JSON.stringify(status, null, 2)}`, 'info');
+            } else {
+                log('❌ realAPIClient 未定義', 'error');
+            }
+        }
+
+        // 測試獲取班級列表
+        async function testGetClasses() {
+            log('📚 測試獲取班級列表...', 'info');
+            
+            try {
+                if (window.realAPIClient && window.realAPIClient.isAuthenticated) {
+                    const classes = await window.realAPIClient.getTeacherClasses();
+                    log(`✅ 獲取到 ${classes.length} 個班級`, 'success');
+                    log(`📋 班級列表: ${JSON.stringify(classes, null, 2)}`, 'info');
+                } else {
+                    log('❌ 用戶未認證或 realAPIClient 未定義', 'error');
+                }
+            } catch (error) {
+                log(`❌ 獲取班級列表失敗: ${error.message}`, 'error');
+            }
+        }
+
+        // 測試獲取班級概覽
+        async function testGetClassOverview() {
+            log('📊 測試獲取班級概覽...', 'info');
+            
+            try {
+                if (window.realAPIClient && window.realAPIClient.isAuthenticated) {
+                    // 假設班級 ID 為 1
+                    const overview = await window.realAPIClient.getClassOverview(1);
+                    log('✅ 獲取班級概覽成功', 'success');
+                    log(`📋 概覽數據: ${JSON.stringify(overview, null, 2)}`, 'info');
+                } else {
+                    log('❌ 用戶未認證或 realAPIClient 未定義', 'error');
+                }
+            } catch (error) {
+                log(`❌ 獲取班級概覽失敗: ${error.message}`, 'error');
+            }
+        }
+
+        // 測試獲取學生分析
+        async function testGetStudents() {
+            log('👥 測試獲取學生分析...', 'info');
+            
+            try {
+                if (window.realAPIClient && window.realAPIClient.isAuthenticated) {
+                    // 假設班級 ID 為 1
+                    const data = await window.realAPIClient.getClassStudentsAnalysis(1, 1, 10);
+                    log('✅ 獲取學生分析成功', 'success');
+                    log(`📋 學生數據: ${JSON.stringify(data, null, 2)}`, 'info');
+                } else {
+                    log('❌ 用戶未認證或 realAPIClient 未定義', 'error');
+                }
+            } catch (error) {
+                log(`❌ 獲取學生分析失敗: ${error.message}`, 'error');
+            }
+        }
+
+        // 測試獲取學生檔案
+        async function testGetStudentProfile() {
+            log('👤 測試獲取學生檔案...', 'info');
+            
+            try {
+                if (window.realAPIClient && window.realAPIClient.isAuthenticated) {
+                    // 假設學生 ID 為 1
+                    const profile = await window.realAPIClient.getStudentProfile(1);
+                    log('✅ 獲取學生檔案成功', 'success');
+                    log(`📋 學生檔案: ${JSON.stringify(profile, null, 2)}`, 'info');
+                } else {
+                    log('❌ 用戶未認證或 realAPIClient 未定義', 'error');
+                }
+            } catch (error) {
+                log(`❌ 獲取學生檔案失敗: ${error.message}`, 'error');
+            }
+        }
+
+        // 頁面載入完成後的初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            log('🚀 真實 API 測試頁面載入完成', 'success');
+            log('💡 請先檢查服務健康狀態，然後測試登入功能', 'info');
+        });
+    </script>
+
+    <!-- 載入真實 API 客戶端 -->
+    <script src="js/api-client-real.js"></script>
+</body>
+</html>

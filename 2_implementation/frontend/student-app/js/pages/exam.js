@@ -78,6 +78,16 @@ class ExamPage {
                 sessionIdElement.textContent = `EXAM-${Date.now()}`;
             }
 
+            // 顯示「錯題重練」徽章
+            const retryBadge = document.getElementById('retryBadge');
+            if (retryBadge) {
+                if (this.sessionData && this.sessionData.isRetry) {
+                    retryBadge.classList.remove('hidden');
+                } else {
+                    retryBadge.classList.add('hidden');
+                }
+            }
+
         } catch (error) {
             console.error('載入會話資料失敗:', error);
             throw error;
@@ -149,6 +159,7 @@ class ExamPage {
             const navButton = document.createElement('button');
             navButton.className = 'w-8 h-8 rounded border-2 border-gray-300 text-sm font-medium hover:bg-gray-100 transition-colors';
             navButton.textContent = index + 1;
+            navButton.setAttribute('data-index', String(index));
             navButton.addEventListener('click', () => this.goToQuestion(index));
 
             this.questionNav.appendChild(navButton);
@@ -202,7 +213,7 @@ class ExamPage {
 
         // 更新提交按鈕狀態
         this.updateSubmitButton();
-        
+
         // 觸發 MathJax 重新渲染
         this.renderMath();
     }
@@ -219,12 +230,28 @@ class ExamPage {
         let options = [];
         if (Array.isArray(question.options)) {
             options = question.options;
-        } else if (typeof question.options === 'object') {
+        } else if (typeof question.options === 'object' && question.options !== null) {
             options = Object.values(question.options);
         } else {
             console.error('Invalid options format:', question.options);
             return;
         }
+
+        // 將物件型選項轉為純文字（支援 {text: '...'} 或 {A: '...'} 等結構）
+        const normalizeOptionText = (opt) => {
+            if (typeof opt === 'string') return opt;
+            if (opt && typeof opt === 'object') {
+                if (Object.prototype.hasOwnProperty.call(opt, 'text')) {
+                    return String(opt.text);
+                }
+                const values = Object.values(opt);
+                if (values.length > 0) {
+                    return String(values[0]);
+                }
+            }
+            return String(opt);
+        };
+        options = options.map(normalizeOptionText);
 
         const selectedAnswer = this.answers[questionIndex];
 
@@ -253,7 +280,7 @@ class ExamPage {
 
             this.optionsContainer.appendChild(optionElement);
         });
-        
+
         // 觸發 MathJax 重新渲染選項中的數學公式
         this.renderMath();
     }
@@ -336,6 +363,29 @@ class ExamPage {
                 button.classList.add('border-gray-300', 'text-gray-600', 'hover:bg-gray-100');
             }
         });
+
+        // 確保當前題目按鈕在可視範圍（當題數超過可視寬度，如第22題時自動水平滾動）
+        const activeButton = navButtons[this.currentQuestionIndex];
+        if (activeButton) {
+            const container = this.questionNav.parentElement || this.questionNav;
+            const needsScroll = container.scrollWidth > container.clientWidth;
+            if (needsScroll) {
+                const containerLeft = container.scrollLeft;
+                const containerRight = containerLeft + container.clientWidth;
+                const btnLeft = activeButton.offsetLeft;
+                const btnRight = btnLeft + activeButton.offsetWidth;
+                const padding = 12; // 視覺餘量
+
+                // 僅在當前題目完全超出可視範圍時才滾動，且以最小位移讓其剛好可見，避免「亂跳」
+                if (btnRight + padding > containerRight) {
+                    const delta = btnRight + padding - containerRight;
+                    container.scrollTo({ left: containerLeft + delta, behavior: 'smooth' });
+                } else if (btnLeft - padding < containerLeft) {
+                    const delta = containerLeft - (btnLeft - padding);
+                    container.scrollTo({ left: Math.max(0, containerLeft - delta), behavior: 'smooth' });
+                }
+            }
+        }
     }
 
     /**
@@ -448,6 +498,7 @@ class ExamPage {
                 session_data: {
                     grade: this.sessionData.grade,
                     edition: this.sessionData.edition,
+                    publisher: this.sessionData.publisher || this.sessionData.edition,
                     subject: this.sessionData.subject,
                     chapter: this.sessionData.chapter,
                     question_count: this.questions.length
@@ -501,15 +552,27 @@ class ExamPage {
 
             // 處理正確答案格式
             let correctAnswer = 0;
-            if (question.answer !== undefined) {
-                if (typeof question.answer === 'string') {
-                    const answerMap = { 'A': 0, 'B': 1, 'C': 2, 'D': 3 };
-                    correctAnswer = answerMap[question.answer.toUpperCase()] || 0;
-                } else if (typeof question.answer === 'number') {
-                    correctAnswer = question.answer;
+            const rawAnswer = (question.answer !== undefined)
+                ? question.answer
+                : (question.correct_answer !== undefined)
+                    ? question.correct_answer
+                    : (question.correctAnswer !== undefined)
+                        ? question.correctAnswer
+                        : 0;
+
+            if (typeof rawAnswer === 'number') {
+                correctAnswer = rawAnswer;
+            } else if (typeof rawAnswer === 'string') {
+                const upper = rawAnswer.toUpperCase().trim();
+                const answerMap = { 'A': 0, 'B': 1, 'C': 2, 'D': 3 };
+                if (answerMap.hasOwnProperty(upper)) {
+                    correctAnswer = answerMap[upper];
+                } else if (/^\d+$/.test(upper)) {
+                    // 支援數字字串，例如 "0", "1" 等
+                    correctAnswer = parseInt(upper, 10);
+                } else {
+                    correctAnswer = 0;
                 }
-            } else if (question.correct_answer !== undefined) {
-                correctAnswer = question.correct_answer;
             }
 
             const isCorrect = userAnswer === correctAnswer;
@@ -522,9 +585,23 @@ class ExamPage {
             let options = [];
             if (Array.isArray(question.options)) {
                 options = question.options;
-            } else if (typeof question.options === 'object') {
+            } else if (typeof question.options === 'object' && question.options !== null) {
                 options = Object.values(question.options);
             }
+            const normalizeOptionText = (opt) => {
+                if (typeof opt === 'string') return opt;
+                if (opt && typeof opt === 'object') {
+                    if (Object.prototype.hasOwnProperty.call(opt, 'text')) {
+                        return String(opt.text);
+                    }
+                    const values = Object.values(opt);
+                    if (values.length > 0) {
+                        return String(values[0]);
+                    }
+                }
+                return String(opt);
+            };
+            options = options.map(normalizeOptionText);
 
             detailedResults.push({
                 questionId: question.id || index + 1,

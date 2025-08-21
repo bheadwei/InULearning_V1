@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>主頁面整合測試 - InULearning</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .test-section { margin: 20px 0; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .info { color: #007bff; }
+        .warning { color: #ffc107; }
+        .btn { padding: 8px 16px; margin: 5px; border: none; border-radius: 4px; cursor: pointer; background: #007bff; color: white; }
+        .btn:hover { background: #0056b3; }
+        .log { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; padding: 10px; margin: 10px 0; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <h1>🔗 主頁面整合測試</h1>
+    
+    <div class="test-section">
+        <h2>📊 測試控制台</h2>
+        <button class="btn" onclick="testMainPage()">測試主頁面</button>
+        <button class="btn" onclick="testStudentsPage()">測試學生分析頁面</button>
+        <button class="btn" onclick="testNavigation()">測試導航連結</button>
+        <button class="btn" onclick="clearLogs()">清除日誌</button>
+    </div>
+
+    <div class="test-section">
+        <h2>📝 測試日誌</h2>
+        <div id="testLogs"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔗 快速連結</h2>
+        <a href="index.html" class="btn" target="_blank">主頁面</a>
+        <a href="pages/students-enhanced.html" class="btn" target="_blank">學生分析頁面</a>
+        <a href="debug.html" class="btn" target="_blank">調試頁面</a>
+    </div>
+
+    <script>
+        const testLogs = document.getElementById('testLogs');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logDiv = document.createElement('div');
+            logDiv.className = `log ${type}`;
+            logDiv.innerHTML = `<strong>[${timestamp}]</strong> ${message}`;
+            testLogs.appendChild(logDiv);
+            console.log(`[${timestamp}] ${message}`);
+        }
+
+        function clearLogs() {
+            testLogs.innerHTML = '';
+            log('日誌已清除', 'info');
+        }
+
+        // 測試主頁面
+        function testMainPage() {
+            log('🧪 開始測試主頁面...', 'info');
+            
+            fetch('index.html')
+                .then(response => {
+                    if (response.ok) {
+                        log('✅ 主頁面可以正常訪問', 'success');
+                        return response.text();
+                    } else {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                })
+                .then(html => {
+                    // 檢查是否包含必要的導航連結
+                    if (html.includes('students-enhanced.html')) {
+                        log('✅ 主頁面包含學生分析導航連結', 'success');
+                    } else {
+                        log('❌ 主頁面缺少學生分析導航連結', 'error');
+                    }
+                    
+                    // 檢查是否包含必要的樣式文件
+                    if (html.includes('css/main.css')) {
+                        log('✅ 主頁面包含主要樣式文件', 'success');
+                    } else {
+                        log('❌ 主頁面缺少主要樣式文件', 'error');
+                    }
+                })
+                .catch(error => {
+                    log(`❌ 主頁面測試失敗: ${error.message}`, 'error');
+                });
+        }
+
+        // 測試學生分析頁面
+        function testStudentsPage() {
+            log('🧪 開始測試學生分析頁面...', 'info');
+            
+            fetch('pages/students-enhanced.html')
+                .then(response => {
+                    if (response.ok) {
+                        log('✅ 學生分析頁面可以正常訪問', 'success');
+                        return response.text();
+                    } else {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                })
+                .then(html => {
+                    // 檢查是否包含必要的元素
+                    const requiredElements = [
+                        'classSelector',
+                        'refreshBtn',
+                        'loadingIndicator',
+                        'classOverviewContent',
+                        'studentListContent'
+                    ];
+                    
+                    let foundCount = 0;
+                    requiredElements.forEach(id => {
+                        if (html.includes(`id="${id}"`)) {
+                            log(`✅ 找到元素: ${id}`, 'success');
+                            foundCount++;
+                        } else {
+                            log(`❌ 缺少元素: ${id}`, 'error');
+                        }
+                    });
+                    
+                    if (foundCount === requiredElements.length) {
+                        log(`🎉 所有 ${foundCount} 個必要元素都已找到！`, 'success');
+                    } else {
+                        log(`⚠️ 只找到 ${foundCount}/${requiredElements.length} 個必要元素`, 'warning');
+                    }
+                    
+                    // 檢查是否包含 JavaScript 文件
+                    if (html.includes('students-enhanced.js')) {
+                        log('✅ 頁面包含學生分析 JavaScript 文件', 'success');
+                    } else {
+                        log('❌ 頁面缺少學生分析 JavaScript 文件', 'error');
+                    }
+                })
+                .catch(error => {
+                    log(`❌ 學生分析頁面測試失敗: ${error.message}`, 'error');
+                });
+        }
+
+        // 測試導航連結
+        function testNavigation() {
+            log('🧪 開始測試導航連結...', 'info');
+            
+            // 測試從主頁面到學生分析頁面的導航
+            log('🔗 測試導航連結: index.html → students-enhanced.html', 'info');
+            
+            // 檢查導航連結是否正確
+            const navigationTest = {
+                '主頁面': 'index.html',
+                '學生分析': 'pages/students-enhanced.html',
+                '班級管理': 'pages/classes-enhanced.html',
+                '作業管理': 'pages/assignments-enhanced.html'
+            };
+            
+            Object.entries(navigationTest).forEach(([name, path]) => {
+                fetch(path)
+                    .then(response => {
+                        if (response.ok) {
+                            log(`✅ ${name} 頁面可以正常訪問`, 'success');
+                        } else {
+                            log(`❌ ${name} 頁面訪問失敗: HTTP ${response.status}`, 'error');
+                        }
+                    })
+                    .catch(error => {
+                        log(`❌ ${name} 頁面測試失敗: ${error.message}`, 'error');
+                    });
+            });
+        }
+
+        // 頁面載入完成後的初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            log('🚀 測試頁面載入完成', 'success');
+            log('💡 點擊上方按鈕開始測試...', 'info');
+        });
+    </script>
+</body>
+</html>

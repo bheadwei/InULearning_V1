@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="InULearning 教師台 - 作業管理">
+    <title>作業管理 - InULearning 教師台</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/design-tokens.css">
+    <link rel="stylesheet" href="../css/main.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .grid { display:grid; grid-template-columns: 1fr 360px; gap: 1.5rem; }
+        .card { background:#fff; border-radius:12px; box-shadow: var(--shadow-sm); padding:1rem; }
+        .btn-primary { background: var(--primary-blue); color:#fff; border:none; padding:0.6rem 1rem; border-radius:8px; cursor:pointer; }
+        .btn-primary:hover { background: var(--accent-blue); }
+        .list li { display:flex; justify-content: space-between; padding:0.75rem 0; border-bottom:1px solid var(--border); }
+        .field { margin-bottom: 0.75rem; }
+        .field label { display:block; font-weight:600; margin: 0.25rem 0; }
+        .field input, .field select { width:100%; padding:0.6rem 0.8rem; border:1px solid var(--border); border-radius:8px; }
+        .toolbar { display:flex; gap:1rem; justify-content: space-between; align-items:center; margin-bottom:0.5rem; }
+        .controls { display:flex; gap:0.5rem; align-items:center; }
+        .controls input, .controls select { padding:0.5rem 0.8rem; border:1px solid var(--border); border-radius:8px; }
+        .btn { padding:0.5rem 0.9rem; border:1px solid var(--border); background:#fff; border-radius:8px; cursor:pointer; }
+        .btn-danger { background:#EF4444; color:#fff; border:none; }
+        .btn-danger:hover { background:#DC2626; }
+        .empty { padding:1rem; color:var(--text-light); text-align:center; }
+        .pagination { display:flex; gap:0.5rem; align-items:center; margin-top:0.75rem; }
+        .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.4); display:none; align-items:center; justify-content:center; z-index:2000; }
+        .modal-backdrop.show { display:flex; }
+        .modal { background:#fff; border-radius:12px; width:100%; max-width:640px; box-shadow:var(--shadow-md); }
+        .modal-header { padding:1rem 1rem 0.5rem 1rem; border-bottom:1px solid var(--border); }
+        .modal-body { padding:1rem; max-height:70vh; overflow:auto; }
+        .modal-footer { padding:0.75rem 1rem; border-top:1px solid var(--border); display:flex; gap:0.5rem; justify-content:flex-end; }
+        .tag { padding:0.2rem 0.5rem; border-radius:999px; font-size:0.8rem; background:#EFF6FF; color:#1E40AF; }
+    </style>
+</head>
+<body>
+    <a href="#main" class="skip-link" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;">跳至主要內容</a>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-brand"><i class="fas fa-chalkboard-teacher"></i><span>作業管理</span></div>
+            <div class="navbar-menu">
+                <a href="../index.html" class="nav-link"><i class="fas fa-tachometer-alt"></i><span>儀表板</span></a>
+                <a href="classes.html" class="nav-link"><i class="fas fa-users"></i><span>班級管理</span></a>
+                <a href="students-enhanced.html" class="nav-link"><i class="fas fa-user-graduate"></i><span>學生分析</span></a>
+                <a href="questions.html" class="nav-link"><i class="fas fa-question-circle"></i><span>題目管理</span></a>
+            </div>
+        </div>
+    </nav>
+    <main id="main" class="main-content">
+        <div class="container grid">
+            <section class="card">
+                <div class="toolbar">
+                    <h2>作業列表</h2>
+                    <div class="controls">
+                        <input id="kw" type="text" placeholder="搜尋標題...">
+                        <select id="klassFilter">
+                            <option value="">全部班級</option>
+                            <option>七年三班</option>
+                            <option>七年四班</option>
+                        </select>
+                        <select id="statusFilter">
+                            <option value="">全部狀態</option>
+                            <option value="進行中">進行中</option>
+                            <option value="草稿">草稿</option>
+                            <option value="已結束">已結束</option>
+                        </select>
+                        <select id="sortBy">
+                            <option value="due_asc">到期日（近→遠）</option>
+                            <option value="due_desc">到期日（遠→近）</option>
+                            <option value="title">標題</option>
+                            <option value="klass">班級</option>
+                        </select>
+                    </div>
+                    <button class="btn-primary" id="openCreate"><i class="fas fa-plus"></i> 建立作業</button>
+                </div>
+                <ul class="list" id="as-list"></ul>
+                <div class="pagination">
+                    <button class="btn" id="prevPage">上一頁</button>
+                    <span id="pageInfo"></span>
+                    <button class="btn" id="nextPage">下一頁</button>
+                </div>
+            </section>
+            <aside class="card">
+                <h3 style="margin-bottom:0.5rem;">指派摘要</h3>
+                <div id="summary">尚無選擇</div>
+                <hr style="margin:1rem 0;border:none;border-top:1px solid var(--border);">
+                <h3 style="margin-bottom:0.5rem;">快速建立作業</h3>
+                <form id="quickForm">
+                    <div class="field"><label>標題</label><input id="q_title" required placeholder="作業標題"></div>
+                    <div class="field"><label>班級</label>
+                        <select id="q_klass" required>
+                            <option value="">選擇班級</option>
+                            <option>七年三班</option>
+                            <option>七年四班</option>
+                        </select>
+                    </div>
+                    <div class="field"><label>到期日</label><input id="q_due" type="date" required></div>
+                    <button class="btn-primary" type="submit"><i class="fas fa-save"></i> 送出</button>
+                </form>
+            </aside>
+        </div>
+    </main>
+    <!-- 新增/編輯 作業 Modal -->
+    <div class="modal-backdrop" id="asModal">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="asModalTitle">
+            <div class="modal-header"><h3 id="asModalTitle">建立作業</h3></div>
+            <div class="modal-body">
+                <form id="asForm">
+                    <div class="field"><label for="asTitle">標題</label><input id="asTitle" required></div>
+                    <div class="field"><label for="asKlass">班級</label>
+                        <select id="asKlass" required>
+                            <option value="">選擇班級</option>
+                            <option>七年三班</option>
+                            <option>七年四班</option>
+                        </select>
+                    </div>
+                    <div class="field"><label for="asDue">到期日</label><input id="asDue" type="date" required></div>
+                    <div class="field"><label for="asDesc">描述（可選）</label><input id="asDesc" placeholder="說明或注意事項"></div>
+                    <div class="field"><label for="asQuestions">題目（以逗號分隔 ID，可留空）</label><input id="asQuestions" placeholder="例如：Q-1001,Q-1002"></div>
+                    <div class="field"><label for="asStatus">狀態</label>
+                        <select id="asStatus">
+                            <option value="草稿">草稿</option>
+                            <option value="進行中">進行中</option>
+                            <option value="已結束">已結束</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" id="asCancel" type="button">取消</button>
+                <button class="btn-primary" id="asSave" type="button">儲存</button>
+            </div>
+        </div>
+    </div>
+    <script src="../js/utils.js"></script>
+    <script src="../js/api-client.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        let data = [];
+        let editingId = null;
+        let page = 1; const pageSize = 10;
+        async function loadAssignments(){
+            try {
+                const res = await apiClient.get('/learning/teacher/assignments');
+                data = res.data || res.items || [];
+            } catch(e){
+                data = [
+                    { title:'分數比較-基礎', class:'七年三班', due:'2025-08-20', status:'進行中' },
+                    { title:'分數四則-進階', class:'七年四班', due:'2025-08-25', status:'草稿' },
+                ];
+            }
+        }
+        function sortAndFilter(list){
+            const kw = document.getElementById('kw').value.trim();
+            const klass = document.getElementById('klassFilter').value;
+            const status = document.getElementById('statusFilter').value;
+            const sortBy = document.getElementById('sortBy').value;
+            let arr = list.filter(a => (!kw || (a.title||'').includes(kw)) && (!klass || (a.class||a.klass)===klass) && (!status || a.status===status));
+            if (sortBy==='due_asc') arr.sort((a,b)=> new Date(a.due||0)-new Date(b.due||0));
+            else if (sortBy==='due_desc') arr.sort((a,b)=> new Date(b.due||0)-new Date(a.due||0));
+            else if (sortBy==='title') arr.sort((a,b)=> (a.title||'').localeCompare(b.title||''));
+            else if (sortBy==='klass') arr.sort((a,b)=> (a.class||a.klass||'').localeCompare(b.class||b.klass||''));
+            return arr;
+        }
+        function render(){
+            const listEl = document.getElementById('as-list');
+            let arr = sortAndFilter(data);
+            const total = arr.length; const totalPages = Math.max(1, Math.ceil(total / pageSize));
+            page = Math.min(page, totalPages);
+            arr = arr.slice((page-1)*pageSize, (page-1)*pageSize + pageSize);
+            if (!arr.length) listEl.innerHTML = `<li><div class="empty">尚無作業</div></li>`;
+            else listEl.innerHTML = arr.map(a=>`<li>
+                <div><strong>${a.title||'-'}</strong>
+                    <div style="color:var(--text-light); font-size:0.9rem;">${a.class||a.klass||'-'} · 到期 ${a.due||'-'} · 狀態 ${a.status||'-'}</div>
+                </div>
+                <div style="display:flex; gap:0.5rem; align-items:center;">
+                    <button class="btn" onclick="onEdit('${a.id||''}')">編輯</button>
+                    <button class="btn-danger" onclick="onDelete('${a.id||''}','${(a.title||'').replace(/"/g,'&quot;')}')">刪除</button>
+                </div>
+            </li>`).join('');
+            document.getElementById('pageInfo').textContent = `${page} / ${totalPages}`;
+            document.getElementById('prevPage').disabled = page<=1; document.getElementById('nextPage').disabled = page>=totalPages;
+        }
+
+        function openModal(){ document.getElementById('asModal').classList.add('show'); }
+        function closeModal(){ document.getElementById('asModal').classList.remove('show'); }
+        function resetForm(){ document.getElementById('asForm').reset(); document.getElementById('asStatus').value='草稿'; }
+        function onOpenCreate(){ editingId=null; document.getElementById('asModalTitle').textContent='建立作業'; resetForm(); openModal(); }
+        function onEdit(id){ const a=data.find(x=>(x.id||'')===id); if(!a) return; editingId=id; document.getElementById('asModalTitle').textContent='編輯作業';
+            document.getElementById('asTitle').value=a.title||''; document.getElementById('asKlass').value=a.class||a.klass||''; document.getElementById('asDue').value=a.due||''; document.getElementById('asDesc').value=a.desc||''; document.getElementById('asQuestions').value=(a.questions||[]).join(','); document.getElementById('asStatus').value=a.status||'草稿'; openModal(); }
+
+        async function saveAssignment(){
+            const payload={
+                title: document.getElementById('asTitle').value.trim(),
+                klass: document.getElementById('asKlass').value,
+                due: document.getElementById('asDue').value,
+                desc: document.getElementById('asDesc').value.trim(),
+                questions: (document.getElementById('asQuestions').value||'').split(',').map(s=>s.trim()).filter(Boolean),
+                status: document.getElementById('asStatus').value,
+            };
+            if (!payload.title || !payload.klass || !payload.due){ showAlert('請完整填寫必要欄位','warning'); return; }
+            try{
+                showLoading();
+                if(editingId) await apiClient.put(`/learning/teacher/assignments/${editingId}`, payload);
+                else await apiClient.post('/learning/teacher/assignments', payload);
+                await loadAssignments(); render(); closeModal(); showAlert('已儲存','success');
+            }catch(err){ showAlert('儲存失敗：'+(err.message||''),'error'); } finally{ hideLoading(); }
+        }
+
+        let pendingDeleteId=null; function onDelete(id,title){ pendingDeleteId=id; if(confirm(`確定刪除作業「${title}」？`)){ confirmDelete(); } }
+        async function confirmDelete(){ if(!pendingDeleteId) return; try{ showLoading(); await apiClient.delete(`/learning/teacher/assignments/${pendingDeleteId}`); await loadAssignments(); render(); showAlert('已刪除','success'); }catch(e){ showAlert('刪除失敗：'+(e.message||''),'error'); } finally{ hideLoading(); pendingDeleteId=null; } }
+
+        async function handleQuickCreate(e){ e.preventDefault(); const payload={ title: q_title.value.trim(), klass: q_klass.value, due: q_due.value }; if(!payload.title||!payload.klass||!payload.due){ showAlert('請完整填寫快速建立欄位','warning'); return; } try{ showLoading(); await apiClient.post('/learning/teacher/assignments', payload); await loadAssignments(); render(); quickForm.reset(); showAlert('建立成功','success'); } catch (err){ showAlert('建立失敗：'+(err.message||''),'error'); } finally { hideLoading(); } }
+
+        // 確保動態 onclick 能找到全域函式
+        window.onEdit = onEdit;
+        window.onDelete = onDelete;
+
+        document.addEventListener('input', (e)=>{ if(['kw'].includes(e.target.id)) { page=1; render(); } });
+        document.addEventListener('change', (e)=>{ if(['klassFilter','statusFilter','sortBy'].includes(e.target.id)) { page=1; render(); } });
+        document.addEventListener('DOMContentLoaded', async ()=>{
+            await loadAssignments(); render();
+            document.getElementById('quickForm').addEventListener('submit', handleQuickCreate);
+            document.getElementById('openCreate').addEventListener('click', onOpenCreate);
+            document.getElementById('asCancel').addEventListener('click', closeModal);
+            document.getElementById('asSave').addEventListener('click', saveAssignment);
+            document.getElementById('prevPage').addEventListener('click', ()=>{ if(page>1){ page--; render(); } });
+            document.getElementById('nextPage').addEventListener('click', ()=>{ page++; render(); });
+        });
+    </script>
+</body>
+</html>
+

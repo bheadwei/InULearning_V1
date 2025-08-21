@@ -1,0 +1,402 @@
+/* 教師端導航系統優化 */
+
+/* ===== 主導航欄 ===== */
+/* 使用 navbar-unified.css 的樣式，避免此檔覆蓋 */
+/* .navbar 樣式在 navbar-unified.css 內統一定義 */
+
+.navbar-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--spacing-xl);
+    max-width: 1400px;
+    margin: 0 auto;
+    height: 72px;
+}
+
+/* 品牌標識 */
+.navbar-brand {
+    display: flex;
+    align-items: center;
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+    gap: var(--spacing-sm);
+    color: var(--text-inverse);
+    text-decoration: none;
+    transition: var(--transition-fast);
+}
+
+.navbar-brand:hover {
+    transform: translateY(-1px);
+}
+
+.navbar-brand i {
+    font-size: 2rem;
+    color: #FFD700;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+/* 主導航選單 */
+.navbar-menu {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: none;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-lg);
+    transition: var(--transition-fast);
+    font-weight: 500;
+    position: relative;
+    overflow: hidden;
+}
+
+.nav-link::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: var(--transition-normal);
+}
+
+.nav-link:hover::before {
+    left: 100%;
+}
+
+.nav-link:hover,
+.nav-link.active {
+    background-color: rgba(255, 255, 255, 0.15);
+    color: var(--text-inverse);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.nav-link.active {
+    background-color: rgba(255, 255, 255, 0.2);
+    font-weight: 600;
+}
+
+.nav-link i {
+    font-size: 1.1rem;
+    transition: var(--transition-fast);
+}
+
+.nav-link:hover i {
+    transform: scale(1.1);
+}
+
+/* 用戶下拉選單 */
+.navbar-user {
+    position: relative;
+}
+
+.user-dropdown-toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--text-inverse);
+    cursor: pointer;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-lg);
+    transition: var(--transition-fast);
+    font-weight: 500;
+}
+
+.user-dropdown-toggle:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.user-dropdown-toggle i:last-child {
+    transition: var(--transition-fast);
+}
+
+.user-dropdown:hover .user-dropdown-toggle i:last-child {
+    transform: rotate(180deg);
+}
+
+.user-dropdown-menu {
+    position: absolute;
+    top: calc(100% + var(--spacing-sm));
+    right: 0;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-xl);
+    min-width: 220px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px) scale(0.95);
+    transition: var(--transition-normal);
+    z-index: 1001;
+}
+
+.user-dropdown:hover .user-dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: var(--transition-fast);
+    border-radius: var(--radius-lg);
+    margin: var(--spacing-xs);
+}
+
+.dropdown-item:hover {
+    background-color: var(--bg-secondary);
+    color: var(--primary-blue-600);
+    transform: translateX(4px);
+}
+
+.dropdown-item i {
+    width: 16px;
+    text-align: center;
+    transition: var(--transition-fast);
+}
+
+.dropdown-item:hover i {
+    transform: scale(1.1);
+}
+
+.dropdown-divider {
+    height: 1px;
+    background-color: var(--border-light);
+    margin: var(--spacing-sm) var(--spacing-md);
+}
+
+/* 麵包屑導航 */
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md) 0;
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.breadcrumb-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.breadcrumb-item:not(:last-child)::after {
+    content: '/';
+    color: var(--text-tertiary);
+    margin-left: var(--spacing-sm);
+}
+
+.breadcrumb-link {
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: var(--transition-fast);
+}
+
+.breadcrumb-link:hover {
+    color: var(--primary-blue-600);
+}
+
+.breadcrumb-current {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+/* 側邊導航（可選） */
+.sidebar {
+    width: 280px;
+    background: var(--bg-primary);
+    border-right: 1px solid var(--border-light);
+    height: calc(100vh - 72px);
+    position: fixed;
+    top: 72px;
+    left: 0;
+    z-index: 999;
+    transform: translateX(-100%);
+    transition: var(--transition-normal);
+    box-shadow: var(--shadow-lg);
+}
+
+.sidebar.open {
+    transform: translateX(0);
+}
+
+.sidebar-nav {
+    padding: var(--spacing-lg);
+}
+
+.sidebar-section {
+    margin-bottom: var(--spacing-xl);
+}
+
+.sidebar-title {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: var(--spacing-md);
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    color: var(--text-secondary);
+    text-decoration: none;
+    border-radius: var(--radius-lg);
+    transition: var(--transition-fast);
+    margin-bottom: var(--spacing-xs);
+}
+
+.sidebar-link:hover {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    transform: translateX(4px);
+}
+
+.sidebar-link.active {
+    background-color: var(--primary-blue-50);
+    color: var(--primary-blue-600);
+    font-weight: 500;
+}
+
+.sidebar-link i {
+    width: 20px;
+    text-align: center;
+    font-size: 1.1rem;
+}
+
+/* 響應式設計 */
+@media (max-width: 1024px) {
+    .navbar-menu {
+        display: none;
+    }
+
+    .mobile-menu-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        background: rgba(255, 255, 255, 0.1);
+        border: none;
+        border-radius: var(--radius-lg);
+        color: var(--text-inverse);
+        cursor: pointer;
+        transition: var(--transition-fast);
+    }
+
+    .mobile-menu-toggle:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .sidebar {
+        transform: translateX(-100%);
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+}
+
+@media (max-width: 768px) {
+    .navbar-container {
+        padding: 0 var(--spacing-md);
+        height: 64px;
+    }
+
+    .navbar-brand {
+        font-size: var(--font-size-lg);
+    }
+
+    .navbar-brand span {
+        display: none;
+    }
+
+    .user-dropdown-menu {
+        right: -var(--spacing-md);
+        left: var(--spacing-md);
+        min-width: auto;
+    }
+}
+
+/* 動畫效果 */
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideInDown {
+    from {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.nav-enter {
+    animation: slideInDown 0.3s ease-out;
+}
+
+.dropdown-enter {
+    animation: slideInRight 0.2s ease-out;
+}
+
+/* 無障礙設計 */
+.nav-link:focus-visible,
+.dropdown-item:focus-visible,
+.user-dropdown-toggle:focus-visible {
+    outline: 2px solid var(--text-inverse);
+    outline-offset: 2px;
+}
+
+/* 深色模式支援 */
+@media (prefers-color-scheme: dark) {
+    .navbar {
+        background: linear-gradient(135deg, var(--gray-800) 0%, var(--gray-900) 100%);
+    }
+
+    .user-dropdown-menu {
+        background: var(--gray-800);
+        border-color: var(--gray-700);
+    }
+
+    .dropdown-item {
+        color: var(--gray-200);
+    }
+
+    .dropdown-item:hover {
+        background-color: var(--gray-700);
+        color: var(--text-inverse);
+    }
+}

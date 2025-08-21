@@ -16,7 +16,7 @@
 ```yaml
 volumes:
   - postgres_data:/var/lib/postgresql/data
-  - ./init-scripts/init-postgres.sql:/docker-entrypoint-initdb.d/01-init-postgres.sql
+  - ./2_implementation/database/migrations/postgresql/001_init_learning_system.sql:/docker-entrypoint-initdb.d/01-init.sql
   - ./2_implementation/database/seeds/postgresql/knowledge_points_seed.sql:/docker-entrypoint-initdb.d/02-knowledge-points-seed.sql
 ```
 

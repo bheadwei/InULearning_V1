@@ -1,333 +1,151 @@
 /**
- * 教師應用主要模組
- * 處理全域事件、導航管理和頁面初始化
+ * 教師端主要 JavaScript 檔案
+ * 處理首頁功能與全域事件
  */
-class TeacherApp {
+
+class TeacherMainApp {
     constructor() {
-        this.currentPage = this.getCurrentPage();
         this.init();
     }
 
+    /**
+     * 初始化應用
+     */
     init() {
-        this.setupGlobalEvents();
-        this.initializePage();
-        this.setupNavigation();
-    }
-
-    /**
-     * 獲取當前頁面
-     */
-    getCurrentPage() {
-        const path = window.location.pathname;
-        if (path.includes('login.html')) return 'login';
-        if (path.includes('courses.html')) return 'courses';
-        if (path.includes('students.html')) return 'students';
-        if (path.includes('assignments.html')) return 'assignments';
-        if (path.includes('announcements.html')) return 'announcements';
-        if (path.includes('profile.html')) return 'profile';
-        return 'dashboard';
-    }
-
-    /**
-     * 設定全域事件
-     */
-    setupGlobalEvents() {
-        // 全域錯誤處理
-        window.addEventListener('error', this.handleGlobalError.bind(this));
+        // 處理從統一登入頁面傳來的認證資訊
+        this.handleAuthFromURL();
         
-        // 網路狀態監聽
-        window.addEventListener('online', this.handleOnline.bind(this));
-        window.addEventListener('offline', this.handleOffline.bind(this));
-
-        // 鍵盤快捷鍵
-        document.addEventListener('keydown', this.handleKeyboardShortcuts.bind(this));
-
-        // 視窗大小變化
-        window.addEventListener('resize', this.handleResize.bind(this));
-    }
-
-    /**
-     * 初始化頁面
-     */
-    initializePage() {
-        // 根據當前頁面初始化相應模組
-        switch (this.currentPage) {
-            case 'dashboard':
-                // 儀表板已在 dashboard.js 中初始化
-                break;
-            case 'courses':
-                if (typeof CoursesManager !== 'undefined') {
-                    new CoursesManager();
-                }
-                break;
-            case 'students':
-                if (typeof StudentsManager !== 'undefined') {
-                    new StudentsManager();
-                }
-                break;
-            case 'assignments':
-                if (typeof AssignmentsManager !== 'undefined') {
-                    new AssignmentsManager();
-                }
-                break;
-            case 'announcements':
-                if (typeof AnnouncementsManager !== 'undefined') {
-                    new AnnouncementsManager();
-                }
-                break;
-            case 'profile':
-                if (typeof ProfileManager !== 'undefined') {
-                    new ProfileManager();
-                }
-                break;
-        }
-    }
-
-    /**
-     * 設定導航
-     */
-    setupNavigation() {
-        // 更新當前頁面的導航狀態
-        this.updateNavigationState();
-        
-        // 導航點擊事件
-        const navLinks = document.querySelectorAll('.nav-link');
-        navLinks.forEach(link => {
-            link.addEventListener('click', this.handleNavigation.bind(this));
-        });
-
-        // 移動端選單切換
-        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
-        if (mobileMenuToggle) {
-            mobileMenuToggle.addEventListener('click', this.toggleMobileMenu.bind(this));
-        }
-    }
-
-    /**
-     * 更新導航狀態
-     */
-    updateNavigationState() {
-        const navLinks = document.querySelectorAll('.nav-link');
-        navLinks.forEach(link => {
-            link.classList.remove('active');
-            if (link.getAttribute('href') && 
-                window.location.pathname.includes(link.getAttribute('href'))) {
-                link.classList.add('active');
-            }
-        });
-    }
-
-    /**
-     * 處理導航點擊
-     */
-    handleNavigation(e) {
-        const link = e.currentTarget;
-        const href = link.getAttribute('href');
-        
-        if (href && !href.startsWith('#')) {
-            // 移除所有活動狀態
-            document.querySelectorAll('.nav-link').forEach(navLink => {
-                navLink.classList.remove('active');
-            });
-            
-            // 添加當前活動狀態
-            link.classList.add('active');
-        }
-    }
-
-    /**
-     * 切換移動端選單
-     */
-    toggleMobileMenu() {
-        const navbarMenu = document.querySelector('.navbar-menu');
-        if (navbarMenu) {
-            navbarMenu.classList.toggle('active');
-        }
-    }
-
-    /**
-     * 處理全域錯誤
-     */
-    handleGlobalError(error) {
-        console.error('全域錯誤:', error);
-        
-        // 顯示用戶友好的錯誤訊息
-        if (error.message && !error.message.includes('Script error')) {
-            showAlert('發生錯誤，請重新整理頁面', 'error');
-        }
-    }
-
-    /**
-     * 處理網路連線
-     */
-    handleOnline() {
-        showAlert('網路連線已恢復', 'success');
-        // 重新載入當前頁面資料
-        if (typeof teacherDashboard !== 'undefined') {
-            teacherDashboard.refresh();
-        }
-    }
-
-    /**
-     * 處理網路斷線
-     */
-    handleOffline() {
-        showAlert('網路連線已中斷', 'warning');
-    }
-
-    /**
-     * 處理鍵盤快捷鍵
-     */
-    handleKeyboardShortcuts(e) {
-        // Ctrl/Cmd + K: 搜尋
-        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-            e.preventDefault();
-            this.openSearch();
-        }
-        
-        // Ctrl/Cmd + N: 新增課程
-        if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
-            e.preventDefault();
-            window.location.href = 'pages/courses.html?action=create';
-        }
-        
-        // Ctrl/Cmd + G: 前往作業頁面
-        if ((e.ctrlKey || e.metaKey) && e.key === 'g') {
-            e.preventDefault();
-            window.location.href = 'pages/assignments.html';
-        }
-    }
-
-    /**
-     * 開啟搜尋
-     */
-    openSearch() {
-        // 實作全域搜尋功能
-        const searchInput = document.getElementById('global-search');
-        if (searchInput) {
-            searchInput.focus();
-        } else {
-            // 如果沒有全域搜尋輸入框，創建一個
-            this.createGlobalSearch();
-        }
-    }
-
-    /**
-     * 創建全域搜尋
-     */
-    createGlobalSearch() {
-        const searchModal = document.createElement('div');
-        searchModal.className = 'modal fade';
-        searchModal.id = 'global-search-modal';
-        searchModal.innerHTML = `
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">全域搜尋</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <input type="text" class="form-control" id="global-search-input" 
-                               placeholder="搜尋課程、學生、作業...">
-                        <div id="search-results" class="mt-3"></div>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        document.body.appendChild(searchModal);
-        
-        // 顯示模態框
-        const modal = new bootstrap.Modal(searchModal);
-        modal.show();
-        
-        // 聚焦到搜尋輸入框
+        this.bindEvents();
+        // 延遲載入儀表板資料，確保認證狀態已初始化
         setTimeout(() => {
-            document.getElementById('global-search-input').focus();
+            this.loadDashboardData();
         }, 100);
     }
 
     /**
-     * 處理視窗大小變化
+     * 處理URL參數中的認證資訊
      */
-    handleResize() {
-        // 在移動端隱藏選單
-        if (window.innerWidth > 768) {
-            const navbarMenu = document.querySelector('.navbar-menu');
-            if (navbarMenu) {
-                navbarMenu.classList.remove('active');
+    handleAuthFromURL() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        const userInfo = urlParams.get('userInfo');
+
+        if (token && userInfo) {
+            console.log('從URL接收到認證資訊');
+            
+            try {
+                // 解析 userInfo JSON
+                const userInfoObj = JSON.parse(decodeURIComponent(userInfo));
+                console.log('解析的用戶資訊:', userInfoObj);
+                
+                // 儲存到localStorage - 儲存解析後的用戶對象
+                localStorage.setItem('auth_token', token);
+                localStorage.setItem('user_info', JSON.stringify(userInfoObj));
+                
+                // 清除URL參數 - 使用更安全的方式
+                if (window.history && window.history.replaceState) {
+                    const newURL = window.location.origin + window.location.pathname;
+                    window.history.replaceState({}, document.title, newURL);
+                    console.log('URL參數已清除');
+                }
+                
+                // 延遲更新認證狀態，確保DOM已準備好
+                setTimeout(() => {
+                    if (typeof teacherAuth !== 'undefined') {
+                        teacherAuth.updateUI();
+                    }
+                }, 100);
+                
+            } catch (error) {
+                console.error('處理認證資訊時發生錯誤:', error);
             }
         }
     }
 
     /**
-     * 顯示通知
+     * 綁定事件
      */
-    showNotification(message, type = 'info') {
-        // 創建通知元素
-        const notification = document.createElement('div');
-        notification.className = `notification notification-${type}`;
-        notification.innerHTML = `
-            <div class="notification-content">
-                <i class="fas fa-${this.getNotificationIcon(type)}"></i>
-                <span>${message}</span>
-                <button class="notification-close">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-        `;
-        
-        // 添加到頁面
-        document.body.appendChild(notification);
-        
-        // 自動移除
-        setTimeout(() => {
-            notification.remove();
-        }, 5000);
-        
-        // 手動關閉
-        notification.querySelector('.notification-close').addEventListener('click', () => {
-            notification.remove();
+    bindEvents() {
+        // 搜尋功能
+        const searchInput = document.querySelector('input[name="q"]');
+        if (searchInput) {
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    this.handleSearch(e.target.value);
+                }
+            });
+        }
+
+        // 功能卡片點擊
+        const functionCards = document.querySelectorAll('.cursor-pointer');
+        functionCards.forEach(card => {
+            card.addEventListener('click', (e) => {
+                this.handleFunctionCardClick(card);
+            });
         });
     }
 
     /**
-     * 獲取通知圖標
+     * 處理搜尋
      */
-    getNotificationIcon(type) {
-        const icons = {
-            'success': 'check-circle',
-            'error': 'exclamation-circle',
-            'warning': 'exclamation-triangle',
-            'info': 'info-circle'
-        };
-        return icons[type] || 'info-circle';
-    }
-
-    /**
-     * 重新整理當前頁面
-     */
-    refresh() {
-        window.location.reload();
-    }
-
-    /**
-     * 前往指定頁面
-     */
-    navigateTo(page, params = {}) {
-        let url = `pages/${page}.html`;
+    handleSearch(query) {
+        if (!query.trim()) return;
         
-        if (Object.keys(params).length > 0) {
-            const queryString = new URLSearchParams(params).toString();
-            url += `?${queryString}`;
+        // 儲存搜尋查詢到 localStorage
+        localStorage.setItem('searchQuery', query);
+        
+        // 導向搜尋結果頁面
+        alert(`搜尋: ${query}`);
+    }
+
+    /**
+     * 處理功能卡片點擊
+     */
+    handleFunctionCardClick(card) {
+        const title = card.querySelector('h3')?.textContent;
+        
+        switch (title) {
+            case '建立新作業':
+                window.location.href = 'pages/assignments-enhanced.html';
+                break;
+            case '查看學習報告':
+                window.location.href = 'pages/analytics-enhanced.html';
+                break;
+            case '管理題庫':
+                window.location.href = 'pages/questions-enhanced.html';
+                break;
+            case '學生管理':
+                window.location.href = 'pages/students-enhanced.html';
+                break;
+            case '批改作業':
+                window.location.href = 'pages/grades-enhanced.html';
+                break;
+            case '系統設定':
+                window.location.href = 'pages/profile.html';
+                break;
+            default:
+                console.log('未知的卡片:', title);
         }
-        
-        window.location.href = url;
+    }
+
+    /**
+     * 載入儀表板資料
+     */
+    async loadDashboardData() {
+        if (typeof teacherAuth !== 'undefined' && !teacherAuth.isLoggedIn()) {
+            return;
+        }
+
+        try {
+            // 這裡可以載入教師相關的統計資料
+            console.log('載入教師儀表板資料');
+        } catch (error) {
+            console.error('載入儀表板資料錯誤:', error);
+        }
     }
 }
 
-// 初始化教師應用
-const teacherApp = new TeacherApp();
-
-// 全域函數，供其他模組使用
-window.teacherApp = teacherApp; 
+// 初始化主應用
+document.addEventListener('DOMContentLoaded', function() {
+    new TeacherMainApp();
+}); 

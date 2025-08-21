@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>詳細測試出考卷功能</title>
+</head>
+<body>
+    <h1>詳細測試出考卷功能</h1>
+    
+    <div>
+        <h2>模擬真實頁面環境</h2>
+        <p>這個頁面會載入真實的 JavaScript 文件來測試功能</p>
+    </div>
+    
+    <div style="margin: 20px 0;">
+        <button onclick="testRealPage()">測試真實頁面載入</button>
+        <button onclick="testAssignmentsManager()">測試 AssignmentsManager</button>
+        <button onclick="testQuizBuilder()">測試 QuizBuilder</button>
+        <button onclick="testFullFlow()">測試完整流程</button>
+    </div>
+    
+    <div id="result"></div>
+
+    <script>
+        // 模擬必要的全局變數和函數
+        window.showAlert = function(message, type) {
+            console.log(`[${type.toUpperCase()}] ${message}`);
+            document.getElementById('result').innerHTML = `
+                <div style="color: ${type === 'error' ? 'red' : type === 'success' ? 'green' : 'blue'}; padding: 10px; border: 1px solid ${type === 'error' ? 'red' : type === 'success' ? 'green' : 'blue'};">
+                    [${type.toUpperCase()}] ${message}
+                </div>
+            `;
+        };
+
+        window.showLoading = function() {
+            console.log('顯示載入中...');
+        };
+
+        window.hideLoading = function() {
+            console.log('隱藏載入中...');
+        };
+
+        // 測試真實頁面載入
+        async function testRealPage() {
+            try {
+                console.log('🌐 測試真實頁面載入...');
+                
+                // 檢查必要的腳本是否載入
+                const requiredScripts = [
+                    'utils.js',
+                    'api-client.js', 
+                    'auth.js',
+                    'assignments-enhanced.js'
+                ];
+                
+                let allScriptsLoaded = true;
+                for (const script of requiredScripts) {
+                    try {
+                        const response = await fetch(`../js/${script}`);
+                        if (response.ok) {
+                            console.log(`✅ ${script} 載入成功`);
+                        } else {
+                            console.log(`❌ ${script} 載入失敗: ${response.status}`);
+                            allScriptsLoaded = false;
+                        }
+                    } catch (error) {
+                        console.log(`❌ ${script} 載入失敗:`, error.message);
+                        allScriptsLoaded = false;
+                    }
+                }
+                
+                if (allScriptsLoaded) {
+                    document.getElementById('result').innerHTML = `
+                        <div style="color: green; padding: 10px; border: 1px solid green;">
+                            ✅ 所有腳本載入成功<br>
+                            腳本數量: ${requiredScripts.length}
+                        </div>
+                    `;
+                } else {
+                    throw new Error('部分腳本載入失敗');
+                }
+                
+            } catch (error) {
+                console.error('❌ 真實頁面載入測試失敗:', error);
+                document.getElementById('result').innerHTML = `
+                    <div style="color: red; padding: 10px; border: 1px solid red;">
+                        ❌ 真實頁面載入測試失敗<br>
+                        錯誤: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // 測試 AssignmentsManager
+        async function testAssignmentsManager() {
+            try {
+                console.log('📚 測試 AssignmentsManager...');
+                
+                // 檢查 AssignmentsManager 類是否存在
+                if (typeof AssignmentsManager === 'function') {
+                    console.log('✅ AssignmentsManager 類存在');
+                    
+                    // 創建實例
+                    const manager = new AssignmentsManager();
+                    console.log('✅ AssignmentsManager 實例創建成功');
+                    
+                    document.getElementById('result').innerHTML = `
+                        <div style="color: green; padding: 10px; border: 1px solid green;">
+                            ✅ AssignmentsManager 測試成功<br>
+                            類存在: 是<br>
+                            實例創建: 成功
+                        </div>
+                    `;
+                } else {
+                    throw new Error('AssignmentsManager 類不存在');
+                }
+                
+            } catch (error) {
+                console.error('❌ AssignmentsManager 測試失敗:', error);
+                document.getElementById('result').innerHTML = `
+                    <div style="color: red; padding: 10px; border: 1px solid red;">
+                        ❌ AssignmentsManager 測試失敗<br>
+                        錯誤: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // 測試 QuizBuilder
+        function testQuizBuilder() {
+            try {
+                console.log('📝 測試 QuizBuilder...');
+                
+                // 檢查 QuizBuilder 類是否存在
+                if (typeof QuizBuilder === 'function') {
+                    console.log('✅ QuizBuilder 類存在');
+                    
+                    // 檢查 openQuizBuilder 函數是否存在
+                    if (typeof openQuizBuilder === 'function') {
+                        console.log('✅ openQuizBuilder 函數存在');
+                        
+                        document.getElementById('result').innerHTML = `
+                            <div style="color: green; padding: 10px; border: 1px solid green;">
+                                ✅ QuizBuilder 測試成功<br>
+                                類存在: 是<br>
+                                函數存在: 是
+                            </div>
+                        `;
+                    } else {
+                        throw new Error('openQuizBuilder 函數不存在');
+                    }
+                } else {
+                    throw new Error('QuizBuilder 類不存在');
+                }
+                
+            } catch (error) {
+                console.error('❌ QuizBuilder 測試失敗:', error);
+                document.getElementById('result').innerHTML = `
+                    <div style="color: red; padding: 10px; border: 1px solid red;">
+                        ❌ QuizBuilder 測試失敗<br>
+                        錯誤: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // 測試完整流程
+        async function testFullFlow() {
+            try {
+                console.log('🔄 測試完整流程...');
+                
+                // 1. 檢查認證
+                if (typeof teacherAuth === 'undefined') {
+                    throw new Error('teacherAuth 未定義');
+                }
+                console.log('✅ teacherAuth 存在');
+                
+                // 2. 檢查 apiClient
+                if (typeof apiClient === 'undefined') {
+                    throw new Error('apiClient 未定義');
+                }
+                console.log('✅ apiClient 存在');
+                
+                // 3. 檢查 AssignmentsManager
+                if (typeof AssignmentsManager === 'undefined') {
+                    throw new Error('AssignmentsManager 未定義');
+                }
+                console.log('✅ AssignmentsManager 存在');
+                
+                // 4. 檢查 QuizBuilder
+                if (typeof QuizBuilder === 'undefined') {
+                    throw new Error('QuizBuilder 未定義');
+                }
+                console.log('✅ QuizBuilder 存在');
+                
+                document.getElementById('result').innerHTML = `
+                    <div style="color: green; padding: 10px; border: 1px solid green;">
+                        ✅ 完整流程測試成功<br>
+                        所有必要組件都存在<br>
+                        出考卷功能應該可以正常工作
+                    </div>
+                `;
+                
+            } catch (error) {
+                console.error('❌ 完整流程測試失敗:', error);
+                document.getElementById('result').innerHTML = `
+                    <div style="color: red; padding: 10px; border: 1px solid red;">
+                        ❌ 完整流程測試失敗<br>
+                        錯誤: ${error.message}
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

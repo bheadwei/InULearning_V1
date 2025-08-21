@@ -1,0 +1,3573 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="InULearning 教師台 - 班級管理">
+    <title>班級管理 - InULearning 教師台</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/shared/css/components.css">
+    <link rel="stylesheet" href="/shared/css/responsive.css">
+    <link rel="stylesheet" href="../css/design-tokens.css">
+    <link rel="stylesheet" href="../css/navigation.css">
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/navbar-unified.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* ===== 班級管理專用樣式 ===== */
+        .page-header {
+            background: linear-gradient(135deg, var(--primary-blue-50) 0%, var(--primary-blue-100) 100%);
+            border-radius: var(--radius-2xl);
+            padding: var(--spacing-xl);
+            margin-bottom: var(--spacing-xl);
+            border: 1px solid var(--primary-blue-200);
+        }
+
+        .page-title {
+            font-size: var(--font-size-3xl);
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .page-subtitle {
+            font-size: var(--font-size-lg);
+            color: var(--text-secondary);
+            line-height: var(--leading-relaxed);
+        }
+
+        /* 工具欄優化 */
+        .toolbar {
+            display: flex;
+            gap: var(--spacing-lg);
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-xl);
+            padding: var(--spacing-lg);
+            background: var(--bg-primary);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-light);
+        }
+
+        .search-filters {
+            display: flex;
+            gap: var(--spacing-md);
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            position: relative;
+            min-width: 280px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: var(--spacing-md) var(--spacing-md) var(--spacing-md) 2.5rem;
+            border: 2px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            font-size: var(--font-size-base);
+            transition: var(--transition-fast);
+            background: var(--bg-primary);
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary-blue-500);
+            box-shadow: 0 0 0 3px var(--primary-blue-100);
+        }
+
+        .search-box i {
+            position: absolute;
+            left: var(--spacing-md);
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-tertiary);
+            font-size: var(--font-size-lg);
+        }
+
+        .filter-select {
+            padding: var(--spacing-md);
+            border: 2px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            background: var(--bg-primary);
+            font-size: var(--font-size-base);
+            min-width: 140px;
+            transition: var(--transition-fast);
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--primary-blue-500);
+            box-shadow: 0 0 0 3px var(--primary-blue-100);
+        }
+
+        /* 通知動畫 */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 按鈕系統 */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-blue-500) 0%, var(--primary-blue-600) 100%);
+            color: var(--text-inverse);
+            border: none;
+            padding: var(--spacing-md) var(--spacing-lg);
+            border-radius: var(--radius-lg);
+            font-weight: 600;
+            font-size: var(--font-size-base);
+            cursor: pointer;
+            transition: var(--transition-fast);
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--primary-blue-600) 0%, var(--primary-blue-700) 100%);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        /* 班級卡片網格 */
+        .classes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: var(--spacing-2xl);
+            margin-bottom: var(--spacing-2xl);
+        }
+
+        .class-card {
+            background: var(--bg-primary);
+            border-radius: var(--radius-2xl);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-light);
+            overflow: hidden;
+            transition: var(--transition-normal);
+            position: relative;
+            min-height: 360px;
+        }
+
+        .class-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary-blue-200);
+        }
+
+        .class-card-header {
+            padding: var(--spacing-xl);
+            background: linear-gradient(135deg, var(--primary-blue-50) 0%, var(--primary-blue-100) 100%);
+            border-bottom: 1px solid var(--primary-blue-200);
+        }
+
+        .class-name {
+            font-size: var(--font-size-xl);
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .class-subject {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            background: var(--primary-blue-500);
+            color: var(--text-inverse);
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: var(--radius-full);
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+        }
+
+        .class-card-body {
+            padding: var(--spacing-xl);
+        }
+
+        .class-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: var(--spacing-md);
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+        }
+
+        .stat-number {
+            font-size: var(--font-size-2xl);
+            font-weight: 700;
+            color: var(--primary-blue-600);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .stat-label {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .class-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--spacing-sm);
+            align-items: stretch;
+            margin-top: var(--spacing-md);
+        }
+
+        .class-actions .btn-secondary,
+        .class-actions .btn-danger {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-xs);
+            width: 100%;
+            padding: var(--spacing-md) var(--spacing-lg);
+            border-radius: var(--radius-lg);
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .class-actions .btn-secondary i,
+        .class-actions .btn-danger i {
+            font-size: 0.9rem;
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-medium);
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--radius-lg);
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition-fast);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary-blue-50);
+            color: var(--primary-blue-600);
+            border-color: var(--primary-blue-200);
+            transform: translateY(-1px);
+        }
+
+        .btn-danger {
+            background: var(--error-50);
+            color: var(--error);
+            border: 1px solid var(--error-100);
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--radius-lg);
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+
+        .btn-danger:hover {
+            background: var(--error);
+            color: var(--text-inverse);
+            transform: translateY(-1px);
+        }
+
+        /* 空狀態 */
+        .empty-state {
+            text-align: center;
+            padding: var(--spacing-2xl);
+            background: var(--bg-primary);
+            border-radius: var(--radius-xl);
+            border: 2px dashed var(--border-medium);
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            color: var(--text-tertiary);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .empty-title {
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .empty-description {
+            font-size: var(--font-size-base);
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-lg);
+            line-height: var(--leading-relaxed);
+        }
+
+        /* 模態框優化 */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999 !important; /* 強制最高層級 */
+            opacity: 0;
+            transition: var(--transition-normal);
+        }
+
+        .modal-backdrop.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        /* 覆寫 shared/components.css 的 .modal 定義，避免衝突並置中 */
+        .modal-backdrop .modal,
+        .modal-backdrop .modal.show {
+            display: block;
+            position: relative; /* 解除 shared 的 fixed，讓 flex 置中生效 */
+            left: auto;
+            top: auto;
+            height: auto;
+            z-index: 100000 !important; /* 確保模態框內容在最上層 */
+        }
+
+        .modal {
+            background: var(--bg-primary);
+            border-radius: var(--radius-2xl);
+            width: 90vw;
+            max-width: 560px;
+            max-height: 90vh;
+            overflow: hidden;
+            box-shadow: var(--shadow-xl);
+            transform: none;
+            transition: var(--transition-normal);
+            margin: 0 auto;
+            align-self: center;
+            z-index: 100000 !important; /* 強制最高層級 */
+        }
+
+        .modal-backdrop.show .modal {
+            transform: none;
+        }
+
+        .modal-header {
+            padding: var(--spacing-xl);
+            border-bottom: 1px solid var(--border-light);
+            background: var(--bg-secondary);
+        }
+
+        .modal-title {
+            font-size: var(--font-size-2xl);
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .modal-body {
+            padding: var(--spacing-xl);
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .modal-footer {
+            padding: var(--spacing-xl);
+            border-top: 1px solid var(--border-light);
+            background: var(--bg-secondary);
+            display: flex;
+            gap: var(--spacing-md);
+            justify-content: flex-end;
+        }
+
+        /* 表單優化 */
+        .form-group {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-sm);
+            font-size: var(--font-size-base);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: var(--spacing-md);
+            border: 2px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            font-size: var(--font-size-base);
+            transition: var(--transition-fast);
+            background: var(--bg-primary);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-blue-500);
+            box-shadow: 0 0 0 3px var(--primary-blue-100);
+        }
+
+        /* 標籤頁 */
+        .tabs {
+            display: flex;
+            gap: var(--spacing-xs);
+            border-bottom: 2px solid var(--border-light);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .tab {
+            background: transparent;
+            border: none;
+            padding: var(--spacing-md) var(--spacing-lg);
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: var(--transition-fast);
+            position: relative;
+        }
+
+        .tab.active {
+            background: var(--primary-blue-50);
+            color: var(--primary-blue-600);
+            font-weight: 600;
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--primary-blue-500);
+        }
+
+        /* 響應式設計 */
+        @media (max-width: 768px) {
+            .toolbar {
+                flex-direction: column;
+                gap: var(--spacing-md);
+                align-items: stretch;
+            }
+
+            .search-filters {
+                flex-direction: column;
+                gap: var(--spacing-sm);
+            }
+
+            .search-box {
+                min-width: auto;
+            }
+
+            .classes-grid {
+                grid-template-columns: 1fr;
+                gap: var(--spacing-lg);
+            }
+
+            .class-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .class-actions {
+                flex-direction: column;
+                gap: var(--spacing-sm);
+            }
+        }
+
+        /* 載入動畫 */
+        .loading-skeleton {
+            background: linear-gradient(90deg, var(--gray-200) 25%, var(--gray-100) 37%, var(--gray-200) 63%);
+            background-size: 400% 100%;
+            animation: shimmer 1.2s infinite;
+            border-radius: var(--radius-lg);
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: 100% 0;
+            }
+
+            100% {
+                background-position: -100% 0;
+            }
+        }
+
+        .skeleton-card {
+            height: 280px;
+        }
+
+        .skeleton-text {
+            height: 16px;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .skeleton-text.short {
+            width: 60%;
+        }
+
+        .skeleton-text.medium {
+            width: 80%;
+        }
+
+        /* 已刪除班級樣式 */
+        .deleted-class-item {
+            transition: var(--transition-fast);
+            border-left: 4px solid var(--error) !important;
+        }
+
+        .deleted-class-item:hover {
+            background: var(--bg-hover) !important;
+            transform: translateX(2px);
+        }
+
+        .deleted-class-item button {
+            transition: var(--transition-fast);
+        }
+
+        .deleted-class-item button:hover {
+            transform: scale(1.05);
+        }
+
+        /* 批量操作按鈕樣式 */
+        #restoreAllBtn, #clearDeletedBtn {
+            transition: var(--transition-fast);
+        }
+
+        #restoreAllBtn:hover {
+            background: var(--success);
+            color: white;
+        }
+
+        #clearDeletedBtn:hover {
+            background: var(--error);
+            color: white;
+        }
+
+        /* 標籤頁樣式優化 */
+        .tab-btn {
+            position: relative;
+            transition: var(--transition-fast);
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--primary);
+            border-radius: 1px;
+        }
+
+        /* 主要標籤頁樣式 */
+        .main-tabs {
+            display: flex;
+            gap: var(--spacing-xs);
+            border-bottom: 2px solid var(--border-light);
+            margin-bottom: var(--spacing-xl);
+            background: var(--bg-primary);
+            border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+            padding: 0 var(--spacing-lg);
+        }
+
+        .main-tab {
+            background: transparent;
+            border: none;
+            padding: var(--spacing-lg) var(--spacing-xl);
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text-secondary);
+            transition: var(--transition-fast);
+            position: relative;
+            font-size: var(--font-size-base);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .main-tab:hover {
+            color: var(--text-primary);
+            background: var(--bg-hover);
+        }
+
+        .main-tab.active {
+            color: var(--primary-blue-600);
+            background: var(--primary-blue-50);
+        }
+
+        .main-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--primary-blue-500);
+            border-radius: 1px;
+        }
+
+        .main-tab-panel {
+            display: none;
+        }
+
+        .main-tab-panel.active {
+            display: block;
+        }
+
+        /* 已刪除班級樣式 */
+        .deleted-classes-header {
+            background: var(--bg-secondary);
+            padding: var(--spacing-xl);
+            border-radius: var(--radius-xl);
+            margin-bottom: var(--spacing-xl);
+            border: 1px solid var(--border-light);
+        }
+
+        .deleted-classes-header h3 {
+            font-size: var(--font-size-xl);
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .deleted-description {
+            color: var(--text-secondary);
+            line-height: var(--leading-relaxed);
+            margin: 0;
+        }
+
+        .deleted-classes-list {
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .deleted-class-item {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            margin-bottom: var(--spacing-md);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: var(--transition-fast);
+            border-left: 4px solid var(--error);
+        }
+
+        .deleted-class-item:hover {
+            background: var(--bg-hover);
+            transform: translateX(2px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .deleted-class-info {
+            flex: 1;
+        }
+
+        .deleted-class-name {
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .deleted-class-details {
+            color: var(--text-secondary);
+            font-size: var(--font-size-sm);
+        }
+
+        .deleted-class-actions {
+            display: flex;
+            gap: var(--spacing-sm);
+        }
+
+        .bulk-actions {
+            display: flex;
+            gap: var(--spacing-md);
+            justify-content: center;
+            padding: var(--spacing-xl);
+            background: var(--bg-secondary);
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--border-light);
+        }
+
+        /* 學生子分頁樣式 */
+        .sub-tabs {
+            display: flex;
+            gap: var(--spacing-sm);
+            border-bottom: 1px solid var(--border-light);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .sub-tab-btn {
+            padding: var(--spacing-sm) var(--spacing-md);
+            border: none;
+            background: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            transition: var(--transition-fast);
+            font-size: var(--font-size-sm);
+        }
+
+        .sub-tab-btn:hover {
+            color: var(--text-primary);
+            background: var(--bg-hover);
+        }
+
+        .sub-tab-btn.active {
+            color: var(--primary);
+            background: var(--bg-primary);
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .sub-tab-panel {
+            display: none;
+        }
+
+        .sub-tab-panel.active {
+            display: block;
+        }
+
+        /* 已移除學生樣式 */
+        .removed-students-header {
+            text-align: center;
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .removed-students-header h3 {
+            font-size: var(--font-size-2xl);
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .removed-description {
+            color: var(--text-secondary);
+            font-size: var(--font-size-base);
+            line-height: var(--leading-relaxed);
+        }
+
+        .removed-students-list {
+            margin: var(--spacing-lg) 0;
+        }
+
+        .removed-student-item {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            margin-bottom: var(--spacing-md);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: var(--transition-fast);
+            border-left: 4px solid var(--warning);
+        }
+
+        .removed-student-item:hover {
+            background: var(--bg-hover);
+            transform: translateX(2px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .removed-student-info {
+            flex: 1;
+        }
+
+        .removed-student-name {
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .removed-student-details {
+            color: var(--text-secondary);
+            font-size: var(--font-size-sm);
+        }
+
+        .removed-student-actions {
+            display: flex;
+            gap: var(--spacing-sm);
+        }
+
+        /* 已移除學生樣式 */
+        .removed-student-item {
+            transition: var(--transition-fast);
+            border-left: 4px solid var(--error) !important;
+        }
+
+        .removed-student-item:hover {
+            background: var(--bg-hover) !important;
+            transform: translateX(2px);
+        }
+
+        .removed-student-item button {
+            transition: var(--transition-fast);
+        }
+
+        .removed-student-item button:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+
+<body class="navbar-unified-reset">
+    <a href="#main" class="skip-link"
+        style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;">跳至主要內容</a>
+
+    <!-- 導航欄（與首頁一致，使用絕對路徑） -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-brand">
+                <i class="fas fa-chalkboard-teacher"></i>
+                <span>班級管理</span>
+            </div>
+            <div class="navbar-menu">
+                <a href="/index.html" class="nav-link">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>儀表板</span>
+                </a>
+                <a href="/pages/classes-enhanced.html" class="nav-link active">
+                    <i class="fas fa-users"></i>
+                    <span>班級管理</span>
+                </a>
+                <a href="/pages/students-enhanced.html" class="nav-link">
+                    <i class="fas fa-user-graduate"></i>
+                    <span>學生分析</span>
+                </a>
+                <a href="/pages/assignments-enhanced.html" class="nav-link">
+                    <i class="fas fa-tasks"></i>
+                    <span>作業管理</span>
+                </a>
+                <a href="/pages/questions-enhanced.html" class="nav-link">
+                    <i class="fas fa-question-circle"></i>
+                    <span>題目管理</span>
+                </a>
+                <a href="/pages/grades-enhanced.html" class="nav-link">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>成績管理</span>
+                </a>
+                <a href="/pages/analytics-enhanced.html" class="nav-link">
+                    <i class="fas fa-analytics"></i>
+                    <span>學習分析</span>
+                </a>
+            </div>
+            <div class="navbar-user">
+                <button class="user-dropdown-toggle">
+                    <i class="fas fa-user-circle"></i>
+                    <span id="teacher-name">教師</span>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要內容 -->
+    <main id="main" class="main-content">
+        <div class="container">
+            <!-- 頁面標題 -->
+            <div class="page-header">
+                <h1 class="page-title">班級管理</h1>
+                <p class="page-subtitle">管理您的班級，追蹤學生學習進度，建立良好的教學環境</p>
+            </div>
+
+            <!-- 通知容器 -->
+            <div id="alertContainer" style="display: none; margin-bottom: var(--spacing-lg);"></div>
+
+            <!-- 工具欄 -->
+            <div class="toolbar">
+                <div class="search-filters">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input id="searchInput" type="text" placeholder="搜尋班級名稱...">
+                    </div>
+                    <select id="subjectFilter" class="filter-select" aria-label="科目篩選">
+                        <option value="">全部科目</option>
+                        <option value="數學">數學</option>
+                        <option value="國文">國文</option>
+                        <option value="英文">英文</option>
+                        <option value="自然">自然</option>
+                        <option value="社會">社會</option>
+                    </select>
+                    <select id="sortBy" class="filter-select" aria-label="排序方式">
+                        <option value="updated_desc">最近更新</option>
+                        <option value="name">班級名稱</option>
+                        <option value="students_desc">學生人數</option>
+                    </select>
+                </div>
+
+                <button class="btn-primary" id="createClassBtn" type="button">
+                    <i class="fas fa-plus"></i>
+                    新增班級
+                </button>
+            </div>
+
+            <!-- 主要內容標籤頁 -->
+            <div class="main-tabs">
+                <button class="main-tab active" id="mainTabActive" onclick="switchMainTab('active')">
+                    <i class="fas fa-users"></i>
+                    活躍班級
+                </button>
+                <button class="main-tab" id="mainTabDeleted" onclick="switchMainTab('deleted')">
+                    <i class="fas fa-trash-restore"></i>
+                    已刪除班級
+                </button>
+                <button class="main-tab" id="mainTabRemovedStudents" onclick="switchMainTab('removedStudents')">
+                    <i class="fas fa-user-minus"></i>
+                    已移除學生
+                </button>
+            </div>
+
+            <!-- 活躍班級標籤頁內容 -->
+            <div id="mainPanelActive" class="main-tab-panel active">
+                <!-- 班級網格 -->
+                <div class="classes-grid" id="classesGrid">
+                    <!-- 班級卡片將在這裡動態生成 -->
+                </div>
+
+                <!-- 空狀態 -->
+                <div class="empty-state" id="emptyState" style="display: none;">
+                    <div class="empty-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3 class="empty-title">還沒有班級</h3>
+                    <p class="empty-description">
+                        開始建立您的第一個班級，邀請學生加入，<br>
+                        開啟個人化學習之旅
+                    </p>
+                    <button class="btn-primary" onclick="document.getElementById('createClassBtn').click()">
+                        <i class="fas fa-plus"></i>
+                        建立第一個班級
+                    </button>
+                </div>
+            </div>
+
+            <!-- 已刪除班級標籤頁內容 -->
+            <div id="mainPanelDeleted" class="main-tab-panel">
+                <div class="deleted-classes-header">
+                    <h3>已刪除的班級</h3>
+                    <p class="deleted-description">
+                        這些班級已被標記為不活躍，但資料仍然保留。您可以選擇恢復它們。
+                    </p>
+                </div>
+                
+                <!-- 已刪除班級列表 -->
+                <div id="deletedClassesList" class="deleted-classes-list">
+                    <!-- 已刪除班級將在這裡動態生成 -->
+                </div>
+
+                <!-- 批量操作按鈕 -->
+                <div class="bulk-actions">
+                    <button id="restoreAllBtn" class="btn-secondary">
+                        <i class="fas fa-undo"></i>
+                        恢復所有班級
+                    </button>
+                    <button id="clearDeletedBtn" class="btn-danger">
+                        <i class="fas fa-trash"></i>
+                        清空已刪除班級
+                    </button>
+                </div>
+            </div>
+
+            <!-- 已移除學生標籤頁內容 -->
+            <div id="mainPanelRemovedStudents" class="main-tab-panel">
+                <div class="removed-students-header">
+                    <h3>已移除的學生</h3>
+                    <p class="removed-description">
+                        這些學生已被從班級中移除，但資料仍然保留。您可以選擇恢復他們到班級中。
+                    </p>
+                </div>
+                
+                <!-- 已移除學生列表 -->
+                <div id="mainRemovedStudentsList" class="removed-students-list">
+                    <!-- 已移除學生將在這裡動態生成 -->
+                </div>
+
+                <!-- 批量操作按鈕 -->
+                <div class="bulk-actions">
+                    <button id="mainRestoreAllStudentsBtn" class="btn-secondary">
+                        <i class="fas fa-undo"></i>
+                        恢復所有學生
+                    </button>
+                    <button id="mainClearRemovedStudentsBtn" class="btn-danger">
+                        <i class="fas fa-trash-alt"></i>
+                        清空已移除學生
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 新增/編輯班級模態框 -->
+    <div class="modal-backdrop" id="classModal">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="classModalTitle">
+            <div class="modal-header">
+                <h3 id="classModalTitle" class="modal-title">新增班級</h3>
+            </div>
+            <div class="modal-body">
+                <div class="tabs">
+                    <button class="tab active" id="tabInfo">基本資訊</button>
+                    <button class="tab" id="tabStudents">學生管理</button>
+                </div>
+
+                <div id="panelInfo">
+                    <form id="classForm">
+                        <div class="form-group">
+                            <label for="className" class="form-label">班級名稱</label>
+                            <input id="className" class="form-control" required placeholder="例如：七年三班">
+                        </div>
+                        <div class="form-group">
+                            <label for="classSubject" class="form-label">科目</label>
+                            <select id="classSubject" class="form-control" required>
+                                <option value="">請選擇科目</option>
+                                <option value="數學">數學</option>
+                                <option value="國文">國文</option>
+                                <option value="英文">英文</option>
+                                <option value="自然">自然</option>
+                                <option value="社會">社會</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="classDescription" class="form-label">班級描述（選填）</label>
+                            <textarea id="classDescription" class="form-control" rows="3"
+                                placeholder="簡單描述這個班級的特色或目標..."></textarea>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- 學生管理分頁 -->
+                <div id="panelStudents" class="tab-panel">
+                    <!-- 學生搜尋 -->
+                    <div class="form-group">
+                        <label class="form-label">搜尋學生</label>
+                        <div style="display: flex; gap: var(--spacing-sm);">
+                            <input id="studentSearch" class="form-control" placeholder="輸入學生姓名或 Email" style="flex: 1;">
+                            <button id="searchStudentBtn" class="btn-primary">
+                                <i class="fas fa-search"></i>
+                                搜尋
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 搜尋結果 -->
+                    <div id="studentSearchResults" style="margin-bottom: var(--spacing-lg);">
+                        <p style="text-align: center; color: var(--text-tertiary); padding: var(--spacing-lg);">請輸入關鍵字搜尋學生</p>
+                    </div>
+
+                    <!-- 班級學生列表 -->
+                    <div class="form-group">
+                        <label class="form-label">班級學生</label>
+                        <div id="classStudentsList" style="max-height: 300px; overflow-y: auto; border: 1px solid var(--border-light); border-radius: var(--radius-lg);">
+                            <p style="text-align: center; color: var(--text-tertiary); padding: var(--spacing-lg);">尚無學生</p>
+                        </div>
+                    </div>
+
+                    <!-- 快速新增學生 -->
+                    <div class="form-group">
+                        <label class="form-label">快速新增學生</label>
+                        <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: var(--spacing-sm);">
+                            <input id="newStuEmail" class="form-control" placeholder="Email (必填)">
+                            <input id="newStuFirst" class="form-control" placeholder="名字">
+                            <input id="newStuLast" class="form-control" placeholder="姓氏">
+                            <input id="newStuNo" class="form-control" placeholder="學號">
+                        </div>
+                        <button id="createStudentBtn" class="btn-primary" style="margin-top: var(--spacing-sm);">
+                            <i class="fas fa-plus"></i>
+                            建立並加入班級
+                        </button>
+                    </div>
+                </div>
+
+
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="cancelBtn" type="button">取消</button>
+                <button class="btn-primary" id="saveBtn" type="button">儲存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 確認刪除模態框 -->
+    <div class="modal-backdrop" id="confirmModal">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+            <div class="modal-header">
+                <h3 id="confirmTitle" class="modal-title">確認刪除</h3>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center; padding: var(--spacing-lg);">
+                    <div style="font-size: 3rem; color: var(--error); margin-bottom: var(--spacing-lg);">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <p id="confirmText" style="font-size: var(--font-size-lg); margin-bottom: var(--spacing-md);">
+                        您確定要刪除此班級嗎？
+                    </p>
+                    <p style="color: var(--text-secondary); font-size: var(--font-size-sm);">
+                        此操作無法復原，班級內的所有資料將被永久刪除。
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="confirmCancel" type="button">取消</button>
+                <button class="btn-danger" id="confirmDelete" type="button">
+                    <i class="fas fa-trash"></i>
+                    確認刪除
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="../js/utils.js"></script>
+    <script src="../js/api-client.js"></script>
+    <script src="../js/auth.js"></script>
+
+    <script>
+        // 通知系統
+        function showAlert(message, type) {
+            console.log(`[${type.toUpperCase()}] ${message}`);
+            
+            const alertContainer = document.getElementById('alertContainer');
+            if (!alertContainer) return;
+            
+            // 根據類型設置樣式
+            let bgColor, borderColor, textColor;
+            switch (type) {
+                case 'success':
+                    bgColor = 'var(--success-50)';
+                    borderColor = 'var(--success-500)';
+                    textColor = 'var(--success-700)';
+                    break;
+                case 'error':
+                    bgColor = 'var(--error-50)';
+                    borderColor = 'var(--error-500)';
+                    textColor = 'var(--error-700)';
+                    break;
+                case 'warning':
+                    bgColor = 'var(--warning-50)';
+                    borderColor = 'var(--warning-500)';
+                    textColor = 'var(--warning-700)';
+                    break;
+                case 'info':
+                    bgColor = 'var(--info-50)';
+                    borderColor = 'var(--info-500)';
+                    textColor = 'var(--info-700)';
+                    break;
+                default:
+                    bgColor = 'var(--info-50)';
+                    borderColor = 'var(--info-500)';
+                    textColor = 'var(--info-700)';
+            }
+            
+            // 創建通知元素
+            const alertElement = document.createElement('div');
+            alertElement.style.cssText = `
+                padding: var(--spacing-md);
+                border: 2px solid ${borderColor};
+                border-radius: var(--radius-lg);
+                background: ${bgColor};
+                color: ${textColor};
+                margin-bottom: var(--spacing-md);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                box-shadow: var(--shadow-sm);
+                animation: slideIn 0.3s ease-out;
+            `;
+            
+            alertElement.innerHTML = `
+                <span>${message}</span>
+                <button onclick="this.parentElement.remove()" style="
+                    background: none;
+                    border: none;
+                    color: ${textColor};
+                    cursor: pointer;
+                    font-size: var(--font-size-lg);
+                    padding: 0;
+                    margin-left: var(--spacing-md);
+                ">&times;</button>
+            `;
+            
+            // 顯示通知
+            alertContainer.appendChild(alertElement);
+            alertContainer.style.display = 'block';
+            
+            // 自動隱藏（5秒後）
+            setTimeout(() => {
+                if (alertElement.parentElement) {
+                    alertElement.remove();
+                    if (alertContainer.children.length === 0) {
+                        alertContainer.style.display = 'none';
+                    }
+                }
+            }, 5000);
+        }
+
+        // 班級管理邏輯
+        let classes = [];
+        let editingId = null;
+        let currentPage = 1;
+        const pageSize = 12;
+
+        // 初始化（DOM 若已完成則立即執行，避免錯過事件）
+        function initApp() {
+            try {
+                console.log('🚀 開始初始化班級管理應用...');
+                
+                // 檢查認證狀態
+                if (!teacherAuth.isLoggedIn()) {
+                    console.log('❌ 用戶未登入，重定向到登入頁面');
+                    window.location.href = 'login.html';
+                    return;
+                }
+                
+                console.log('✅ 用戶已登入，開始載入班級資料...');
+                
+                // 確保 DOM 完全載入後再綁定事件
+                setTimeout(async () => {
+                    bindEvents();
+                    showLoadingSkeletons();
+                    
+                    try {
+                        // 並行載入所有資料
+                        await Promise.all([
+                            loadClasses().then(() => renderClasses()),
+                            loadDeletedClasses(),
+                            loadRemovedStudents()
+                        ]);
+                    } catch (e) {
+                        console.warn('載入資料失敗', e);
+                        renderClasses();
+                    }
+                }, 100);
+            } catch (e) {
+                console.error('初始化失敗', e);
+            }
+        }
+
+        // 確保 DOM 完全載入後再初始化
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initApp);
+        } else {
+            // 如果 DOM 已經載入，延遲一點執行以確保所有元素都存在
+            setTimeout(initApp, 100);
+        }
+
+        // 載入班級資料
+        async function loadClasses() {
+            showLoadingSkeletons();
+            try {
+                // 嘗試多個可能的 API 路徑
+                let res = null;
+                const apiPaths = [
+                    '/relationships/classes'
+                ];
+                
+                for (const path of apiPaths) {
+                    try {
+                        res = await apiClient.get(path);
+                        if (res && (res.data || res.items || res)) {
+                            console.log('✅ 成功載入班級資料，使用路徑:', path);
+                            break;
+                        }
+                    } catch (error) {
+                        console.log(`❌ API 路徑 ${path} 失敗:`, error.message);
+                        continue;
+                    }
+                }
+                
+                if (!res) {
+                    throw new Error('所有 API 路徑都失敗');
+                }
+                
+                const list = res.data || res.items || res || [];
+                classes = list.map(r => ({
+                    id: r.class_id || r.id,  // 支援兩種資料結構
+                    name: r.class_name || '未命名班級',
+                    subject: r.subject || '',
+                    description: r.description || '',
+                    students: 0,
+                    status: r.is_active ? '進行中' : '已停用',
+                    updated: r.updated_at || new Date().toISOString(),
+                    created: r.created_at || new Date().toISOString()
+                }));
+
+                // 載入學生數量
+                await loadStudentCounts();
+            } catch (e) {
+                console.error('載入班級失敗', e);
+                classes = [];
+                showAlert('載入班級失敗：' + (e.message || ''), 'error');
+            } finally {
+                hideLoadingSkeletons();
+            }
+        }
+
+        // 載入主頁面已移除學生資料
+        async function loadMainRemovedStudents() {
+            try {
+                console.log('🔍 開始載入主頁面已移除學生');
+                const container = document.getElementById('mainRemovedStudentsList');
+                if (!container) return;
+
+                container.innerHTML = '<p style="text-align: center; color: var(--text-tertiary); padding: var(--spacing-lg);">載入中...</p>';
+
+                // 獲取教師的所有班級
+                let teacherClasses = [];
+                try {
+                    const teacherClassesRes = await apiClient.get('/relationships/teacher-class');
+                    if (teacherClassesRes && (teacherClassesRes.data || teacherClassesRes.items || teacherClassesRes)) {
+                        teacherClasses = teacherClassesRes.data || teacherClassesRes.items || teacherClassesRes || [];
+                    }
+                } catch (error) {
+                    console.log('❌ 無法載入教師班級:', error.message);
+                    container.innerHTML = '<p style="text-align: center; color: var(--text-tertiary); padding: var(--spacing-lg);">無法載入班級資料</p>';
+                    return;
+                }
+
+                if (teacherClasses.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: var(--text-tertiary); padding: var(--spacing-lg);">尚無班級，無法載入已移除學生</p>';
+                    return;
+                }
+
+                // 收集所有班級的已移除學生
+                let allRemovedStudents = [];
+                for (const teacherClass of teacherClasses) {
+                    try {
+                        const studentsRes = await apiClient.get(`/relationships/classes/${teacherClass.class_id}/students?include_removed=true`);
+                        if (studentsRes && (studentsRes.data || studentsRes.items || studentsRes)) {
+                            const students = studentsRes.data || studentsRes.items || studentsRes || [];
+                            const removedStudents = students.filter(s => !s.is_active).map(s => ({
+                                id: s.id,
+                                student_id: s.student_id,
+                                name: s.student_name || '未知學生',
+                                class_id: s.class_id,
+                                class_name: s.class_name || '未知班級',
+                                student_number: s.student_number || '',
+                                removed_time: s.updated_at || new Date().toISOString()
+                            }));
+                            allRemovedStudents.push(...removedStudents);
+                        }
+                    } catch (error) {
+                        console.log(`❌ 無法載入班級 ${teacherClass.class_id} 的學生:`, error.message);
+                        continue;
+                    }
+                }
+
+                console.log('📊 找到已移除學生數量:', allRemovedStudents.length);
+
+                if (allRemovedStudents.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: var(--text-tertiary); padding: var(--spacing-lg);">尚無已移除的學生</p>';
+                    return;
+                }
+
+                // 渲染已移除學生列表
+                container.innerHTML = allRemovedStudents.map(student => `
+                    <div class="removed-student-item" style="display: flex; justify-content: space-between; align-items: center; padding: var(--spacing-md); border: 1px solid var(--border-light); border-radius: var(--radius-lg); margin-bottom: var(--spacing-sm); background: var(--bg-secondary);">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 500; color: var(--text-primary);">${student.name}</div>
+                            <div style="font-size: var(--font-size-sm); color: var(--text-secondary);">
+                                班級: ${student.class_name} | 學號: ${student.student_number || '無'}
+                            </div>
+                            <div style="font-size: var(--font-size-xs); color: var(--text-tertiary);">
+                                移除時間: ${new Date(student.removed_time).toLocaleString('zh-TW')}
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: var(--spacing-sm);">
+                            <button class="btn-secondary" onclick="restoreMainStudent('${student.id}', '${student.name}', '${student.class_id}')">
+                                <i class="fas fa-undo"></i>
+                                恢復
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+
+            } catch (e) {
+                console.error('載入主頁面已移除學生失敗', e);
+                const container = document.getElementById('mainRemovedStudentsList');
+                if (container) {
+                    container.innerHTML = '<p style="text-align: center; color: var(--error); padding: var(--spacing-lg);">載入失敗，請稍後再試</p>';
+                }
+            }
+        }
+
+        // 載入已刪除班級資料
+        async function loadDeletedClasses() {
+            try {
+                console.log('🔍 開始載入已刪除班級');
+                const container = document.getElementById('deletedClassesList');
+                if (!container) return;
+
+                // 嘗試多個可能的 API 路徑
+                let res = null;
+                const apiPaths = [
+                    '/relationships/teacher-class?include_deleted=true',
+                    '/relationships/classes?include_deleted=true',
+                    '/relationships/teacher-class'
+                ];
+                
+                for (const path of apiPaths) {
+                    try {
+                        res = await apiClient.get(path);
+                        if (res && (res.data || res.items || res)) {
+                            console.log('✅ 成功載入班級資料（包含已刪除），使用路徑:', path);
+                            break;
+                        }
+                    } catch (error) {
+                        console.log(`❌ API 路徑 ${path} 失敗:`, error.message);
+                        continue;
+                    }
+                }
+                
+                if (!res) {
+                    throw new Error('所有 API 路徑都失敗');
+                }
+                
+                console.log('🔍 API 返回的原始資料:', res);
+                console.log('🔍 嘗試提取資料:', {
+                    'res.data': res.data,
+                    'res.items': res.items,
+                    'res': res
+                });
+                
+                // 確保 list 是數組
+                let list = res.data || res.items || res || [];
+                if (!Array.isArray(list)) {
+                    console.warn('⚠️ API 返回的資料不是數組，嘗試轉換:', list);
+                    if (typeof list === 'object' && list !== null) {
+                        // 如果是對象，嘗試提取數組
+                        list = Object.values(list).find(val => Array.isArray(val)) || [];
+                        console.log('🔍 從對象中提取的數組:', list);
+                    } else {
+                        list = [];
+                    }
+                }
+                
+                if (!Array.isArray(list)) {
+                    console.error('❌ 無法獲取有效的班級列表資料');
+                    container.innerHTML = '<p style="text-align: center; color: var(--error); padding: var(--spacing-lg);">資料格式錯誤，請稍後再試</p>';
+                    return;
+                }
+                
+                const deletedClasses = list.filter(r => !r.is_active).map(r => ({
+                    id: r.class_id || r.id,
+                    name: r.class_name || '未命名班級',
+                    subject: r.subject || '',
+                    grade: r.grade || '未知',
+                    school_year: r.school_year || '未知',
+                    updated: r.updated_at || new Date().toISOString(),
+                    created: r.created_at || new Date().toISOString()
+                }));
+
+                console.log('📊 找到已刪除班級數量:', deletedClasses.length);
+
+                if (deletedClasses.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: var(--text-tertiary); padding: var(--spacing-lg);">尚無已刪除的班級</p>';
+                    return;
+                }
+
+                // 渲染已刪除班級列表
+                container.innerHTML = deletedClasses.map(cls => `
+                    <div class="deleted-class-item" style="display: flex; justify-content: space-between; align-items: center; padding: var(--spacing-md); border: 1px solid var(--border-light); border-radius: var(--radius-lg); margin-bottom: var(--spacing-sm); background: var(--bg-secondary);">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 500; color: var(--text-primary);">${cls.name}</div>
+                            <div style="font-size: var(--font-size-sm); color: var(--text-secondary);">
+                                科目: ${cls.subject} | 年級: ${cls.grade} | 學年: ${cls.school_year}
+                            </div>
+                            <div style="font-size: var(--font-size-xs); color: var(--text-tertiary);">
+                                刪除時間: ${new Date(cls.updated).toLocaleString('zh-TW')}
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: var(--spacing-sm);">
+                            <button class="btn-secondary" onclick="restoreClass('${cls.id}', '${cls.name}')" style="font-size: var(--font-size-sm);">
+                                <i class="fas fa-undo"></i>
+                                恢復
+                            </button>
+                            <button class="btn-danger" onclick="permanentlyDeleteClass('${cls.id}', '${cls.name}')" style="font-size: var(--font-size-sm);">
+                                <i class="fas fa-trash-alt"></i>
+                                永久刪除
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+
+            } catch (e) {
+                console.error('載入已刪除班級失敗', e);
+                const container = document.getElementById('deletedClassesList');
+                if (container) {
+                    container.innerHTML = '<p style="text-align: center; color: var(--error); padding: var(--spacing-lg);">載入失敗，請稍後再試</p>';
+                }
+            }
+        }
+
+        // 載入已移除學生資料
+        async function loadRemovedStudents() {
+            try {
+                console.log('🔍 開始載入已移除學生');
+                const container = document.getElementById('mainRemovedStudentsList');
+                if (!container) return;
+
+                // 獲取教師的所有班級
+                let teacherClasses = [];
+                try {
+                    const teacherClassesRes = await apiClient.get('/relationships/teacher-class');
+                    if (teacherClassesRes && (teacherClassesRes.data || teacherClassesRes.items || teacherClassesRes)) {
+                        teacherClasses = teacherClassesRes.data || teacherClassesRes.items || teacherClassesRes || [];
+                    }
+                } catch (error) {
+                    console.log('❌ 無法載入教師班級:', error.message);
+                    return;
+                }
+
+                if (teacherClasses.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: var(--text-tertiary); padding: var(--spacing-lg);">尚無班級，無法載入已移除學生</p>';
+                    return;
+                }
+
+                // 收集所有班級的已移除學生
+                let allRemovedStudents = [];
+                for (const teacherClass of teacherClasses) {
+                    try {
+                        const studentsRes = await apiClient.get(`/relationships/classes/${teacherClass.class_id}/students?include_removed=true`);
+                        if (studentsRes && (studentsRes.data || studentsRes.items || studentsRes)) {
+                            const students = studentsRes.data || studentsRes.items || studentsRes || [];
+                            const removedStudents = students.filter(s => !s.is_active).map(s => ({
+                                id: s.id,  // 使用關係記錄的 ID，這是正確的
+                                student_id: s.student_id,
+                                name: s.student_name || '未知學生',
+                                class_id: s.class_id,
+                                class_name: s.class_name || '未知班級',
+                                student_number: s.student_number || '',
+                                removed_time: s.updated_at || new Date().toISOString()
+                            }));
+                            allRemovedStudents.push(...removedStudents);
+                        }
+                    } catch (error) {
+                        console.log(`❌ 無法載入班級 ${teacherClass.class_id} 的學生:`, error.message);
+                        continue;
+                    }
+                }
+
+                console.log('📊 找到已移除學生數量:', allRemovedStudents.length);
+
+                if (allRemovedStudents.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: var(--text-tertiary); padding: var(--spacing-lg);">尚無已移除的學生</p>';
+                    return;
+                }
+
+                // 渲染已移除學生列表
+                container.innerHTML = allRemovedStudents.map(student => `
+                    <div class="removed-student-item" style="display: flex; justify-content: space-between; align-items: center; padding: var(--spacing-md); border: 1px solid var(--border-light); border-radius: var(--radius-lg); margin-bottom: var(--spacing-sm); background: var(--bg-secondary);">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 500; color: var(--text-primary);">${student.name}</div>
+                            <div style="font-size: var(--font-size-sm); color: var(--text-secondary);">
+                                班級: ${student.class_name} | 學號: ${student.student_number || '無'}
+                            </div>
+                            <div style="font-size: var(--font-size-xs); color: var(--text-tertiary);">
+                                移除時間: ${new Date(student.removed_time).toLocaleString('zh-TW')}
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: var(--spacing-sm);">
+                            <button class="btn-secondary" onclick="restoreRemovedStudent('${student.id}', '${student.name}', '${student.class_id}')" style="font-size: var(--font-size-sm);">
+                                <i class="fas fa-undo"></i>
+                                恢復
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+
+            } catch (e) {
+                console.error('載入已移除學生失敗', e);
+                const container = document.getElementById('mainRemovedStudentsList');
+                if (container) {
+                    container.innerHTML = '<p style="text-align: center; color: var(--error); padding: var(--spacing-lg);">載入失敗，請稍後再試</p>';
+                }
+            }
+        }
+
+        // 恢復已移除學生（從已移除學生列表）
+        async function restoreRemovedStudent(studentId, studentName, classId) {
+            if (!confirm(`確定要將 ${studentName} 恢復到班級中嗎？`)) {
+                return;
+            }
+
+            try {
+                showLoading();
+                console.log('🔍 開始恢復已移除學生，ID:', studentId, '到班級:', classId);
+                
+                // 使用正確的 API 路徑恢復學生
+                await apiClient.patch(`/relationships/classes/${classId}/students/${studentId}/restore`);
+                
+                console.log('✅ 學生恢復成功');
+                showAlert(`學生「${studentName}」已恢復到班級`, 'success');
+                
+                // 重新載入資料
+                await loadRemovedStudents();
+                
+            } catch (e) {
+                console.error('❌ 恢復失敗:', e);
+                showAlert('恢復失敗：' + (e.message || ''), 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 載入學生數量
+        async function loadStudentCounts() {
+            try {
+                const updated = await Promise.all(classes.map(async (c) => {
+                    try {
+                        // 嘗試多個可能的 API 路徑
+                        let res = null;
+                        const apiPaths = [
+                            `/relationships/classes/${c.id}/students`,
+                            `/relationships/classes/${c.id}/students`
+                        ];
+                        
+                        for (const path of apiPaths) {
+                            try {
+                                res = await apiClient.get(path);
+                                if (res && (res.data || res.items || res)) {
+                                    console.log(`✅ 成功載入班級 ${c.id} 的學生數量，使用路徑:`, path);
+                                    break;
+                                }
+                            } catch (error) {
+                                console.log(`❌ 路徑 ${path} 失敗:`, error.message);
+                                continue;
+                            }
+                        }
+                        
+                        if (res) {
+                            const arr = res.data || res.items || res || [];
+                            const count = Array.isArray(arr) ? arr.length : (typeof arr.count === 'number' ? arr.count : 0);
+                            return { ...c, students: count };
+                        }
+                        
+                        // 如果無法載入學生數量，設為 0
+                        console.log(`⚠️ 班級 ${c.id} 無法載入學生數量，設為 0`);
+                        return { ...c, students: 0 };
+                    } catch (error) {
+                        console.log(`❌ 載入班級 ${c.id} 學生數量時發生錯誤:`, error.message);
+                        return { ...c, students: 0 };
+                    }
+                }));
+                classes = updated;
+            } catch (error) {
+                console.error('載入學生數量時發生錯誤:', error);
+                // 如果載入失敗，將所有班級的學生數量設為 0
+                classes = classes.map(c => ({ ...c, students: 0 }));
+            }
+        }
+
+        // 顯示載入骨架
+        function showLoadingSkeletons() {
+            const grid = document.getElementById('classesGrid');
+            grid.innerHTML = Array.from({ length: 6 }).map(() => `
+                <div class="class-card">
+                    <div class="class-card-header">
+                        <div class="loading-skeleton skeleton-text medium"></div>
+                        <div class="loading-skeleton skeleton-text short"></div>
+                    </div>
+                    <div class="class-card-body">
+                        <div class="loading-skeleton skeleton-card"></div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 隱藏載入骨架
+        function hideLoadingSkeletons() {
+            // 這個函數會在 loadClasses 完成後被調用
+            // 載入骨架會在 renderClasses 中被實際內容替換
+            console.log('🔍 hideLoadingSkeletons 被調用');
+        }
+
+        // 顯示載入狀態
+        function showLoading() {
+            console.log('🔄 顯示載入中...');
+            // 可以在這裡添加載入動畫或禁用按鈕
+        }
+
+        // 隱藏載入狀態
+        function hideLoading() {
+            console.log('✅ 隱藏載入中...');
+            // 可以在這裡隱藏載入動畫或啟用按鈕
+        }
+
+        // 渲染班級列表
+        function renderClasses() {
+            console.log('🔍 renderClasses 被調用');
+            const grid = document.getElementById('classesGrid');
+            const emptyState = document.getElementById('emptyState');
+
+            let filteredClasses = filterAndSortClasses();
+            console.log('📊 過濾後的班級數量:', filteredClasses.length);
+
+            if (filteredClasses.length === 0) {
+                grid.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            grid.style.display = 'grid';
+            emptyState.style.display = 'none';
+
+            const classesHTML = filteredClasses.map(cls => {
+                console.log('🏫 渲染班級:', cls.id, cls.name);
+                return `
+                <div class="class-card" data-class-id="${cls.id}">
+                    <div class="class-card-header">
+                        <h3 class="class-name">${cls.name}</h3>
+                        <span class="class-subject">
+                            <i class="fas fa-book"></i>
+                            ${cls.subject}
+                        </span>
+                    </div>
+                    <div class="class-card-body">
+                        <div class="class-stats">
+                            <div class="stat-item">
+                                <div class="stat-number">${cls.students}</div>
+                                <div class="stat-label">學生人數</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number">${cls.status === '進行中' ? '進行中' : '準備中'}</div>
+                                <div class="stat-label">狀態</div>
+                            </div>
+                        </div>
+                        <div class="class-actions">
+                            <a href="students-enhanced.html" class="btn-secondary">
+                                <i class="fas fa-users"></i>
+                                查看學生
+                            </a>
+                            <button class="btn-secondary" onclick="manageStudents('${cls.id}','${cls.name}')">
+                                <i class="fas fa-user-plus"></i>
+                                管理學生
+                            </button>
+                            <button class="btn-secondary" onclick="editClass('${cls.id}')">
+                                <i class="fas fa-edit"></i>
+                                編輯
+                            </button>
+                            <button class="btn-danger" onclick="deleteClass('${cls.id}', '${cls.name}')">
+                                <i class="fas fa-trash"></i>
+                                刪除
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            }).join('');
+
+            console.log('📝 生成的 HTML 長度:', classesHTML.length);
+            grid.innerHTML = classesHTML;
+            console.log('✅ 班級列表渲染完成');
+        }
+
+        // 篩選和排序班級
+        function filterAndSortClasses() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const subjectFilter = document.getElementById('subjectFilter').value;
+            const sortBy = document.getElementById('sortBy').value;
+
+            let filtered = classes.filter(cls => {
+                const matchesSearch = !searchTerm || cls.name.toLowerCase().includes(searchTerm);
+                const matchesSubject = !subjectFilter || cls.subject === subjectFilter;
+                return matchesSearch && matchesSubject;
+            });
+
+            // 排序
+            filtered.sort((a, b) => {
+                switch (sortBy) {
+                    case 'name':
+                        return a.name.localeCompare(b.name);
+                    case 'students_desc':
+                        return b.students - a.students;
+                    case 'updated_desc':
+                    default:
+                        return new Date(b.updated) - new Date(a.updated);
+                }
+            });
+
+            return filtered;
+        }
+
+        // 綁定事件
+        function bindEvents() {
+            try {
+                // 設置學生管理相關按鈕的初始狀態（禁用）
+                const createStudentBtn = document.getElementById('createStudentBtn');
+                const studentSearch = document.getElementById('studentSearch');
+                const searchStudentBtn = document.getElementById('searchStudentBtn');
+                
+                if (createStudentBtn) createStudentBtn.disabled = true;
+                if (studentSearch) studentSearch.disabled = true;
+                if (searchStudentBtn) searchStudentBtn.disabled = true;
+                
+                // 搜尋和篩選
+                const searchInput = document.getElementById('searchInput');
+                const subjectFilter = document.getElementById('subjectFilter');
+                const sortBy = document.getElementById('sortBy');
+                
+                if (searchInput) searchInput.addEventListener('input', debounce(renderClasses, 300));
+                if (subjectFilter) subjectFilter.addEventListener('change', renderClasses);
+                if (sortBy) sortBy.addEventListener('change', renderClasses);
+
+                // 新增班級
+                const createClassBtn = document.getElementById('createClassBtn');
+                if (createClassBtn) {
+                    createClassBtn.addEventListener('click', (e) => {
+                        if (e && typeof e.preventDefault === 'function') e.preventDefault();
+                        if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+                        createClass();
+                    });
+                }
+
+
+
+                // 模態框控制
+                const cancelBtn = document.getElementById('cancelBtn');
+                const saveBtn = document.getElementById('saveBtn');
+                const confirmCancel = document.getElementById('confirmCancel');
+                const confirmDeleteBtn = document.getElementById('confirmDelete');
+                
+                if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+                if (saveBtn) saveBtn.addEventListener('click', saveClass);
+                if (confirmCancel) confirmCancel.addEventListener('click', closeConfirmModal);
+                if (confirmDeleteBtn) confirmDeleteBtn.addEventListener('click', confirmDelete);
+
+                // 標籤頁切換
+                const tabInfo = document.getElementById('tabInfo');
+                const tabStudents = document.getElementById('tabStudents');
+                const deletedTab = document.getElementById('tabDeleted');
+                const infoPanel = document.getElementById('panelInfo');
+                const studentsPanel = document.getElementById('panelStudents');
+                const deletedPanel = document.getElementById('panelDeleted'); // 新增已刪除班級面板
+
+                if (tabInfo) tabInfo.addEventListener('click', () => switchTab('info'));
+                if (tabStudents) tabStudents.addEventListener('click', () => switchTab('students'));
+                if (deletedTab) deletedTab.addEventListener('click', () => switchTab('deleted'));
+
+                // 學生搜尋
+                if (searchStudentBtn) searchStudentBtn.addEventListener('click', searchStudents);
+                if (studentSearch) {
+                    studentSearch.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            searchStudents();
+                        }
+                    });
+                }
+                
+                if (createStudentBtn) {
+                    createStudentBtn.addEventListener('click', createAndAddStudent);
+                    console.log('✅ 新增學生按鈕事件綁定完成');
+                } else {
+                    console.error('❌ 找不到新增學生按鈕');
+                }
+
+                // 批量操作按鈕
+                const restoreAllBtn = document.getElementById('restoreAllBtn');
+                const clearDeletedBtn = document.getElementById('clearDeletedBtn');
+                
+                if (restoreAllBtn) {
+                    restoreAllBtn.addEventListener('click', restoreAllClasses);
+                    console.log('✅ 恢復所有班級按鈕事件綁定完成');
+                }
+                
+                if (clearDeletedBtn) {
+                    clearDeletedBtn.addEventListener('click', clearAllDeletedClasses);
+                    console.log('✅ 清空已刪除班級按鈕事件綁定完成');
+                }
+
+
+
+                // 主頁面已移除學生批量操作按鈕
+                const mainRestoreAllStudentsBtn = document.getElementById('mainRestoreAllStudentsBtn');
+                const mainClearRemovedStudentsBtn = document.getElementById('mainClearRemovedStudentsBtn');
+                
+                if (mainRestoreAllStudentsBtn) {
+                    mainRestoreAllStudentsBtn.addEventListener('click', restoreAllMainStudents);
+                    console.log('✅ 主頁面恢復所有學生按鈕事件綁定完成');
+                }
+                
+                if (mainClearRemovedStudentsBtn) {
+                    mainClearRemovedStudentsBtn.addEventListener('click', clearAllMainRemovedStudents);
+                    console.log('✅ 主頁面清空已移除學生按鈕事件綁定完成');
+                }
+                
+                console.log('✅ 事件綁定完成');
+            } catch (error) {
+                console.error('❌ 事件綁定失敗:', error);
+            }
+        }
+
+        // 防抖函數
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // 新增班級
+        function createClass() {
+            editingId = null;
+            document.getElementById('classModalTitle').textContent = '新增班級';
+            resetForm();
+            switchTab('info');
+            openModal();
+            
+            // 在新增班級時禁用學生管理相關按鈕
+            const createStudentBtn = document.getElementById('createStudentBtn');
+            const studentSearch = document.getElementById('studentSearch');
+            const searchStudentBtn = document.getElementById('searchStudentBtn');
+            
+            if (createStudentBtn) createStudentBtn.disabled = true;
+            if (studentSearch) studentSearch.disabled = true;
+            if (searchStudentBtn) searchStudentBtn.disabled = true;
+        }
+
+        // 編輯班級
+        function editClass(id) {
+            const cls = classes.find(c => c.id === id);
+            if (!cls) return;
+
+            editingId = id;
+            document.getElementById('classModalTitle').textContent = '編輯班級';
+            document.getElementById('className').value = cls.name;
+            document.getElementById('classSubject').value = cls.subject;
+            document.getElementById('classDescription').value = cls.description || '';
+
+            switchTab('info');
+            openModal();
+
+            // 在編輯班級時啟用學生管理相關按鈕
+            const createStudentBtn = document.getElementById('createStudentBtn');
+            const studentSearch = document.getElementById('studentSearch');
+            const searchStudentBtn = document.getElementById('searchStudentBtn');
+            
+            if (createStudentBtn) createStudentBtn.disabled = false;
+            if (studentSearch) studentSearch.disabled = false;
+            if (searchStudentBtn) searchStudentBtn.disabled = false;
+
+            // 載入班級學生
+            if (editingId) {
+                loadClassStudents(editingId);
+            }
+        }
+
+        // 刪除班級
+        function deleteClass(id, name) {
+            console.log('🔍 deleteClass 被調用，ID:', id, '名稱:', name);
+            pendingDeleteId = id;
+            document.getElementById('confirmText').textContent = `您確定要刪除班級「${name}」嗎？`;
+            console.log('✅ 開啟確認模態框');
+            openConfirmModal();
+        }
+
+        // 儲存班級
+        async function saveClass() {
+            const name = document.getElementById('className').value.trim();
+            const subject = document.getElementById('classSubject').value;
+            const description = document.getElementById('classDescription').value.trim();
+
+            if (!name || !subject) {
+                showAlert('請填寫班級名稱和科目', 'warning');
+                return;
+            }
+
+            try {
+                showLoading();
+
+                if (editingId) {
+                    // 嘗試多個可能的 API 路徑進行更新
+                    let updated = false;
+                    const updatePaths = [
+                        `/relationships/classes/${editingId}`,
+                        `/relationships/classes/${editingId}`
+                    ];
+                    
+                    for (const path of updatePaths) {
+                        try {
+                            await apiClient.put(path, {
+                                class_name: name,
+                                subject: subject
+                            });
+                            updated = true;
+                            console.log('✅ 班級更新成功，使用路徑:', path);
+                            break;
+                        } catch (error) {
+                            console.log(`❌ 更新路徑 ${path} 失敗:`, error.message);
+                            continue;
+                        }
+                    }
+                    
+                    if (!updated) {
+                        throw new Error('所有更新路徑都失敗');
+                    }
+                } else {
+                    // 嘗試多個可能的 API 路徑進行創建
+                    let created = null;
+                    // 直接使用教師管理服務的 API
+                    const path = '/teacher/classes';
+                    console.log(`🔍 使用創建路徑: ${path}`);
+                    console.log(`🔍 請求資料:`, { name: name, subject: subject, description: description });
+                    
+                    try {
+                        // 使用標準的資料格式
+                        const payload = { 
+                            name: name, 
+                            subject: subject, 
+                            description: description,
+                            grade: "7",  // 預設年級
+                            school_year: "2024"  // 預設學年
+                        };
+                        
+                        created = await apiClient.post(path, payload);
+                        console.log('✅ 班級創建成功:', created);
+                    } catch (error) {
+                        console.error('❌ 班級創建失敗:', error);
+                        throw new Error(`班級創建失敗: ${error.message}`);
+                    }
+                    
+                    if (!created) {
+                        throw new Error('所有創建路徑都失敗');
+                    }
+                    
+                    // 嘗試立即進入學生管理
+                    const createdClassId = (created && (created.class_id || (created.data && created.data.class_id) || created.id)) || null;
+                    console.log('🔍 班級創建成功，created:', created);
+                    console.log('🔍 提取的 createdClassId:', createdClassId);
+                    console.log('🔍 createdClassId 類型:', typeof createdClassId);
+                    
+                    // 先刷新列表再開啟管理
+                    await loadClasses();
+                    renderClasses();
+                    closeModal();
+                    
+                    if (createdClassId) {
+                        console.log('🔍 準備調用 manageStudents，createdClassId:', createdClassId, 'name:', name);
+                        manageStudents(createdClassId, name);
+                        showAlert('班級已建立，請加入學生', 'success');
+                        return;
+                    } else {
+                        console.error('❌ createdClassId 為 null，無法進入學生管理');
+                        showAlert('班級創建成功，但無法進入學生管理', 'warning');
+                    }
+                }
+
+                await loadClasses();
+                renderClasses();
+                closeModal();
+                // 編輯完成後，直接帶到學生管理分頁
+                if (editingId) {
+                    manageStudents(editingId, name);
+                }
+                showAlert('班級已儲存', 'success');
+            } catch (e) {
+                console.error('saveClass error', e);
+                showAlert('儲存失敗：' + (e.message || ''), 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 進入班級的學生管理（開啟模態並切到學生分頁）
+        function manageStudents(id, name) {
+            console.log('🔍 manageStudents 被調用，id:', id, 'name:', name);
+            console.log('🔍 設置 editingId 前:', editingId);
+            editingId = id;
+            console.log('🔍 設置 editingId 後:', editingId);
+            
+            const cls = classes.find(c => String(c.id) === String(id));
+            console.log('🔍 找到的班級:', cls);
+            
+            // 填充表單欄位，這樣用戶可以看到班級信息
+            if (cls) {
+                document.getElementById('className').value = cls.name || '';
+                document.getElementById('classSubject').value = cls.subject || '';
+                document.getElementById('classDescription').value = cls.description || '';
+            }
+            
+            document.getElementById('classModalTitle').textContent = `管理學生 - ${name || (cls && cls.name) || ''}`;
+            switchTab('students');
+            openModal();
+            loadClassStudents(editingId);
+            
+            // 重新綁定新增學生按鈕事件並啟用按鈕
+            const createBtn = document.getElementById('createStudentBtn');
+            const studentSearch = document.getElementById('studentSearch');
+            const searchStudentBtn = document.getElementById('searchStudentBtn');
+            
+            if (createBtn) {
+                // 移除舊的事件監聽器
+                createBtn.removeEventListener('click', createAndAddStudent);
+                // 重新綁定事件
+                createBtn.addEventListener('click', createAndAddStudent);
+                // 啟用按鈕
+                createBtn.disabled = false;
+                console.log('✅ 新增學生按鈕事件重新綁定完成，按鈕已啟用');
+            }
+            
+            // 啟用其他學生管理相關按鈕
+            if (studentSearch) studentSearch.disabled = false;
+            if (searchStudentBtn) searchStudentBtn.disabled = false;
+        }
+
+        // 確認刪除
+        let pendingDeleteId = null;
+        async function confirmDelete() {
+            console.log('🔍 confirmDelete 函數被調用');
+            console.log('📊 pendingDeleteId:', pendingDeleteId);
+            
+            if (!pendingDeleteId) {
+                console.error('❌ pendingDeleteId 未設定，無法刪除');
+                return;
+            }
+
+            try {
+                console.log('✅ 開始刪除班級，ID:', pendingDeleteId);
+                showLoading();
+                // 嘗試多個可能的 API 路徑進行刪除
+                let deleted = false;
+                const deletePaths = [
+                    `/relationships/teacher-class/${pendingDeleteId}`,
+                    `/relationships/classes/${pendingDeleteId}`
+                ];
+                
+                for (const path of deletePaths) {
+                    try {
+                        console.log(`🔍 嘗試刪除路徑: ${path}`);
+                        await apiClient.delete(path);
+                        deleted = true;
+                        console.log('✅ 班級刪除成功，使用路徑:', path);
+                        break;
+                    } catch (error) {
+                        console.log(`❌ 刪除路徑 ${path} 失敗:`, error.message);
+                        continue;
+                    }
+                }
+                
+                if (!deleted) {
+                    throw new Error('所有刪除路徑都失敗');
+                }
+                
+                console.log('✅ 班級刪除成功，重新載入班級列表');
+                await loadClasses();
+                renderClasses();
+                closeConfirmModal();
+                showAlert('班級已刪除', 'success');
+            } catch (e) {
+                console.error('❌ 刪除失敗:', e);
+                showAlert('刪除失敗：' + (e.message || ''), 'error');
+            } finally {
+                hideLoading();
+                pendingDeleteId = null;
+            }
+        }
+
+        // 模態框控制
+        function openModal() {
+            const backdrop = document.getElementById('classModal');
+            if (!backdrop) return;
+            const modalEl = backdrop.querySelector('.modal');
+            backdrop.classList.add('show');
+            backdrop.style.display = 'flex';
+            if (modalEl) {
+                modalEl.style.display = 'block';
+            }
+        }
+
+        function closeModal() {
+            const backdrop = document.getElementById('classModal');
+            if (!backdrop) return;
+            const modalEl = backdrop.querySelector('.modal');
+            backdrop.classList.remove('show');
+            backdrop.style.display = 'none';
+            if (modalEl) {
+                modalEl.style.display = 'none';
+            }
+        }
+
+        function openConfirmModal() {
+            console.log('🔍 openConfirmModal 被調用');
+            const backdrop = document.getElementById('confirmModal');
+            if (!backdrop) {
+                console.error('❌ 找不到 confirmModal 元素');
+                return;
+            }
+            console.log('✅ 找到 confirmModal 元素');
+            
+            // 檢查模態框的當前狀態
+            console.log('📊 模態框當前樣式:', {
+                display: backdrop.style.display,
+                classList: backdrop.classList.toString(),
+                opacity: backdrop.style.opacity,
+                zIndex: backdrop.style.zIndex
+            });
+            
+            const modalEl = backdrop.querySelector('.modal');
+            if (!modalEl) {
+                console.error('❌ 找不到 .modal 元素');
+                return;
+            }
+            console.log('✅ 找到 .modal 元素');
+            
+            // 檢查模態框內容
+            const modalTitle = backdrop.querySelector('#confirmTitle');
+            const modalText = backdrop.querySelector('#confirmText');
+            const modalButtons = backdrop.querySelectorAll('button');
+            
+            console.log('📝 模態框內容檢查:', {
+                title: modalTitle ? modalTitle.textContent : '❌ 找不到標題',
+                text: modalText ? modalText.textContent : '❌ 找不到文字',
+                buttons: modalButtons.length
+            });
+            
+            // 開啟模態框 - 使用內聯樣式強制顯示
+            backdrop.classList.add('show');
+            backdrop.style.cssText = `
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                bottom: 0 !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                z-index: 99999 !important;
+                background-color: rgba(0, 0, 0, 0.8) !important;
+                backdrop-filter: blur(4px) !important;
+            `;
+            
+            if (modalEl) {
+                modalEl.style.cssText = `
+                    display: block !important;
+                    background-color: white !important;
+                    border: 3px solid red !important;
+                    border-radius: 12px !important;
+                    padding: 20px !important;
+                    max-width: 500px !important;
+                    width: 90vw !important;
+                    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+                    z-index: 100000 !important;
+                    position: relative !important;
+                `;
+            }
+            
+            // 檢查開啟後的狀態
+            console.log('📊 模態框開啟後樣式:', {
+                display: backdrop.style.display,
+                classList: backdrop.classList.toString(),
+                opacity: backdrop.style.opacity,
+                zIndex: backdrop.style.zIndex
+            });
+            
+            console.log('✅ 確認模態框已開啟');
+            
+            // 添加一個測試提示
+            setTimeout(() => {
+                console.log('🔍 3秒後檢查模態框狀態');
+                console.log('模態框元素:', backdrop);
+                console.log('模態框樣式:', backdrop.style);
+                console.log('模態框計算樣式:', window.getComputedStyle(backdrop));
+                
+                // 檢查模態框是否真的可見
+                const rect = backdrop.getBoundingClientRect();
+                console.log('📐 模態框位置和尺寸:', {
+                    top: rect.top,
+                    left: rect.left,
+                    width: rect.width,
+                    height: rect.height,
+                    visible: rect.width > 0 && rect.height > 0
+                });
+                
+                // 檢查是否有其他元素遮擋
+                const elementsAtPoint = document.elementsFromPoint(rect.left + rect.width/2, rect.top + rect.height/2);
+                console.log('🔍 模態框中心點的元素:', elementsAtPoint);
+            }, 3000);
+        }
+
+        function closeConfirmModal() {
+            const backdrop = document.getElementById('confirmModal');
+            if (!backdrop) return;
+            const modalEl = backdrop.querySelector('.modal');
+            backdrop.classList.remove('show');
+            backdrop.style.display = 'none';
+            if (modalEl) {
+                modalEl.style.display = 'none';
+            }
+        }
+
+        // 重置表單
+        function resetForm() {
+            document.getElementById('classForm').reset();
+            document.getElementById('studentSearchResults').innerHTML = '<p style="text-align: center; color: var(--text-tertiary); padding: var(--spacing-lg);">請輸入關鍵字搜尋學生</p>';
+            document.getElementById('classStudentsList').innerHTML = '<p style="text-align: center; color: var(--text-tertiary); padding: var(--spacing-lg);">尚無學生</p>';
+            
+            // 重置學生管理相關按鈕狀態
+            const createStudentBtn = document.getElementById('createStudentBtn');
+            const studentSearch = document.getElementById('studentSearch');
+            const searchStudentBtn = document.getElementById('searchStudentBtn');
+            
+            if (createStudentBtn) createStudentBtn.disabled = true;
+            if (studentSearch) studentSearch.disabled = true;
+            if (searchStudentBtn) searchStudentBtn.disabled = true;
+        }
+
+        // 主要標籤頁切換
+        function switchMainTab(tab) {
+            const activeTab = document.getElementById('mainTabActive');
+            const deletedTab = document.getElementById('mainTabDeleted');
+            const removedStudentsTab = document.getElementById('mainTabRemovedStudents');
+            const activePanel = document.getElementById('mainPanelActive');
+            const deletedPanel = document.getElementById('mainPanelDeleted');
+            const removedStudentsPanel = document.getElementById('mainPanelRemovedStudents');
+
+            // 移除所有標籤頁的活動狀態
+            activeTab.classList.remove('active');
+            deletedTab.classList.remove('active');
+            removedStudentsTab.classList.remove('active');
+            activePanel.classList.remove('active');
+            deletedPanel.classList.remove('active');
+            removedStudentsPanel.classList.remove('active');
+
+            if (tab === 'deleted') {
+                deletedTab.classList.add('active');
+                deletedPanel.classList.add('active');
+                
+                // 載入已刪除班級資料
+                loadDeletedClasses();
+            } else if (tab === 'removedStudents') {
+                removedStudentsTab.classList.add('active');
+                removedStudentsPanel.classList.add('active');
+                
+                // 載入已移除學生資料
+                loadMainRemovedStudents();
+            } else { // 預設為活躍班級
+                activeTab.classList.add('active');
+                activePanel.classList.add('active');
+            }
+        }
+
+        // 模態框標籤頁切換
+        function switchTab(tab) {
+            const infoTab = document.getElementById('tabInfo');
+            const studentsTab = document.getElementById('tabStudents');
+            const infoPanel = document.getElementById('panelInfo');
+            const studentsPanel = document.getElementById('panelStudents');
+
+            if (tab === 'students') {
+                infoTab.classList.remove('active');
+                studentsTab.classList.add('active');
+                infoPanel.style.display = 'none';
+                studentsPanel.style.display = 'block';
+                
+                // 載入班級學生資料
+                if (editingId) {
+                    loadClassStudents(editingId);
+                }
+            } else { // 預設為班級資訊
+                infoTab.classList.add('active');
+                studentsTab.classList.remove('active');
+                infoPanel.style.display = 'block';
+                studentsPanel.style.display = 'none';
+            }
+        }
+
+        // 搜尋學生
+        async function searchStudents() {
+            const keyword = document.getElementById('studentSearch').value.trim();
+            const resultsContainer = document.getElementById('studentSearchResults');
+
+            if (!keyword) {
+                resultsContainer.innerHTML = '<p style="text-align: center; color: var(--text-tertiary); padding: var(--spacing-lg);">請輸入關鍵字搜尋學生</p>';
+                return;
+            }
+
+            try {
+                resultsContainer.innerHTML = '<p style="text-align: center; color: var(--text-tertiary); padding: var(--spacing-lg);"><i class="fas fa-spinner fa-spin"></i> 搜尋中...</p>';
+
+                // 嘗試多個可能的 API 路徑
+                let res = null;
+                const searchPaths = [
+                    `/relationships/students/search?kw=${encodeURIComponent(keyword)}&limit=10`,
+                    `/users/search?kw=${encodeURIComponent(keyword)}&limit=10`
+                ];
+                
+                for (const path of searchPaths) {
+                    try {
+                        res = await apiClient.get(path);
+                        if (res && (res.data || res.items || res)) {
+                            console.log('✅ 學生搜尋成功，使用路徑:', path);
+                            break;
+                        }
+                    } catch (error) {
+                        console.log(`❌ 搜尋路徑 ${path} 失敗:`, error.message);
+                        continue;
+                    }
+                }
+                
+                if (!res) {
+                    throw new Error('所有搜尋路徑都失敗');
+                }
+                
+                const students = res.data || res.items || res || [];
+
+                if (students.length === 0) {
+                    resultsContainer.innerHTML = '<p style="text-align: center; color: var(--text-tertiary); padding: var(--spacing-lg);">找不到符合條件的學生</p>';
+                    return;
+                }
+
+                resultsContainer.innerHTML = students.map(student => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: var(--spacing-sm); border-bottom: 1px solid var(--border-light);">
+                        <div>
+                            <div style="font-weight: 500;">${student.name || student.email || '#' + student.id}</div>
+                            <div style="font-size: var(--font-size-sm); color: var(--text-secondary);">${student.email || ''}</div>
+                        </div>
+                        <button class="btn-secondary" onclick="addStudentToClass(${student.id}, '${student.name || student.email}')">
+                            <i class="fas fa-plus"></i>
+                            加入
+                        </button>
+                    </div>
+                `).join('');
+            } catch (e) {
+                resultsContainer.innerHTML = '<p style="text-align: center; color: var(--error); padding: var(--spacing-lg);">搜尋失敗，請稍後再試</p>';
+            }
+        }
+
+        // 載入班級學生
+        async function loadClassStudents(classId) {
+            const container = document.getElementById('classStudentsList');
+
+            try {
+                container.innerHTML = '<p style="text-align: center; color: var(--text-tertiary); padding: var(--spacing-lg);"><i class="fas fa-spinner fa-spin"></i> 載入中...</p>';
+
+                // 嘗試多個可能的 API 路徑
+                let res = null;
+                const loadPaths = [
+                    `/relationships/classes/${classId}/students`,
+                    `/relationships/classes/${classId}/students`
+                ];
+                
+                for (const path of loadPaths) {
+                    try {
+                        res = await apiClient.get(path);
+                        if (res && (res.data || res.items || res)) {
+                            console.log('✅ 班級學生載入成功，使用路徑:', path);
+                            break;
+                        }
+                    } catch (error) {
+                        console.log(`❌ 載入路徑 ${path} 失敗:`, error.message);
+                        continue;
+                    }
+                }
+                
+                if (!res) {
+                    throw new Error('所有載入路徑都失敗');
+                }
+                
+                const students = res.data || res.items || res || [];
+
+                if (students.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: var(--text-tertiary); padding: var(--spacing-lg);">尚無學生</p>';
+                    return;
+                }
+
+                container.innerHTML = students.map(student => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: var(--spacing-sm); border-bottom: 1px solid var(--border-light);">
+                        <div>
+                            <div style="font-weight: 500;">${student.student_name || '#' + student.student_id}</div>
+                            <div style="font-size: var(--font-size-sm); color: var(--text-secondary);">學生 ID: ${student.student_id}</div>
+                        </div>
+                        <button class="btn-danger" onclick="removeStudentFromClass(${student.student_id}, '${student.student_name}')">
+                            <i class="fas fa-times"></i>
+                            移除
+                        </button>
+                    </div>
+                `).join('');
+            } catch (e) {
+                container.innerHTML = '<p style="text-align: center; color: var(--error); padding: var(--spacing-lg);">載入失敗，請稍後再試</p>';
+            }
+        }
+
+        // 將學生加入班級
+        async function addStudentToClass(studentId, studentName) {
+            if (!editingId) return;
+
+            try {
+                showLoading();
+                // 嘗試多個可能的 API 路徑
+                let added = false;
+                const addPaths = [
+                    `/relationships/classes/${editingId}/students`
+                ];
+                
+                for (const path of addPaths) {
+                    try {
+                        await apiClient.post(path, { student_id: studentId });
+                        added = true;
+                        console.log('✅ 學生加入班級成功，使用路徑:', path);
+                        break;
+                    } catch (error) {
+                        console.log(`❌ 加入路徑 ${path} 失敗:`, error.message);
+                        continue;
+                    }
+                }
+                
+                if (!added) {
+                    throw new Error('所有加入路徑都失敗');
+                }
+                
+                await loadClassStudents(editingId);
+                showAlert(`已將 ${studentName} 加入班級`, 'success');
+            } catch (e) {
+                showAlert('加入失敗：' + (e.message || ''), 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 依據資料庫欄位新增學生後加入班級
+        async function createAndAddStudent() {
+            console.log('🔍 createAndAddStudent 被調用，editingId:', editingId);
+            console.log('🔍 當前 classes 陣列:', classes);
+            console.log('🔍 當前 editingId 類型:', typeof editingId);
+            console.log('🔍 當前 editingId 值:', editingId);
+            
+            if (!editingId) {
+                console.error('❌ editingId 未設定，無法新增學生');
+                console.error('❌ 請檢查班級是否已創建或選擇');
+                showAlert('請先選擇班級，然後再新增學生', 'warning');
+                
+                // 自動切換到班級資訊分頁，讓用戶先填寫班級資訊
+                switchTab('info');
+                return;
+            }
+            
+            console.log(`✅ 使用編輯中的班級 ID: ${editingId}`);
+            const email = document.getElementById('newStuEmail').value.trim();
+            const first = document.getElementById('newStuFirst').value.trim();
+            const last = document.getElementById('newStuLast').value.trim();
+            const stuNo = document.getElementById('newStuNo').value.trim();
+            if (!email) {
+                showAlert('請輸入 Email', 'warning');
+                return;
+            }
+            try {
+                showLoading();
+                // 1) 建立學生帳號（依 schemas.UserCreate）
+                const username = email.split('@')[0];
+                const payload = {
+                    email: email,
+                    username: username,
+                    password: 'password123',
+                    role: 'student',
+                    first_name: first || null,
+                    last_name: last || null
+                };
+                let studentId = null;
+                try {
+                    // 嘗試創建學生帳號
+                    let created = null;
+                    const createPaths = [
+                        '/auth/register'  // 正確的用戶創建端點
+                    ];
+                    
+                    for (const path of createPaths) {
+                        try {
+                            console.log(`🔍 嘗試創建學生，路徑: ${path}`);
+                            console.log(`🔍 請求方法: POST`);
+                            console.log(`🔍 請求資料:`, payload);
+                            
+                            created = await apiClient.post(path, payload);
+                            console.log(`🔍 創建結果:`, created);
+                            
+                            if (created && (created.id || created.data || created.data?.id)) {
+                                console.log('✅ 學生創建成功，使用路徑:', path);
+                                break;
+                            }
+                        } catch (error) {
+                            console.log(`❌ 創建路徑 ${path} 失敗:`, error.message);
+                            console.log(`❌ 錯誤詳情:`, error);
+                            continue;
+                        }
+                    }
+                    
+                    if (created) {
+                        studentId = (created && (created.id || (created.data && created.data.id))) || null;
+                    } else {
+                        // 若創建失敗，嘗試搜尋取得 id
+                        const searchPaths = [
+                            `/relationships/students/search?kw=${encodeURIComponent(email)}&limit=1`
+                        ];
+                        
+                        for (const path of searchPaths) {
+                            try {
+                                const found = await apiClient.get(path);
+                                const arr = found && (found.data || found.items || found) || [];
+                                if (Array.isArray(arr) && arr.length > 0) {
+                                    studentId = arr[0].id;
+                                    console.log('✅ 學生搜尋成功，使用路徑:', path);
+                                    break;
+                                }
+                            } catch (error) {
+                                console.log(`❌ 搜尋路徑 ${path} 失敗:`, error.message);
+                                continue;
+                            }
+                        }
+                    }
+                } catch (err) {
+                    console.error('學生創建或搜尋失敗:', err);
+                }
+                if (!studentId) throw new Error('建立或取得學生資料失敗');
+                // 2) 加入班級
+                let added = false;
+                const addPaths = [
+                    `/relationships/classes/${editingId}/students`  // 正確的端點
+                ];
+                
+                for (const path of addPaths) {
+                    try {
+                        await apiClient.post(path, { student_id: studentId, student_number: stuNo || null });
+                        added = true;
+                        console.log('✅ 學生加入班級成功，使用路徑:', path);
+                        break;
+                    } catch (error) {
+                        console.log(`❌ 加入路徑 ${path} 失敗:`, error.message);
+                        continue;
+                    }
+                }
+                
+                if (!added) {
+                    throw new Error('所有加入路徑都失敗');
+                }
+                
+                await loadClassStudents(editingId);
+                showAlert('學生已建立並加入班級', 'success');
+                // 清空欄位
+                document.getElementById('newStuEmail').value = '';
+                document.getElementById('newStuFirst').value = '';
+                document.getElementById('newStuLast').value = '';
+                document.getElementById('newStuNo').value = '';
+            } catch (e) {
+                console.error('createAndAddStudent error', e);
+                showAlert('新增學生失敗：' + (e.message || ''), 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 將學生從班級移除
+        async function removeStudentFromClass(studentId, studentName) {
+            console.log('🔍 removeStudentFromClass 被調用');
+            console.log('🔍 studentId:', studentId);
+            console.log('🔍 studentName:', studentName);
+            console.log('🔍 editingId:', editingId);
+            
+            if (!editingId) {
+                console.error('❌ editingId 未設定，無法移除學生');
+                showAlert('請先選擇班級', 'warning');
+                return;
+            }
+
+            if (!confirm(`確定要將 ${studentName} 從班級中移除嗎？`)) {
+                return;
+            }
+
+            try {
+                showLoading();
+                // 嘗試多個可能的 API 路徑
+                let removed = false;
+                const removePaths = [
+                    `/relationships/classes/${editingId}/students/${studentId}`
+                ];
+                
+                for (const path of removePaths) {
+                    try {
+                        await apiClient.delete(path);
+                        removed = true;
+                        console.log('✅ 學生移除成功，使用路徑:', path);
+                        break;
+                    } catch (error) {
+                        console.log(`❌ 移除路徑 ${path} 失敗:`, error.message);
+                        continue;
+                    }
+                }
+                
+                if (!removed) {
+                    throw new Error('所有移除路徑都失敗');
+                }
+                
+                await loadClassStudents(editingId);
+                showAlert(`已將 ${studentName} 從班級移除`, 'success');
+            } catch (e) {
+                showAlert('移除失敗：' + (e.message || ''), 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 全域函數（供 onclick 使用）
+        window.editClass = editClass;
+        window.deleteClass = deleteClass;
+        window.confirmDelete = confirmDelete;
+        window.restoreClass = restoreClass;
+        window.permanentlyDeleteClass = permanentlyDeleteClass;
+        window.restoreAllClasses = restoreAllClasses;
+        window.clearAllDeletedClasses = clearAllDeletedClasses;
+        window.restoreStudent = restoreStudent;
+        window.restoreRemovedStudent = restoreRemovedStudent;
+        window.permanentlyRemoveStudent = permanentlyRemoveStudent;
+        window.restoreAllStudents = restoreAllStudents;
+        window.clearAllRemovedStudents = clearAllRemovedStudents;
+        window.addStudentToClass = addStudentToClass;
+        window.removeStudentFromClass = removeStudentFromClass;
+
+        // 恢復班級
+        async function restoreClass(id, name) {
+            if (!confirm(`確定要恢復班級「${name}」嗎？`)) {
+                return;
+            }
+
+            try {
+                showLoading();
+                console.log('🔍 開始恢復班級，ID:', id);
+                
+                // 嘗試多個可能的 API 路徑進行恢復
+                let restored = false;
+                const restorePaths = [
+                    `/relationships/teacher-class/${id}/restore`
+                ];
+                
+                for (const path of restorePaths) {
+                    try {
+                        if (path.includes('/restore')) {
+                            // 如果有專門的恢復端點，使用 PATCH 方法
+                            await apiClient.patch(path);
+                        } else {
+                            // 否則使用更新端點將 is_active 設為 true
+                            await apiClient.put(path, { is_active: true });
+                        }
+                        restored = true;
+                        console.log('✅ 班級恢復成功，使用路徑:', path);
+                        break;
+                    } catch (error) {
+                        console.log(`❌ 恢復路徑 ${path} 失敗:`, error.message);
+                        continue;
+                    }
+                }
+                
+                if (!restored) {
+                    throw new Error('所有恢復路徑都失敗');
+                }
+                
+                console.log('✅ 班級恢復成功，重新載入資料');
+                showAlert(`班級「${name}」已恢復`, 'success');
+                
+                // 重新載入資料
+                await loadClasses();
+                await loadDeletedClasses();
+                renderClasses();
+                
+            } catch (e) {
+                console.error('❌ 恢復失敗:', e);
+                showAlert('恢復失敗：' + (e.message || ''), 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 永久刪除班級
+        async function permanentlyDeleteClass(id, name) {
+            if (!confirm(`⚠️ 警告：此操作將永久刪除班級「${name}」及其所有相關資料，無法恢復！\n\n確定要繼續嗎？`)) {
+                return;
+            }
+
+            try {
+                showLoading();
+                console.log('🔍 開始永久刪除班級，ID:', id);
+                
+                // 嘗試多個可能的 API 路徑進行永久刪除
+                let deleted = false;
+                const deletePaths = [
+                    `/relationships/classes/${id}/permanent`,
+                    `/relationships/classes/${id}/permanent`,
+                    `/relationships/classes/${id}/force`,
+                    `/relationships/classes/${id}/force`
+                ];
+                
+                for (const path of deletePaths) {
+                    try {
+                        await apiClient.delete(path);
+                        deleted = true;
+                        console.log('✅ 班級永久刪除成功，使用路徑:', path);
+                        break;
+                    } catch (error) {
+                        console.log(`❌ 永久刪除路徑 ${path} 失敗:`, error.message);
+                        continue;
+                    }
+                }
+                
+                if (!deleted) {
+                    throw new Error('所有永久刪除路徑都失敗');
+                }
+                
+                console.log('✅ 班級永久刪除成功，重新載入資料');
+                showAlert(`班級「${name}」已永久刪除`, 'success');
+                
+                // 重新載入資料
+                await loadDeletedClasses();
+                
+            } catch (e) {
+                console.error('❌ 永久刪除失敗:', e);
+                showAlert('永久刪除失敗：' + (e.message || ''), 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 批量恢復所有已刪除班級
+        async function restoreAllClasses() {
+            if (!confirm('確定要恢復所有已刪除的班級嗎？')) {
+                return;
+            }
+
+            try {
+                showLoading();
+                console.log('🔍 開始批量恢復所有已刪除班級');
+                
+                // 獲取所有已刪除班級的 ID
+                const deletedItems = document.querySelectorAll('.deleted-class-item');
+                if (deletedItems.length === 0) {
+                    showAlert('沒有可恢復的班級', 'info');
+                    return;
+                }
+
+                let successCount = 0;
+                let failCount = 0;
+
+                for (const item of deletedItems) {
+                    const restoreBtn = item.querySelector('button[onclick*="restoreClass"]');
+                    if (restoreBtn) {
+                        const onclick = restoreBtn.getAttribute('onclick');
+                        const match = onclick.match(/restoreClass\('([^']+)', '([^']+)'\)/);
+                        if (match) {
+                            const id = match[1];
+                            const name = match[2];
+                            
+                            try {
+                                // 嘗試恢復班級
+                                let restored = false;
+                                const restorePaths = [
+                                    `/relationships/teacher-class/${id}/restore`
+                                ];
+                                
+                                for (const path of restorePaths) {
+                                    try {
+                                        if (path.includes('/restore')) {
+                                            await apiClient.patch(path);
+                                        } else {
+                                            await apiClient.put(path, { is_active: true });
+                                        }
+                                        restored = true;
+                                        break;
+                                    } catch (error) {
+                                        continue;
+                                    }
+                                }
+                                
+                                if (restored) {
+                                    successCount++;
+                                    console.log(`✅ 成功恢復班級: ${name}`);
+                                } else {
+                                    failCount++;
+                                    console.log(`❌ 恢復失敗班級: ${name}`);
+                                }
+                            } catch (error) {
+                                failCount++;
+                                console.log(`❌ 恢復失敗班級: ${name}`, error);
+                            }
+                        }
+                    }
+                }
+
+                console.log(`📊 批量恢復完成: 成功 ${successCount} 個，失敗 ${failCount} 個`);
+                
+                if (successCount > 0) {
+                    showAlert(`批量恢復完成！成功恢復 ${successCount} 個班級${failCount > 0 ? `，${failCount} 個失敗` : ''}`, 'success');
+                    
+                    // 重新載入資料
+                    await loadClasses();
+                    await loadDeletedClasses();
+                    renderClasses();
+                } else {
+                    showAlert('沒有班級被成功恢復', 'warning');
+                }
+                
+            } catch (e) {
+                console.error('❌ 批量恢復失敗:', e);
+                showAlert('批量恢復失敗：' + (e.message || ''), 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 清空所有已刪除班級（永久刪除）
+        async function clearAllDeletedClasses() {
+            if (!confirm('⚠️ 警告：此操作將永久刪除所有已刪除的班級及其相關資料，無法恢復！\n\n確定要繼續嗎？')) {
+                return;
+            }
+
+            try {
+                showLoading();
+                console.log('🔍 開始清空所有已刪除班級');
+                
+                // 獲取所有已刪除班級的 ID
+                const deletedItems = document.querySelectorAll('.deleted-class-item');
+                if (deletedItems.length === 0) {
+                    showAlert('沒有可清空的班級', 'info');
+                    return;
+                }
+
+                let successCount = 0;
+                let failCount = 0;
+
+                for (const item of deletedItems) {
+                    const deleteBtn = item.querySelector('button[onclick*="permanentlyDeleteClass"]');
+                    if (deleteBtn) {
+                        const onclick = deleteBtn.getAttribute('onclick');
+                        const match = onclick.match(/permanentlyDeleteClass\('([^']+)', '([^']+)'\)/);
+                        if (match) {
+                            const id = match[1];
+                            const name = match[2];
+                            
+                            try {
+                                // 嘗試永久刪除班級
+                                let deleted = false;
+                                const deletePaths = [
+                                    `/relationships/classes/${id}/permanent`,
+                                    `/relationships/classes/${id}/permanent`,
+                                    `/relationships/classes/${id}/force`,
+                                    `/relationships/classes/${id}/force`
+                                ];
+                                
+                                for (const path of deletePaths) {
+                                    try {
+                                        await apiClient.delete(path);
+                                        deleted = true;
+                                        break;
+                                    } catch (error) {
+                                        continue;
+                                    }
+                                }
+                                
+                                if (deleted) {
+                                    successCount++;
+                                    console.log(`✅ 成功永久刪除班級: ${name}`);
+                                } else {
+                                    failCount++;
+                                    console.log(`❌ 永久刪除失敗班級: ${name}`);
+                                }
+                            } catch (error) {
+                                failCount++;
+                                console.log(`❌ 永久刪除失敗班級: ${name}`, error);
+                            }
+                        }
+                    }
+                }
+
+                console.log(`📊 清空完成: 成功刪除 ${successCount} 個，失敗 ${failCount} 個`);
+                
+                if (successCount > 0) {
+                    showAlert(`清空完成！成功刪除 ${successCount} 個班級${failCount > 0 ? `，${failCount} 個失敗` : ''}`, 'success');
+                    
+                    // 重新載入資料
+                    await loadDeletedClasses();
+                } else {
+                    showAlert('沒有班級被成功刪除', 'warning');
+                }
+                
+            } catch (e) {
+                console.error('❌ 清空失敗:', e);
+                showAlert('清空失敗：' + (e.message || ''), 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+
+
+        // 載入已移除學生資料
+        async function loadRemovedStudents() {
+            try {
+                console.log('🔍 開始載入已移除學生');
+                const container = document.getElementById('removedStudentsList');
+                if (!container || !editingId) return;
+
+                container.innerHTML = '<p style="text-align: center; color: var(--text-tertiary); padding: var(--spacing-lg);">載入中...</p>';
+
+                // 嘗試多個可能的 API 路徑
+                let res = null;
+                const apiPaths = [
+                    `/classes/${editingId}/students?include_removed=true`,
+                    `/classes/${editingId}/students`
+                ];
+                
+                for (const path of apiPaths) {
+                    try {
+                        res = await apiClient.get(path);
+                        if (res && (res.data || res.items || res)) {
+                            console.log('✅ 成功載入學生資料（包含已移除），使用路徑:', path);
+                            break;
+                        }
+                    } catch (error) {
+                        console.log(`❌ API 路徑 ${path} 失敗:`, error.message);
+                        continue;
+                    }
+                }
+                
+                if (!res) {
+                    throw new Error('所有 API 路徑都失敗');
+                }
+                
+                const list = res.data || res.items || res || [];
+                console.log('📊 API 返回的原始資料:', list);
+                
+                // 根據後端 API 響應結構過濾已移除的學生
+                const removedStudents = list.filter(student => {
+                    console.log('🔍 檢查學生:', student);
+                    console.log('🔍 student.is_active:', student.is_active);
+                    // 後端返回 is_active 欄位，false 表示已移除
+                    return student.is_active === false;
+                }).map(student => ({
+                    id: student.student_id,  // 後端返回的是 student_id
+                    name: student.student_name || '未命名學生',  // 後端返回的是 student_name
+                    email: '',  // 後端沒有返回 email
+                    student_number: student.student_number || '',
+                    removed_at: new Date().toISOString()  // 暫時使用當前時間
+                }));
+                
+                console.log('📊 過濾後的已移除學生:', removedStudents);
+
+                console.log('📊 找到已移除學生數量:', removedStudents.length);
+
+                if (removedStudents.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: var(--text-tertiary); padding: var(--spacing-lg);">尚無已移除的學生</p>';
+                    return;
+                }
+
+                // 渲染已移除學生列表
+                container.innerHTML = removedStudents.map(student => `
+                    <div class="removed-student-item" style="display: flex; justify-content: space-between; align-items: center; padding: var(--spacing-md); border: 1px solid var(--border-light); border-radius: var(--radius-lg); margin-bottom: var(--spacing-sm); background: var(--bg-secondary);">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 500; color: var(--text-primary);">${student.name}</div>
+                            <div style="font-size: var(--font-size-sm); color: var(--text-secondary);">
+                                Email: ${student.email} | 學號: ${student.student_number || '無'}
+                            </div>
+                            <div style="font-size: var(--font-size-xs); color: var(--text-tertiary);">
+                                移除時間: ${new Date(student.removed_at).toLocaleString('zh-TW')}
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: var(--spacing-sm);">
+                            <button class="btn-secondary" onclick="restoreStudent('${student.id}', '${student.name}')" style="font-size: var(--font-size-sm);">
+                                <i class="fas fa-undo"></i>
+                                恢復
+                            </button>
+                            <button class="btn-danger" onclick="removeStudentFromClass('${student.id}', '${student.name}')" style="font-size: var(--font-size-sm);">
+                                <i class="fas fa-trash-alt"></i>
+                                移除
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+
+            } catch (e) {
+                console.error('載入已移除學生失敗', e);
+                const container = document.getElementById('removedStudentsList');
+                if (container) {
+                    container.innerHTML = '<p style="text-align: center; color: var(--error); padding: var(--spacing-lg);">載入失敗，請稍後再試</p>';
+                }
+            }
+        }
+
+        // 恢復主頁面學生
+        async function restoreMainStudent(studentId, studentName) {
+            try {
+                if (!confirm(`確定要恢復學生「${studentName}」嗎？`)) {
+                    return;
+                }
+
+                console.log('🔄 開始恢復學生:', studentId, studentName);
+
+                // 使用正確的 API 路徑
+                let res = null;
+                const apiPaths = [
+                    `/relationships/teacher-management/restore-student/${studentId}`
+                ];
+                
+                for (const path of apiPaths) {
+                    try {
+                        res = await apiClient.patch(path);
+                        if (res && res.success) {
+                            console.log('✅ 學生恢復成功，使用路徑:', path);
+                            break;
+                        }
+                    } catch (error) {
+                        console.log(`❌ API 路徑 ${path} 失敗:`, error.message);
+                        continue;
+                    }
+                }
+                
+                if (!res || !res.success) {
+                    throw new Error('所有恢復 API 路徑都失敗');
+                }
+
+                // 顯示成功訊息
+                showAlert(`學生「${studentName}」已成功恢復`, 'success');
+                
+                // 重新載入已移除學生列表
+                await loadMainRemovedStudents();
+
+            } catch (error) {
+                console.error('恢復學生失敗:', error);
+                showAlert(`恢復學生失敗: ${error.message}`, 'error');
+            }
+        }
+
+        // 永久移除主頁面學生
+        async function permanentlyRemoveMainStudent(studentId, studentName) {
+            try {
+                if (!confirm(`⚠️ 警告：此操作將永久移除學生「${studentName}」，無法恢復！\n\n確定要繼續嗎？`)) {
+                    return;
+                }
+
+                console.log('🗑️ 開始永久移除學生:', studentId, studentName);
+
+                // 使用正確的 API 路徑
+                let res = null;
+                const apiPaths = [
+                    `/relationships/teacher-management/remove-student/${studentId}`
+                ];
+                
+                for (const path of apiPaths) {
+                    try {
+                        res = await apiClient.delete(path);
+                        if (res && res.success) {
+                            console.log('✅ 學生永久移除成功，使用路徑:', path);
+                            break;
+                        }
+                    } catch (error) {
+                        console.log(`❌ API 路徑 ${path} 失敗:`, error.message);
+                        continue;
+                    }
+                }
+                
+                if (!res || !res.success) {
+                    throw new Error('所有永久移除 API 路徑都失敗');
+                }
+
+                // 顯示成功訊息
+                showAlert(`學生「${studentName}」已永久移除`, 'success');
+                
+                // 重新載入已移除學生列表
+                await loadMainRemovedStudents();
+
+            } catch (error) {
+                console.error('永久移除學生失敗:', error);
+                showAlert(`永久移除學生失敗: ${error.message}`, 'error');
+            }
+        }
+
+        // 恢復學生到班級
+        async function restoreStudent(studentId, studentName) {
+            if (!editingId) return;
+
+            if (!confirm(`確定要將 ${studentName} 恢復到班級中嗎？`)) {
+                return;
+            }
+
+            try {
+                showLoading();
+                console.log('🔍 開始恢復學生，ID:', studentId, '到班級:', editingId);
+                
+                // 嘗試多個可能的 API 路徑進行恢復
+                let restored = false;
+                const restorePaths = [
+                    `/relationships/classes/${editingId}/students/${studentId}/restore`
+                ];
+                
+                for (const path of restorePaths) {
+                    try {
+                        // 使用 PATCH 方法恢復學生
+                        await apiClient.patch(path);
+                        restored = true;
+                        console.log('✅ 學生恢復成功，使用路徑:', path);
+                        break;
+                    } catch (error) {
+                        console.log(`❌ 恢復路徑 ${path} 失敗:`, error.message);
+                        continue;
+                    }
+                }
+                
+                if (!restored) {
+                    throw new Error('所有恢復路徑都失敗');
+                }
+                
+                console.log('✅ 學生恢復成功，重新載入資料');
+                showAlert(`學生「${studentName}」已恢復到班級`, 'success');
+                
+                // 重新載入資料
+                await loadClassStudents(editingId);
+                await loadRemovedStudents();
+                
+            } catch (e) {
+                console.error('❌ 恢復失敗:', e);
+                showAlert('恢復失敗：' + (e.message || ''), 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 永久移除學生
+        async function permanentlyRemoveStudent(studentId, studentName) {
+            if (!editingId) return;
+
+            if (!confirm(`⚠️ 警告：此操作將永久移除學生「${studentName}」與班級的關係，無法恢復！\n\n確定要繼續嗎？`)) {
+                return;
+            }
+
+            try {
+                showLoading();
+                console.log('🔍 開始永久移除學生，ID:', studentId, '從班級:', editingId);
+                
+                // 嘗試多個可能的 API 路徑進行永久移除
+                let removed = false;
+                const removePaths = [
+                    `/relationships/classes/${editingId}/students/${studentId}/permanent`,
+                    `/relationships/classes/${editingId}/students/${studentId}/permanent`,
+                    `/relationships/classes/${editingId}/students/${studentId}/force`,
+                    `/relationships/classes/${editingId}/students/${studentId}/force`
+                ];
+                
+                for (const path of removePaths) {
+                    try {
+                        await apiClient.delete(path);
+                        removed = true;
+                        console.log('✅ 學生永久移除成功，使用路徑:', path);
+                        break;
+                    } catch (error) {
+                        console.log(`❌ 永久移除路徑 ${path} 失敗:`, error.message);
+                        continue;
+                    }
+                }
+                
+                if (!removed) {
+                    throw new Error('所有永久移除路徑都失敗');
+                }
+                
+                console.log('✅ 學生永久移除成功，重新載入資料');
+                showAlert(`學生「${studentName}」已永久移除`, 'success');
+                
+                // 重新載入資料
+                await loadRemovedStudents();
+                
+            } catch (e) {
+                console.error('❌ 永久移除失敗:', e);
+                showAlert('永久移除失敗：' + (e.message || ''), 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 批量恢復所有已移除學生
+        async function restoreAllStudents() {
+            if (!editingId) return;
+
+            if (!confirm('確定要恢復所有已移除的學生到班級中嗎？')) {
+                return;
+            }
+
+            try {
+                showLoading();
+                console.log('🔍 開始批量恢復所有已移除學生');
+                
+                // 獲取所有已移除學生的 ID
+                const removedItems = document.querySelectorAll('.removed-student-item');
+                if (removedItems.length === 0) {
+                    showAlert('沒有可恢復的學生', 'info');
+                    return;
+                }
+
+                let successCount = 0;
+                let failCount = 0;
+
+                for (const item of removedItems) {
+                    const restoreBtn = item.querySelector('button[onclick*="restoreStudent"]');
+                    if (restoreBtn) {
+                        const onclick = restoreBtn.getAttribute('onclick');
+                        const match = onclick.match(/restoreStudent\('([^']+)', '([^']+)'\)/);
+                        if (match) {
+                            const id = match[1];
+                            const name = match[2];
+                            
+                            try {
+                                // 嘗試恢復學生
+                                let restored = false;
+                                const restorePaths = [
+                                    `/relationships/classes/${editingId}/students/${id}/restore`,
+                                    `/relationships/classes/${editingId}/students/${id}/restore`,
+                                    `/relationships/classes/${editingId}/students`,
+                                    `/relationships/classes/${editingId}/students`
+                                ];
+                                
+                                for (const path of restorePaths) {
+                                    try {
+                                        if (path.includes('/restore')) {
+                                            await apiClient.post(path);
+                                        } else {
+                                            await apiClient.post(path, { student_id: id });
+                                        }
+                                        restored = true;
+                                        break;
+                                    } catch (error) {
+                                        continue;
+                                    }
+                                }
+                                
+                                if (restored) {
+                                    successCount++;
+                                    console.log(`✅ 成功恢復學生: ${name}`);
+                                } else {
+                                    failCount++;
+                                    console.log(`❌ 恢復失敗學生: ${name}`);
+                                }
+                            } catch (error) {
+                                failCount++;
+                                console.log(`❌ 恢復失敗學生: ${name}`, error);
+                            }
+                        }
+                    }
+                }
+
+                console.log(`📊 批量恢復完成: 成功 ${successCount} 個，失敗 ${failCount} 個`);
+                
+                if (successCount > 0) {
+                    showAlert(`批量恢復完成！成功恢復 ${successCount} 個學生${failCount > 0 ? `，${failCount} 個失敗` : ''}`, 'success');
+                    
+                    // 重新載入資料
+                    await loadClassStudents(editingId);
+                    await loadRemovedStudents();
+                } else {
+                    showAlert('沒有學生被成功恢復', 'warning');
+                }
+                
+            } catch (e) {
+                console.error('❌ 批量恢復失敗:', e);
+                showAlert('批量恢復失敗：' + (e.message || ''), 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 恢復所有主頁面學生
+        async function restoreAllMainStudents() {
+            try {
+                if (!confirm('確定要恢復所有已移除的學生嗎？')) {
+                    return;
+                }
+
+                console.log('🔄 開始恢復所有主頁面學生');
+
+                // 使用正確的 API 路徑
+                let res = null;
+                const apiPaths = [
+                    `/relationships/teacher-management/restore-all-students`
+                ];
+                
+                for (const path of apiPaths) {
+                    try {
+                        res = await apiClient.patch(path);
+                        if (res && res.success) {
+                            console.log('✅ 所有學生恢復成功，使用路徑:', path);
+                            break;
+                        }
+                    } catch (error) {
+                        console.log(`❌ API 路徑 ${path} 失敗:`, error.message);
+                        continue;
+                    }
+                }
+                
+                if (!res || !res.success) {
+                    throw new Error('所有批量恢復 API 路徑都失敗');
+                }
+
+                // 顯示成功訊息
+                showAlert('所有已移除的學生已成功恢復', 'success');
+                
+                // 重新載入已移除學生列表
+                await loadMainRemovedStudents();
+
+            } catch (error) {
+                console.error('批量恢復學生失敗:', error);
+                showAlert(`批量恢復學生失敗: ${error.message}`, 'error');
+            }
+        }
+
+        // 清空所有主頁面已移除學生
+        async function clearAllMainRemovedStudents() {
+            try {
+                if (!confirm('⚠️ 警告：此操作將永久移除所有已移除的學生，無法恢復！\n\n確定要繼續嗎？')) {
+                    return;
+                }
+
+                console.log('🗑️ 開始清空所有主頁面已移除學生');
+
+                // 使用正確的 API 路徑
+                let res = null;
+                const apiPaths = [
+                    `/relationships/teacher-management/clear-all-removed-students`
+                ];
+                
+                for (const path of apiPaths) {
+                    try {
+                        res = await apiClient.delete(path);
+                        if (res && res.success) {
+                            console.log('✅ 所有已移除學生清空成功，使用路徑:', path);
+                            break;
+                        }
+                    } catch (error) {
+                        console.log(`❌ API 路徑 ${path} 失敗:`, error.message);
+                        continue;
+                    }
+                }
+                
+                if (!res || !res.success) {
+                    throw new Error('所有清空 API 路徑都失敗');
+                }
+
+                // 顯示成功訊息
+                showAlert('所有已移除的學生已清空', 'success');
+                
+                // 重新載入已移除學生列表
+                await loadMainRemovedStudents();
+
+            } catch (error) {
+                console.error('清空所有已移除學生失敗:', error);
+                showAlert(`清空所有已移除學生失敗: ${error.message}`, 'error');
+            }
+        }
+
+        // 清空所有已移除學生（永久移除）
+        async function clearAllRemovedStudents() {
+            if (!editingId) return;
+
+            if (!confirm('⚠️ 警告：此操作將永久移除所有已移除的學生與班級的關係，無法恢復！\n\n確定要繼續嗎？')) {
+                return;
+            }
+
+            try {
+                showLoading();
+                console.log('🔍 開始清空所有已移除學生');
+                
+                // 獲取所有已移除學生的 ID
+                const removedItems = document.querySelectorAll('.removed-student-item');
+                if (removedItems.length === 0) {
+                    showAlert('沒有可清空的學生', 'info');
+                    return;
+                }
+
+                let successCount = 0;
+                let failCount = 0;
+
+                for (const item of removedItems) {
+                    const deleteBtn = item.querySelector('button[onclick*="permanentlyRemoveStudent"]');
+                    if (deleteBtn) {
+                        const onclick = deleteBtn.getAttribute('onclick');
+                        const match = onclick.match(/permanentlyRemoveStudent\('([^']+)', '([^']+)'\)/);
+                        if (match) {
+                            const id = match[1];
+                            const name = match[2];
+                            
+                            try {
+                                // 嘗試永久移除學生
+                                let removed = false;
+                                const removePaths = [
+                                    `/relationships/classes/${editingId}/students/${id}/permanent`,
+                                    `/relationships/classes/${editingId}/students/${id}/permanent`,
+                                    `/relationships/classes/${editingId}/students/${id}/force`,
+                                    `/relationships/classes/${editingId}/students/${id}/force`
+                                ];
+                                
+                                for (const path of removePaths) {
+                                    try {
+                                        await apiClient.delete(path);
+                                        removed = true;
+                                        break;
+                                    } catch (error) {
+                                        continue;
+                                    }
+                                }
+                                
+                                if (removed) {
+                                    successCount++;
+                                    console.log(`✅ 成功永久移除學生: ${name}`);
+                                } else {
+                                    failCount++;
+                                    console.log(`❌ 永久移除失敗學生: ${name}`);
+                                }
+                            } catch (error) {
+                                failCount++;
+                                console.log(`❌ 永久移除失敗學生: ${name}`, error);
+                            }
+                        }
+                    }
+                }
+
+                console.log(`📊 清空完成: 成功移除 ${successCount} 個，失敗 ${failCount} 個`);
+                
+                if (successCount > 0) {
+                    showAlert(`清空完成！成功移除 ${successCount} 個學生${failCount > 0 ? `，${failCount} 個失敗` : ''}`, 'success');
+                    
+                    // 重新載入資料
+                    await loadRemovedStudents();
+                } else {
+                    showAlert('沒有學生被成功移除', 'warning');
+                }
+                
+            } catch (e) {
+                console.error('❌ 清空失敗:', e);
+                showAlert('清空失敗：' + (e.message || ''), 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+    </script>
+</body>
+
+</html>

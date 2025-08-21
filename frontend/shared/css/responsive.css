@@ -1,0 +1,529 @@
+/* 響應式設計樣式 (Responsive Design CSS) - InULearning 個人化學習平台 */
+
+/* ===== 響應式斷點 ===== */
+/* 
+   - 手機: < 576px (預設)
+   - 平板: 576px - 768px
+   - 桌面: 768px - 992px
+   - 大桌面: 992px - 1200px
+   - 超大桌面: > 1200px
+*/
+
+/* ===== 手機優先設計 (Mobile First) ===== */
+
+/* 基礎響應式容器 */
+.container {
+    width: 100%;
+    padding-right: 1rem;
+    padding-left: 1rem;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+/* 手機端樣式 (預設) */
+@media (max-width: 575.98px) {
+    .container {
+        max-width: 100%;
+    }
+    
+    /* 導航欄響應式 */
+    .navbar {
+        padding: 0.5rem 1rem;
+    }
+    
+    .navbar-brand {
+        font-size: 1.25rem;
+    }
+    
+    .navbar-nav {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .navbar-nav .nav-item {
+        width: 100%;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .navbar-nav .nav-link {
+        padding: 1rem;
+        text-align: center;
+    }
+    
+    /* 卡片響應式 */
+    .card {
+        margin-bottom: 1rem;
+        padding: 1rem;
+    }
+    
+    .card-title {
+        font-size: 1.125rem;
+    }
+    
+    /* 表單響應式 */
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    
+    .form-control {
+        padding: 0.75rem;
+        font-size: 16px; /* 防止 iOS 縮放 */
+    }
+    
+    /* 按鈕響應式 */
+    .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    .btn-group .btn {
+        width: auto;
+    }
+    
+    /* 表格響應式 */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .table {
+        font-size: 0.875rem;
+    }
+    
+    .table th,
+    .table td {
+        padding: 0.5rem;
+    }
+    
+    /* 模態框響應式 */
+    .modal-content {
+        margin: 1rem;
+        width: calc(100% - 2rem);
+    }
+    
+    .modal-header,
+    .modal-body,
+    .modal-footer {
+        padding: 1rem;
+    }
+    
+    /* 工具提示響應式 */
+    .tooltip .tooltip-text {
+        width: 150px;
+        font-size: 0.75rem;
+    }
+    
+    /* 隱藏桌面元素 */
+    .d-md-block,
+    .d-lg-block,
+    .d-xl-block {
+        display: none !important;
+    }
+    
+    /* 顯示手機元素 */
+    .d-sm-block {
+        display: block !important;
+    }
+    
+    .d-sm-flex {
+        display: flex !important;
+    }
+}
+
+/* ===== 平板端樣式 ===== */
+@media (min-width: 576px) and (max-width: 767.98px) {
+    .container {
+        max-width: 540px;
+    }
+    
+    /* 導航欄調整 */
+    .navbar {
+        padding: 0.75rem 1.5rem;
+    }
+    
+    .navbar-brand {
+        font-size: 1.5rem;
+    }
+    
+    /* 卡片調整 */
+    .card {
+        padding: 1.25rem;
+    }
+    
+    .card-title {
+        font-size: 1.25rem;
+    }
+    
+    /* 按鈕調整 */
+    .btn {
+        padding: 0.75rem 1.25rem;
+    }
+    
+    /* 表單調整 */
+    .form-control {
+        padding: 0.875rem;
+    }
+    
+    /* 隱藏桌面元素 */
+    .d-lg-block,
+    .d-xl-block {
+        display: none !important;
+    }
+    
+    /* 顯示平板元素 */
+    .d-md-block {
+        display: block !important;
+    }
+    
+    .d-md-flex {
+        display: flex !important;
+    }
+}
+
+/* ===== 桌面端樣式 ===== */
+@media (min-width: 768px) and (max-width: 991.98px) {
+    .container {
+        max-width: 720px;
+    }
+    
+    /* 導航欄桌面化 */
+    .navbar {
+        padding: 1rem 2rem;
+    }
+    
+    .navbar-nav {
+        flex-direction: row;
+    }
+    
+    .navbar-nav .nav-item {
+        width: auto;
+        border-bottom: none;
+    }
+    
+    .navbar-nav .nav-link {
+        padding: 0.5rem 1rem;
+    }
+    
+    /* 卡片桌面化 */
+    .card {
+        padding: 1.5rem;
+    }
+    
+    /* 按鈕桌面化 */
+    .btn {
+        width: auto;
+        margin-bottom: 0;
+    }
+    
+    /* 表格桌面化 */
+    .table {
+        font-size: 1rem;
+    }
+    
+    .table th,
+    .table td {
+        padding: 0.75rem;
+    }
+    
+    /* 隱藏大桌面元素 */
+    .d-xl-block {
+        display: none !important;
+    }
+    
+    /* 顯示桌面元素 */
+    .d-lg-block {
+        display: block !important;
+    }
+    
+    .d-lg-flex {
+        display: flex !important;
+    }
+}
+
+/* ===== 大桌面端樣式 ===== */
+@media (min-width: 992px) and (max-width: 1199.98px) {
+    .container {
+        max-width: 960px;
+    }
+    
+    /* 導航欄大桌面化 */
+    .navbar {
+        padding: 1.25rem 2.5rem;
+    }
+    
+    .navbar-brand {
+        font-size: 1.75rem;
+    }
+    
+    /* 卡片大桌面化 */
+    .card {
+        padding: 2rem;
+    }
+    
+    .card-title {
+        font-size: 1.5rem;
+    }
+    
+    /* 表單大桌面化 */
+    .form-control {
+        padding: 1rem;
+        font-size: 1.125rem;
+    }
+    
+    /* 按鈕大桌面化 */
+    .btn {
+        padding: 1rem 2rem;
+        font-size: 1.125rem;
+    }
+    
+    /* 顯示大桌面元素 */
+    .d-xl-block {
+        display: block !important;
+    }
+    
+    .d-xl-flex {
+        display: flex !important;
+    }
+}
+
+/* ===== 超大桌面端樣式 ===== */
+@media (min-width: 1200px) {
+    .container {
+        max-width: 1140px;
+    }
+    
+    /* 導航欄超大桌面化 */
+    .navbar {
+        padding: 1.5rem 3rem;
+    }
+    
+    .navbar-brand {
+        font-size: 2rem;
+    }
+    
+    /* 卡片超大桌面化 */
+    .card {
+        padding: 2.5rem;
+    }
+    
+    .card-title {
+        font-size: 1.75rem;
+    }
+    
+    /* 表單超大桌面化 */
+    .form-control {
+        padding: 1.25rem;
+        font-size: 1.25rem;
+    }
+    
+    /* 按鈕超大桌面化 */
+    .btn {
+        padding: 1.25rem 2.5rem;
+        font-size: 1.25rem;
+    }
+}
+
+/* ===== 橫向手機樣式 ===== */
+@media (max-width: 767.98px) and (orientation: landscape) {
+    .navbar {
+        padding: 0.25rem 1rem;
+    }
+    
+    .navbar-brand {
+        font-size: 1.125rem;
+    }
+    
+    .card {
+        padding: 0.75rem;
+    }
+    
+    .modal-content {
+        max-height: 80vh;
+    }
+}
+
+/* ===== 高解析度螢幕 ===== */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    /* 高解析度圖示和邊框 */
+    .btn,
+    .card,
+    .form-control {
+        border-width: 0.5px;
+    }
+}
+
+/* ===== 列印樣式 ===== */
+@media print {
+    /* 隱藏不需要列印的元素 */
+    .navbar,
+    .btn,
+    .modal,
+    .tooltip {
+        display: none !important;
+    }
+    
+    /* 調整列印樣式 */
+    .container {
+        max-width: none;
+        padding: 0;
+    }
+    
+    .card {
+        border: 1px solid #000;
+        box-shadow: none;
+        page-break-inside: avoid;
+    }
+    
+    .table {
+        border-collapse: collapse;
+    }
+    
+    .table th,
+    .table td {
+        border: 1px solid #000;
+    }
+    
+    /* 確保文字清晰 */
+    body {
+        font-size: 12pt;
+        line-height: 1.4;
+    }
+    
+    h1, h2, h3, h4, h5, h6 {
+        page-break-after: avoid;
+    }
+}
+
+/* ===== 無障礙設計 ===== */
+@media (prefers-reduced-motion: reduce) {
+    /* 減少動畫效果 */
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    /* 深色模式支援 (如果未來需要) */
+    /* 目前保持淺色模式，未來可擴展 */
+}
+
+/* ===== 觸控設備優化 ===== */
+@media (hover: none) and (pointer: coarse) {
+    /* 觸控設備優化 */
+    .btn,
+    .nav-link,
+    .dropdown-item {
+        min-height: 44px; /* iOS 建議的最小觸控目標 */
+        min-width: 44px;
+    }
+    
+    .form-control {
+        min-height: 44px;
+    }
+    
+    /* 增加觸控間距 */
+    .btn + .btn,
+    .nav-item + .nav-item {
+        margin-left: 0.5rem;
+    }
+}
+
+/* ===== 效能優化 ===== */
+@media (max-width: 767.98px) {
+    /* 手機端效能優化 */
+    .card {
+        will-change: transform;
+    }
+    
+    /* 減少陰影複雜度 */
+    .card:hover {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* 簡化動畫 */
+    .btn:hover {
+        transform: none;
+    }
+}
+
+/* ===== 特殊設備支援 ===== */
+/* 超寬螢幕 */
+@media (min-width: 1400px) {
+    .container {
+        max-width: 1320px;
+    }
+}
+
+/* 超小螢幕手機 */
+@media (max-width: 359.98px) {
+    .container {
+        padding-right: 0.5rem;
+        padding-left: 0.5rem;
+    }
+    
+    .card {
+        padding: 0.75rem;
+    }
+    
+    .btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+    }
+    
+    .navbar-brand {
+        font-size: 1rem;
+    }
+}
+
+/* ===== 響應式工具類 ===== */
+/* 顯示/隱藏工具類 */
+.d-sm-none { display: none !important; }
+.d-sm-block { display: block !important; }
+.d-sm-flex { display: flex !important; }
+
+@media (min-width: 576px) {
+    .d-md-none { display: none !important; }
+    .d-md-block { display: block !important; }
+    .d-md-flex { display: flex !important; }
+}
+
+@media (min-width: 768px) {
+    .d-lg-none { display: none !important; }
+    .d-lg-block { display: block !important; }
+    .d-lg-flex { display: flex !important; }
+}
+
+@media (min-width: 992px) {
+    .d-xl-none { display: none !important; }
+    .d-xl-block { display: block !important; }
+    .d-xl-flex { display: flex !important; }
+}
+
+/* 文字對齊響應式 */
+@media (min-width: 576px) {
+    .text-sm-left { text-align: left !important; }
+    .text-sm-center { text-align: center !important; }
+    .text-sm-right { text-align: right !important; }
+}
+
+@media (min-width: 768px) {
+    .text-md-left { text-align: left !important; }
+    .text-md-center { text-align: center !important; }
+    .text-md-right { text-align: right !important; }
+}
+
+@media (min-width: 992px) {
+    .text-lg-left { text-align: left !important; }
+    .text-lg-center { text-align: center !important; }
+    .text-lg-right { text-align: right !important; }
+}
+
+@media (min-width: 1200px) {
+    .text-xl-left { text-align: left !important; }
+    .text-xl-center { text-align: center !important; }
+    .text-xl-right { text-align: right !important; }
+} 

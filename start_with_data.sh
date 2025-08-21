@@ -315,13 +315,13 @@ setup_directories() {
     # 建立必要目錄
     local directories=(
         "logs"
-        "init-scripts"
         "nginx/conf.d"
         "data/postgres"
         "data/mongodb"
         "data/redis"
         "data/minio"
         "files"
+        "2_implementation/database"
     )
     
     for dir in "${directories[@]}"; do
@@ -332,7 +332,7 @@ setup_directories() {
     done
     
     # 設置權限
-    chmod -R 755 logs init-scripts nginx/conf.d files 2>/dev/null || true
+    chmod -R 755 logs nginx/conf.d files 2>/dev/null || true
     
     # 針對 logs 目錄額外設定擁有者權限，確保日誌寫入順暢
     if [ -d "logs" ]; then
@@ -517,9 +517,9 @@ initialize_test_data() {
         log_success "測試資料已存在 ($user_count 個用戶)"
     else
         # 執行測試資料初始化
-        if [ -f "init-scripts/init-test-data.sql" ]; then
+        if [ -f "2_implementation/database/seeds/postgresql/init-test-data.sql" ]; then
             log_info "執行測試資料初始化..."
-            $DOCKER_COMPOSE_CMD exec -T postgres psql -U aipe-tester -d inulearning < init-scripts/init-test-data.sql 2>/dev/null || {
+            $DOCKER_COMPOSE_CMD exec -T postgres psql -U aipe-tester -d inulearning < 2_implementation/database/seeds/postgresql/init-test-data.sql 2>/dev/null || {
                 log_warning "測試資料初始化失敗，使用基本用戶創建"
                 create_basic_users
             }

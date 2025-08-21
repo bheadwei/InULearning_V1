@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nginx 代理測試 - InULearning</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .test-section { margin: 20px 0; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .info { color: #007bff; }
+        .warning { color: #ffc107; }
+        .btn { padding: 8px 16px; margin: 5px; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-warning { background: #ffc107; color: black; }
+        .log { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; padding: 10px; margin: 10px 0; font-family: monospace; }
+        .status { padding: 5px 10px; border-radius: 4px; color: white; font-size: 12px; }
+        .status-ok { background: #28a745; }
+        .status-error { background: #dc3545; }
+        .status-warning { background: #ffc107; color: black; }
+    </style>
+</head>
+<body>
+    <h1>🔗 Nginx 代理 API 測試</h1>
+    
+    <div class="test-section">
+        <h2>📊 Nginx 代理狀態</h2>
+        <div id="proxyStatus">
+            <p>檢查 nginx 代理狀態...</p>
+        </div>
+        <button class="btn btn-primary" onclick="checkNginxProxy()">檢查 Nginx 代理</button>
+        <button class="btn btn-success" onclick="testAuthAPI()">測試認證 API</button>
+        <button class="btn btn-warning" onclick="testTeacherAPI()">測試教師 API</button>
+    </div>
+
+    <div class="test-section">
+        <h2>📝 測試日誌</h2>
+        <button class="btn btn-primary" onclick="clearLogs()">清除日誌</button>
+        <div id="testLogs"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>💡 解決方案說明</h2>
+        <p><strong>問題:</strong> 瀏覽器無法直接連接後端服務 (CORS 錯誤)</p>
+        <p><strong>解決方案:</strong> 使用 nginx 代理路徑</p>
+        <ul>
+            <li>✅ 認證服務: <code>/api/v1/auth/*</code></li>
+            <li>✅ 學習服務: <code>/api/v1/learning/*</code></li>
+            <li>✅ 題庫服務: <code>/api/v1/questions/*</code></li>
+            <li>⚠️ 教師管理服務: 需要添加 nginx 配置</li>
+        </ul>
+    </div>
+
+    <script>
+        const testLogs = document.getElementById('testLogs');
+        const proxyStatus = document.getElementById('proxyStatus');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logDiv = document.createElement('div');
+            logDiv.className = `log ${type}`;
+            logDiv.innerHTML = `<strong>[${timestamp}]</strong> ${message}`;
+            testLogs.appendChild(logDiv);
+            console.log(`[${timestamp}] ${message}`);
+        }
+
+        function clearLogs() {
+            testLogs.innerHTML = '';
+            log('日誌已清除', 'info');
+        }
+
+        // 檢查 nginx 代理狀態
+        async function checkNginxProxy() {
+            log('🔍 開始檢查 nginx 代理狀態...', 'info');
+            
+            const proxyEndpoints = [
+                { name: '認證服務代理', url: 'http://localhost/api/v1/auth/health', expected: 'healthy' },
+                { name: '學習服務代理', url: 'http://localhost/api/v1/learning/health', expected: 'healthy' },
+                { name: '題庫服務代理', url: 'http://localhost/api/v1/questions/health', expected: 'healthy' }
+            ];
+            
+            let statusHTML = '<h3>Nginx 代理狀態:</h3>';
+            let allWorking = true;
+            
+            for (const endpoint of proxyEndpoints) {
+                try {
+                    const response = await fetch(endpoint.url);
+                    if (response.ok) {
+                        const data = await response.json();
+                        const isHealthy = data.status === endpoint.expected;
+                        const statusClass = isHealthy ? 'status-ok' : 'status-warning';
+                        const statusText = isHealthy ? '正常' : '異常';
+                        
+                        statusHTML += `
+                            <p>
+                                <span class="status ${statusClass}">${statusText}</span>
+                                ${endpoint.name}: ${endpoint.url}
+                                <br><small>回應: ${JSON.stringify(data)}</small>
+                            </p>
+                        `;
+                        
+                        if (!isHealthy) allWorking = false;
+                        log(`${endpoint.name}: ${statusText}`, isHealthy ? 'success' : 'warning');
+                    } else {
+                        statusHTML += `
+                            <p>
+                                <span class="status status-error">HTTP ${response.status}</span>
+                                ${endpoint.name}: ${endpoint.url}
+                            </p>
+                        `;
+                        allWorking = false;
+                        log(`${endpoint.name}: HTTP ${response.status}`, 'error');
+                    }
+                } catch (error) {
+                    statusHTML += `
+                        <p>
+                            <span class="status status-error">連接失敗</span>
+                            ${endpoint.name}: ${endpoint.url}
+                            <br><small>錯誤: ${error.message}</small>
+                        </p>
+                    `;
+                    allWorking = false;
+                    log(`${endpoint.name}: 連接失敗 - ${error.message}`, 'error');
+                }
+            }
+            
+            if (allWorking) {
+                statusHTML += '<p style="color: green; font-weight: bold;">🎉 所有 nginx 代理都正常工作！</p>';
+                log('✅ 所有 nginx 代理都正常工作', 'success');
+            } else {
+                statusHTML += '<p style="color: orange; font-weight: bold;">⚠️ 部分 nginx 代理有問題</p>';
+                log('⚠️ 部分 nginx 代理有問題', 'warning');
+            }
+            
+            proxyStatus.innerHTML = statusHTML;
+        }
+
+        // 測試認證 API
+        async function testAuthAPI() {
+            log('🔐 測試認證 API (通過 nginx 代理)...', 'info');
+            
+            try {
+                // 使用完整的 localhost 路徑
+                const response = await fetch('http://localhost/api/v1/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: 'teacher@example.com',
+                        password: 'password123'
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    log('✅ 認證 API 測試成功！', 'success');
+                    log(`📋 回應數據: ${JSON.stringify(data, null, 2)}`, 'info');
+                } else {
+                    const errorData = await response.json();
+                    log(`❌ 認證 API 測試失敗: ${response.status}`, 'error');
+                    log(`📋 錯誤詳情: ${JSON.stringify(errorData, null, 2)}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ 認證 API 測試失敗: ${error.message}`, 'error');
+            }
+        }
+
+        // 測試教師 API (可能失敗，因為沒有代理配置)
+        async function testTeacherAPI() {
+            log('👨‍🏫 測試教師管理 API...', 'info');
+            
+            try {
+                // 嘗試通過 nginx 代理 (可能失敗)
+                const response = await fetch('http://localhost/api/v1/teacher/classes');
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log('✅ 教師管理 API 測試成功！', 'success');
+                    log(`📋 回應數據: ${JSON.stringify(data, null, 2)}`, 'info');
+                } else {
+                    log(`❌ 教師管理 API 測試失敗: HTTP ${response.status}`, 'error');
+                    if (response.status === 404) {
+                        log('💡 這表示 nginx 中沒有教師管理服務的代理配置', 'warning');
+                    }
+                }
+            } catch (error) {
+                log(`❌ 教師管理 API 測試失敗: ${error.message}`, 'error');
+                log('💡 這通常是因為 nginx 中沒有教師管理服務的代理配置', 'warning');
+            }
+        }
+
+        // 頁面載入完成後的初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            log('🚀 Nginx 代理測試頁面載入完成', 'success');
+            log('💡 點擊 "檢查 Nginx 代理" 開始測試', 'info');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,454 @@
+events {
+    worker_connections 1024;
+}
+
+http {
+    include       /etc/nginx/mime.types;
+    default_type  application/octet-stream;
+    
+    # 日誌格式
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for"';
+    
+    access_log  /var/log/nginx/access.log  main;
+    error_log   /var/log/nginx/error.log   warn;
+    
+    # 基本設置
+    sendfile        on;
+    tcp_nopush      on;
+    tcp_nodelay     on;
+    keepalive_timeout  65;
+    types_hash_max_size 2048;
+    
+    # Gzip 壓縮
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_types text/plain text/css text/xml text/javascript application/javascript application/xml+rss application/json;
+    
+    # 上游服務定義
+    upstream auth-service {
+        server inulearning_auth_service:8000;
+    }
+    
+    upstream question-bank-service {
+        server inulearning_question_bank_service:8000;
+    }
+    
+    upstream learning-service {
+        server inulearning_learning_service:8000;
+    }
+    
+    upstream ai-analysis-service {
+        server inulearning_ai_analysis_service:8004;
+    }
+
+    upstream teacher-frontend {
+        server inulearning_teacher_frontend:80;
+    }
+
+    upstream teacher-management-service {
+        server inulearning_teacher_management_service:8006;
+    }
+    
+    server {
+        listen 80;
+        server_name localhost;
+        
+        # 根路徑重定向到首頁
+        location = / {
+            return 302 /index.html;
+        }
+        
+        # 首頁
+        location /index.html {
+            root /usr/share/nginx/html;
+            try_files $uri =404;
+        }
+        
+        # 統一登入頁面
+        location /login.html {
+            root /usr/share/nginx/html;
+            try_files $uri =404;
+        }
+        
+        # 統一註冊頁面
+        location /register.html {
+            root /usr/share/nginx/html;
+            try_files $uri =404;
+        }
+        
+        # 處理帶斜線的 URL
+        location ~ ^/(login\.html|index\.html|register\.html)/$ {
+            rewrite ^/(.*)/$ /$1 permanent;
+        }
+        
+        # 靜態資源
+        location /static/ {
+            root /usr/share/nginx/html;
+            expires 1y;
+            add_header Cache-Control "public, immutable";
+        }
+
+        # 共用資源（圖片等）
+        location /shared/ {
+            root /usr/share/nginx/html;
+            expires 1y;
+            add_header Cache-Control "public, immutable";
+            try_files $uri =404;
+        }
+
+        # 圖片資源（/image/* 對應 /usr/share/nginx/html/image/*）
+        location /image/ {
+            root /usr/share/nginx/html;
+            expires 1y;
+            add_header Cache-Control "public, immutable";
+            try_files $uri =404;
+        }
+
+        # 預設靜態處理（讓未定義的靜態路徑仍可使用根目錄查找）
+        # 注意：API 路由必須在此之前定義，避免被 try_files 重定向
+        location / {
+            root /usr/share/nginx/html;
+            try_files $uri $uri/ =404;
+        }
+        
+        # JavaScript 文件（若本機無對應檔案則回退到教師前端）
+        location /js/ {
+            root /usr/share/nginx/html;
+            try_files $uri @teacher_js;
+            expires 1d;
+            add_header Cache-Control "public";
+        }
+        location @teacher_js {
+            proxy_pass http://teacher-frontend;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+        
+        # CSS 文件（若本機無對應檔案則回退到教師前端）
+        location /css/ {
+            root /usr/share/nginx/html;
+            try_files $uri @teacher_css;
+            expires 1d;
+            add_header Cache-Control "public";
+        }
+        location @teacher_css {
+            proxy_pass http://teacher-frontend;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+
+        # 教師前端頁面透過主網關提供原有網址 /pages/*
+        location /pages/ {
+            proxy_pass http://teacher-frontend;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+        
+        # 認證服務 API
+        location /api/v1/auth {
+            proxy_pass http://auth-service:8000/api/v1/auth;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            
+            # CORS 設置
+            add_header 'Access-Control-Allow-Origin' '*' always;
+            add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, OPTIONS' always;
+            add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization' always;
+
+            if ($request_method = 'OPTIONS') {
+                add_header 'Access-Control-Max-Age' 1728000;
+                add_header 'Content-Type' 'text/plain; charset=utf-8';
+                add_header 'Content-Length' 0;
+                return 204;
+            }
+        }
+
+        # 兼容教師專用登入端點（映射到通用登入）
+        location = /api/v1/auth/teacher/login {
+            proxy_pass http://auth-service:8000/api/v1/auth/login;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+
+        # 教師聚合服務 API
+        location /api/v1/teacher {
+            proxy_pass http://teacher-management-service:8006/api/v1/teacher/;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header Authorization $http_authorization;
+
+            # CORS 設置
+            add_header 'Access-Control-Allow-Origin' '*' always;
+            add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, OPTIONS' always;
+            add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization' always;
+        }
+        
+        # 用戶管理 API
+        location /api/v1/users {
+            proxy_pass http://auth-service:8000/api/v1/users/;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            
+            # CORS 設置
+            add_header 'Access-Control-Allow-Origin' '*' always;
+            add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, OPTIONS' always;
+            add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization' always;
+
+            if ($request_method = 'OPTIONS') {
+                add_header 'Access-Control-Max-Age' 1728000;
+                add_header 'Content-Type' 'text/plain; charset=utf-8';
+                add_header 'Content-Length' 0;
+                return 204;
+            }
+        }
+        
+        # 關係管理 API
+        location /api/v1/relationships {
+            proxy_pass http://auth-service:8000/api/v1/relationships;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header Authorization $http_authorization;
+            
+            # CORS 設置
+            add_header 'Access-Control-Allow-Origin' '*' always;
+            add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, OPTIONS' always;
+            add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization' always;
+
+            if ($request_method = 'OPTIONS') {
+                add_header 'Access-Control-Max-Age' 1728000;
+                add_header 'Content-Type' 'text/plain; charset=utf-8';
+                add_header 'Content-Length' 0;
+                return 204;
+            }
+        }
+        
+        # 全局 OPTIONS 請求處理（CORS 預檢）
+        location = /cors-preflight {
+            if ($request_method = 'OPTIONS') {
+                add_header 'Access-Control-Max-Age' 1728000;
+                add_header 'Content-Type' 'text/plain; charset=utf-8';
+                add_header 'Content-Length' 0;
+                return 204;
+            }
+            return 404;
+        }
+        
+        # 簡化路徑的 API 路由（支援前端使用）
+        location /assignments/ {
+            proxy_pass http://learning-service:8000/api/v1/learning/assignments/;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+        
+        location /learning/ {
+            proxy_pass http://learning-service:8000/api/v1/learning/;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+        
+        location /questions/ {
+            proxy_pass http://question-bank-service:8000/api/v1/questions/;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+        
+        location /relationships/ {
+            proxy_pass http://auth-service:8000/api/v1/relationships/;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header Authorization $http_authorization;
+        }
+        
+        # 題庫服務 API
+        location /api/v1/questions {
+            proxy_pass http://question-bank-service:8000/api/v1/questions;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            
+            # CORS 設置
+            add_header 'Access-Control-Allow-Origin' '*' always;
+            add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, OPTIONS' always;
+            add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization' always;
+            
+            # 處理 OPTIONS 預檢請求
+            if ($request_method = 'OPTIONS') {
+                add_header 'Access-Control-Max-Age' 1728000;
+                add_header 'Content-Type' 'text/plain; charset=utf-8';
+                add_header 'Content-Length' 0;
+                return 204;
+            }
+        }
+        
+        # 學習服務 API
+        location /api/v1/learning {
+            proxy_pass http://learning-service:8000/api/v1/learning/;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            
+            # CORS 設置
+            add_header 'Access-Control-Allow-Origin' '*' always;
+            add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, OPTIONS' always;
+            add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization' always;
+            
+            # 處理 OPTIONS 預檢請求
+            if ($request_method = 'OPTIONS') {
+                add_header 'Access-Control-Max-Age' 1728000;
+                add_header 'Content-Type' 'text/plain; charset=utf-8';
+                add_header 'Content-Length' 0;
+                return 204;
+            }
+        }
+        
+        # 作業管理 API
+        location /api/v1/assignments {
+            proxy_pass http://learning-service:8000/api/v1/learning/assignments/;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            
+            # CORS 設置
+            add_header 'Access-Control-Allow-Origin' '*' always;
+            add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, OPTIONS' always;
+            add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization' always;
+            
+            # 處理 OPTIONS 預檢請求
+            if ($request_method = 'OPTIONS') {
+                add_header 'Access-Control-Max-Age' 1728000;
+                add_header 'Content-Type' 'text/plain; charset=utf-8';
+                add_header 'Content-Length' 0;
+                return 204;
+            }
+        }
+
+        # AI 分析服務 API
+        location /api/v1/ai {
+            proxy_pass http://ai-analysis-service:8004;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            
+            # CORS 設置
+            add_header 'Access-Control-Allow-Origin' '*' always;
+            add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, OPTIONS' always;
+            add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization' always;
+            
+            # 處理 OPTIONS 預檢請求
+            if ($request_method = 'OPTIONS') {
+                add_header 'Access-Control-Max-Age' 1728000;
+                add_header 'Content-Type' 'text/plain; charset=utf-8';
+                return 204;
+            }
+        }
+        
+        # 健康檢查端點
+        location /api/v1/auth/health {
+            proxy_pass http://auth-service:8000/health;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+        
+        location /api/v1/questions/health {
+            proxy_pass http://question-bank-service:8000/health;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+        
+        location /api/v1/learning/health {
+            proxy_pass http://learning-service:8000/health;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+
+        # 兼容無 /v1 的健康檢查路由
+        location = /api/auth/health { proxy_pass http://auth-service:8000/health; }
+        location = /api/questions/health { proxy_pass http://question-bank-service:8000/health; }
+        location = /api/learning/health { proxy_pass http://learning-service:8000/health; }
+        location = /api/ai/health { proxy_pass http://ai-analysis-service:8004/health; }
+
+        location /api/v1/teacher/health {
+            proxy_pass http://teacher-management-service:8006/health;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+        
+        # 前端應用代理 (暫時註釋，可通過獨立端口訪問)
+        # 學生前端: http://localhost:8080
+        # 管理員前端: http://localhost:8081  
+        # 家長前端: http://localhost:8082
+        # 教師前端: http://localhost:8083
+        
+        # location /student/ {
+        #     proxy_pass http://student-frontend:80/;
+        #     proxy_set_header Host $host;
+        #     proxy_set_header X-Real-IP $remote_addr;
+        #     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        #     proxy_set_header X-Forwarded-Proto $scheme;
+        # }
+        
+        # location /parent/ {
+        #     proxy_pass http://parent-frontend:80/;
+        #     proxy_set_header Host $host;
+        #     proxy_set_header X-Real-IP $remote_addr;
+        #     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        #     proxy_set_header X-Forwarded-Proto $scheme;
+        # }
+        
+        # location /teacher/ {
+        #     proxy_pass http://teacher-frontend:80/;
+        #     proxy_set_header Host $host;
+        #     proxy_set_header X-Real-IP $remote_addr;
+        #     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        #     proxy_set_header X-Forwarded-Proto $scheme;
+        # }
+        
+        # location /admin/ {
+        #     proxy_pass http://admin-frontend:80/;
+        #     proxy_set_header Host $host;
+        #     proxy_set_header X-Real-IP $remote_addr;
+        #     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        #     proxy_set_header X-Forwarded-Proto $scheme;
+        # }
+        
+        # 錯誤頁面
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   /usr/share/nginx/html;
+        }
+    }
+} 

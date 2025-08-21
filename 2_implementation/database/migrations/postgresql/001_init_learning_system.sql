@@ -245,12 +245,5 @@ CREATE TRIGGER update_learning_progress_updated_at BEFORE UPDATE ON learning_pro
 CREATE TRIGGER update_parent_child_relations_updated_at BEFORE UPDATE ON parent_child_relations FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_user_learning_profiles_updated_at BEFORE UPDATE ON user_learning_profiles FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- ===============================================
--- 6. 插入測試數據（可選）
--- ===============================================
-
--- 插入測試用戶
-INSERT INTO users (username, email, hashed_password, role) VALUES 
-('test_student', 'student@test.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj/RK.s5u.G', 'student'),
-('test_teacher', 'teacher@test.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj/RK.s5u.G', 'teacher')
-ON CONFLICT (username) DO NOTHING;
+-- 以下示例資料改由 seeds 腳本管理，避免與遷移重疊：
+-- 2_implementation/database/seeds/postgresql/init-test-data.sql

@@ -411,6 +411,80 @@ class LearningAPI {
             };
         }
     }
+
+    // 取得使用者已作答過的題目 ID（可帶科目/年級/出版社/章節過濾）
+    async getDoneQuestionIds(filters = {}) {
+        try {
+            const params = new URLSearchParams();
+            if (filters.subject) params.append('subject', filters.subject);
+            if (filters.grade) params.append('grade', filters.grade);
+            if (filters.publisher || filters.edition) params.append('publisher', filters.publisher || filters.edition);
+            if (filters.chapter) params.append('chapter', filters.chapter);
+            if (filters.since_days) params.append('since_days', filters.since_days);
+
+            const response = await fetch(`${this.baseURL}/records/done-questions?${params.toString()}`, {
+                headers: this.getAuthHeaders()
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const result = await response.json();
+            return result;
+        } catch (error) {
+            console.error('取得已作答題目ID失敗:', error);
+            return { success: false, data: { question_ids: [], count: 0 }, error: error.message };
+        }
+    }
+
+    // 可用題數彙總：total/done/unseen
+    async getAvailabilitySummary(filters = {}) {
+        try {
+            const params = new URLSearchParams();
+            if (filters.grade) params.append('grade', filters.grade);
+            if (filters.subject) params.append('subject', filters.subject);
+            if (filters.publisher || filters.edition) params.append('publisher', filters.publisher || filters.edition);
+            if (filters.chapter) params.append('chapter', filters.chapter);
+
+            const response = await fetch(`${this.baseURL}/availability/summary?${params.toString()}`, {
+                headers: this.getAuthHeaders()
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('取得題庫彙總失敗:', error);
+            return { success: false, data: { total: 0, done: 0, unseen: 0 }, error: error.message };
+        }
+    }
+
+    // 服務端過濾：依條件出題並排除指定題目ID
+    async getQuestionsByConditionsExcluding(payload = {}) {
+        try {
+            const body = {
+                grade: payload.grade,
+                subject: payload.subject,
+                publisher: payload.publisher || payload.edition,
+                chapter: payload.chapter,
+                questionCount: payload.questionCount || payload.question_count,
+                excludeIds: payload.excludeIds || payload.exclude_ids || []
+            };
+
+            const response = await fetch(`${this.baseURL}/questions/by-conditions-excluding`, {
+                method: 'POST',
+                headers: this.getAuthHeaders(),
+                body: JSON.stringify(body)
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const result = await response.json();
+            return result;
+        } catch (error) {
+            console.error('服務端過濾抓題失敗:', error);
+            return { success: false, data: [], error: error.message };
+        }
+    }
 }
 
 // 創建全局實例

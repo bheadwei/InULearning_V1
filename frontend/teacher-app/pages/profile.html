@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="InULearning 教師台 - 個人資料">
+    <title>個人資料 - InULearning 教師台</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/design-tokens.css">
+    <link rel="stylesheet" href="../css/main.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .form { background:#fff; border-radius:12px; box-shadow: var(--shadow-sm); padding:1rem; max-width: 720px; }
+        .form .row { display:grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .form label { display:block; font-weight:600; margin: 0.25rem 0; }
+        .form input { width:100%; padding:0.6rem 0.8rem; border:1px solid var(--border); border-radius:8px; }
+        .btn-primary { background: var(--primary-blue); color:#fff; border:none; padding:0.6rem 1rem; border-radius:8px; cursor:pointer; }
+        .btn-primary:hover { background: var(--accent-blue); }
+    </style>
+</head>
+<body>
+    <a href="#main" class="skip-link" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;">跳至主要內容</a>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-brand"><i class="fas fa-chalkboard-teacher"></i><span>個人資料</span></div>
+            <div class="navbar-menu">
+                <a href="../index.html" class="nav-link"><i class="fas fa-tachometer-alt"></i><span>儀表板</span></a>
+                <a href="classes.html" class="nav-link"><i class="fas fa-users"></i><span>班級管理</span></a>
+                <a href="students-enhanced.html" class="nav-link"><i class="fas fa-user-graduate"></i><span>學生分析</span></a>
+                <a href="questions.html" class="nav-link"><i class="fas fa-question-circle"></i><span>題目管理</span></a>
+            </div>
+        </div>
+    </nav>
+    <main id="main" class="main-content">
+        <div class="container">
+            <h2 style="margin-bottom:0.75rem;">基本資料</h2>
+            <form class="form" id="profile-form">
+                <div class="row">
+                    <div>
+                        <label>名字</label>
+                        <input type="text" id="firstName" required>
+                    </div>
+                    <div>
+                        <label>姓氏</label>
+                        <input type="text" id="lastName" required>
+                    </div>
+                </div>
+                <div class="row">
+                    <div>
+                        <label>電子郵件</label>
+                        <input type="email" id="email" required>
+                    </div>
+                    <div>
+                        <label>學校</label>
+                        <input type="text" id="school">
+                    </div>
+                </div>
+                <div style="margin-top:1rem;">
+                    <button class="btn-primary" type="submit"><i class="fas fa-save"></i> 儲存</button>
+                </div>
+            </form>
+        </div>
+    </main>
+    <script src="../js/utils.js"></script>
+    <script src="../js/api-client.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = JSON.parse(localStorage.getItem('user_info')||'{}');
+            document.getElementById('firstName').value = user.first_name || '';
+            document.getElementById('lastName').value = user.last_name || '';
+            document.getElementById('email').value = user.email || '';
+        });
+    </script>
+</body>
+</html>
+

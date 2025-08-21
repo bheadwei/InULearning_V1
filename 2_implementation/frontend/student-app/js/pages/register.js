@@ -82,7 +82,7 @@ class RegisterPage {
         loginLinks.forEach(link => {
             link.addEventListener('click', (e) => {
                 e.preventDefault();
-                window.location.href = '/pages/login.html';
+                window.location.href = 'http://localhost/login.html';
             });
         });
     }
@@ -208,7 +208,7 @@ class RegisterPage {
             
             // 延遲跳轉到登入頁面
             setTimeout(() => {
-                window.location.href = '/pages/login.html';
+                window.location.href = 'http://localhost/login.html';
             }, 2000);
             
         } catch (error) {

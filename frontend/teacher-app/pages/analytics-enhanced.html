@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="InULearning 教師台 - 學習分析增強版">
+    <title>學習分析 - InULearning 教師台</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/shared/css/components.css">
+    <link rel="stylesheet" href="/shared/css/responsive.css">
+    <link rel="stylesheet" href="../css/design-tokens.css">
+    <link rel="stylesheet" href="../css/navigation.css">
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/modern-design-system.css">
+    <link rel="stylesheet" href="../css/navbar-unified.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .analytics-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .analytics-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s ease;
+        }
+
+        .analytics-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .card-subtitle {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            margin-top: 0.25rem;
+        }
+
+        .card-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .control-btn {
+            padding: 0.25rem 0.5rem;
+            border: 1px solid var(--border);
+            background: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            transition: all 0.2s ease;
+        }
+
+        .control-btn.active {
+            background: var(--primary-blue);
+            color: #fff;
+            border-color: var(--primary-blue);
+        }
+
+        .stats-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            border-left: 4px solid var(--primary-blue);
+            transition: all 0.2s ease;
+        }
+
+        .stat-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .stat-card.engagement {
+            border-left-color: #10B981;
+        }
+
+        .stat-card.performance {
+            border-left-color: #3B82F6;
+        }
+
+        .stat-card.progress {
+            border-left-color: #F59E0B;
+        }
+
+        .stat-card.attention {
+            border-left-color: #EF4444;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .stat-change {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+        }
+
+        .stat-change.positive {
+            color: #10B981;
+        }
+
+        .stat-change.negative {
+            color: #EF4444;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 1rem;
+        }
+
+        .chart-container.small {
+            height: 200px;
+        }
+
+        .insights-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .insight-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #F3F4F6;
+        }
+
+        .insight-item:last-child {
+            border-bottom: none;
+        }
+
+        .insight-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+        }
+
+        .insight-icon.info {
+            background: #DBEAFE;
+            color: #1E40AF;
+        }
+
+        .insight-icon.warning {
+            background: #FEF3C7;
+            color: #92400E;
+        }
+
+        .insight-icon.success {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        .insight-icon.danger {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+
+        .insight-content {
+            flex: 1;
+        }
+
+        .insight-title {
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 0.25rem;
+        }
+
+        .insight-description {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            line-height: 1.4;
+        }
+
+        .knowledge-points-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .kp-item {
+            background: #F8FAFC;
+            border-radius: 8px;
+            padding: 0.75rem;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .kp-item:hover {
+            background: #E5E7EB;
+        }
+
+        .kp-name {
+            font-size: 0.8rem;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .kp-score {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .kp-score.excellent {
+            color: #10B981;
+        }
+
+        .kp-score.good {
+            color: #3B82F6;
+        }
+
+        .kp-score.average {
+            color: #F59E0B;
+        }
+
+        .kp-score.poor {
+            color: #EF4444;
+        }
+
+        .kp-progress {
+            width: 100%;
+            height: 4px;
+            background: #E5E7EB;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .kp-progress-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+
+        .student-ranking {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .ranking-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #F3F4F6;
+        }
+
+        .ranking-item:last-child {
+            border-bottom: none;
+        }
+
+        .ranking-position {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--primary-blue);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .ranking-position.top3 {
+            background: #F59E0B;
+        }
+
+        .ranking-position.top1 {
+            background: #10B981;
+        }
+
+        .ranking-student {
+            flex: 1;
+        }
+
+        .ranking-name {
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .ranking-class {
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        .ranking-score {
+            font-weight: 600;
+            color: var(--primary-blue);
+        }
+
+        .time-filter {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .time-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border);
+            background: #fff;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .time-btn.active {
+            background: var(--primary-blue);
+            color: #fff;
+            border-color: var(--primary-blue);
+        }
+
+        @media (max-width: 768px) {
+            .analytics-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-overview {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+
+            .knowledge-points-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
+        }
+    </style>
+</head>
+
+<body class="navbar-unified-reset">
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-brand">
+                <i class="fas fa-chalkboard-teacher"></i>
+                <span>學習分析</span>
+            </div>
+            <div class="navbar-menu">
+                <a href="/index.html" class="nav-link"><i class="fas fa-tachometer-alt"></i><span>儀表板</span></a>
+                <a href="/pages/classes-enhanced.html" class="nav-link"><i class="fas fa-users"></i><span>班級管理</span></a>
+                <a href="/pages/students-enhanced.html" class="nav-link"><i class="fas fa-user-graduate"></i><span>學生分析</span></a>
+                <a href="/pages/assignments-enhanced.html" class="nav-link"><i class="fas fa-tasks"></i><span>作業管理</span></a>
+                <a href="/pages/questions-enhanced.html" class="nav-link"><i class="fas fa-question-circle"></i><span>題目管理</span></a>
+                <a href="/pages/grades-enhanced.html" class="nav-link"><i class="fas fa-chart-bar"></i><span>成績管理</span></a>
+                <a href="/pages/analytics-enhanced.html" class="nav-link active"><i class="fas fa-analytics"></i><span>學習分析</span></a>
+            </div>
+            <div class="navbar-user">
+                <div class="user-dropdown">
+                    <button class="user-dropdown-toggle">
+                        <i class="fas fa-user-circle"></i>
+                        <span id="teacher-name">教師</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="user-dropdown-menu">
+                        <a href="/pages/profile.html" class="dropdown-item">
+                            <i class="fas fa-user"></i>
+                            <span>個人資料</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item" id="logout-btn">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>登出</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main id="main" class="main-content">
+        <div class="container">
+        <div class="page-header">
+            <div class="header-content">
+                <h1 class="page-title">
+                    <i class="fas fa-analytics"></i>
+                    學習分析
+                </h1>
+                <p class="page-subtitle">深度分析學生學習數據，提供個性化教學建議</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-secondary" onclick="exportAnalytics()">
+                    <i class="fas fa-download"></i>
+                    匯出報告
+                </button>
+                <button class="btn btn-primary" onclick="generateInsights()">
+                    <i class="fas fa-magic"></i>
+                    生成洞察
+                </button>
+            </div>
+        </div>
+
+        <div class="analytics-container">
+            <!-- 時間篩選 -->
+            <div class="time-filter">
+                <button class="time-btn active" data-period="week">本週</button>
+                <button class="time-btn" data-period="month">本月</button>
+                <button class="time-btn" data-period="semester">本學期</button>
+                <button class="time-btn" data-period="year">本學年</button>
+            </div>
+
+            <!-- 統計概覽 -->
+            <div class="stats-overview">
+                <div class="stat-card engagement">
+                    <div class="stat-number" id="engagementRate">87%</div>
+                    <div class="stat-label">學習參與度</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i>
+                        +5% 較上週
+                    </div>
+                </div>
+                <div class="stat-card performance">
+                    <div class="stat-number" id="avgPerformance">82.5</div>
+                    <div class="stat-label">平均表現分數</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i>
+                        +2.3 較上週
+                    </div>
+                </div>
+                <div class="stat-card progress">
+                    <div class="stat-number" id="completionRate">94%</div>
+                    <div class="stat-label">作業完成率</div>
+                    <div class="stat-change negative">
+                        <i class="fas fa-arrow-down"></i>
+                        -1% 較上週
+                    </div>
+                </div>
+                <div class="stat-card attention">
+                    <div class="stat-number" id="attentionStudents">3</div>
+                    <div class="stat-label">需要關注學生</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-down"></i>
+                        -2 較上週
+                    </div>
+                </div>
+            </div>
+
+            <!-- 分析圖表網格 -->
+            <div class="analytics-grid">
+                <!-- 學習趨勢分析 -->
+                <div class="analytics-card" style="grid-column: span 2;">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">學習趨勢分析</div>
+                            <div class="card-subtitle">追蹤班級整體學習表現變化</div>
+                        </div>
+                        <div class="card-controls">
+                            <button class="control-btn active" data-metric="performance">表現</button>
+                            <button class="control-btn" data-metric="engagement">參與度</button>
+                            <button class="control-btn" data-metric="completion">完成率</button>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- 知識點掌握度 -->
+                <div class="analytics-card">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">知識點掌握度</div>
+                            <div class="card-subtitle">各知識點平均掌握情況</div>
+                        </div>
+                    </div>
+                    <div class="knowledge-points-grid" id="knowledgePointsGrid">
+                        <!-- 知識點將由 JavaScript 動態生成 -->
+                    </div>
+                </div>
+
+                <!-- 學生排名 -->
+                <div class="analytics-card">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">學生排名</div>
+                            <div class="card-subtitle">本週表現排行榜</div>
+                        </div>
+                        <div class="card-controls">
+                            <button class="control-btn active" data-sort="overall">總體</button>
+                            <button class="control-btn" data-sort="improvement">進步</button>
+                        </div>
+                    </div>
+                    <div class="student-ranking" id="studentRanking">
+                        <!-- 排名將由 JavaScript 動態生成 -->
+                    </div>
+                </div>
+
+                <!-- 學習洞察 -->
+                <div class="analytics-card">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">AI 學習洞察</div>
+                            <div class="card-subtitle">基於數據分析的教學建議</div>
+                        </div>
+                    </div>
+                    <ul class="insights-list" id="insightsList">
+                        <!-- 洞察將由 JavaScript 動態生成 -->
+                    </ul>
+                </div>
+
+                <!-- 科目表現分布 -->
+                <div class="analytics-card">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">科目表現分布</div>
+                            <div class="card-subtitle">各科目成績分布情況</div>
+                        </div>
+                    </div>
+                    <div class="chart-container small">
+                        <canvas id="subjectChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- 學習時間分析 -->
+                <div class="analytics-card">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">學習時間分析</div>
+                            <div class="card-subtitle">學生學習時間分布</div>
+                        </div>
+                    </div>
+                    <div class="chart-container small">
+                        <canvas id="timeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../js/utils.js"></script>
+    <script src="../js/api-client.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/api-health-check.js"></script>
+    <!-- 移除會覆蓋導覽樣式的現代化導航腳本，統一使用首頁樣式 -->
+    <script src="../js/analytics-enhanced.js"></script>
+</body>
+
+</html>

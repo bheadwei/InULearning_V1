@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
+
 <head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>學生練功專區 - InU Learning【因你而學】</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="../shared/css/components.css">
     <link rel="stylesheet" href="../shared/css/responsive.css">
@@ -15,13 +16,15 @@
         }
     </style>
 </head>
+
 <body class="bg-gray-100">
-    <div class="flex h-screen bg-white">
+    <div class="flex min-h-screen bg-white">
         <!-- 側邊欄 -->
         <aside class="w-64 bg-blue-800 text-white flex flex-col">
             <a class="block" href="index.html">
                 <div class="flex items-center justify-center p-6 hover:bg-blue-700">
-                    <img alt="InU Learning Logo" class="w-24 h-24 rounded-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBkUkYI-c0qBm9BcHamuWBs9ebu6mgGni1SlXL6giHvgu2WnHxHaQYkRoAlzI_OZ8yNf6Rn90d73q13vLeMoBfFP0mQHcxlf2YHE9__XhpOUl-OvECBnRad91AKcE4dKkTJtEoAm_alktSTzu_Aw9Fah_2IQ6YeqBALwAqrLNP2oghwOkLSyBMdfpOrW24nKk3dnl3z6piT9-S0cISDfJ5rhAlBYvIzoAhypgUHvJCzxlSG9ag8QMkltK1Hu_rX4jqdQgGuOD2JLzo"/>
+                    <img alt="InU Learning Logo" class="w-24 h-24 rounded-full"
+                        src="http://localhost/shared/image/InULearning_logo.png" />
                 </div>
                 <div class="px-6 pb-4 hover:bg-blue-700">
                     <h1 class="text-xl font-bold text-center">InU Learning</h1>
@@ -33,25 +36,31 @@
                     <span class="material-icons">school</span>
                     <span class="ml-3">學生練功專區</span>
                 </a>
-                <a class="flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg" href="pages/dashboard.html">
+                <a class="flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg"
+                    href="pages/dashboard.html">
                     <span class="material-icons">dashboard</span>
                     <span class="ml-3">學習儀表板</span>
                 </a>
-                <a class="flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg" href="pages/exercise.html">
+                <a class="flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg"
+                    href="pages/exercise.html">
                     <span class="material-icons">quiz</span>
                     <span class="ml-3">開始練習</span>
                 </a>
-                <a class="flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg" href="pages/history.html">
+                <a class="flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg"
+                    href="pages/history.html">
                     <span class="material-icons">history</span>
                     <span class="ml-3">學習歷程</span>
                 </a>
-                <a class="flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg" href="pages/profile.html">
+                <a class="flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg"
+                    href="pages/profile.html">
                     <span class="material-icons">person</span>
                     <span class="ml-3">個人資料</span>
                 </a>
             </nav>
             <div class="p-4 border-t border-blue-700">
-                <button id="logoutBtn" class="w-full flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg" onclick="authManager.logout()">
+                <button id="logoutBtn"
+                    class="w-full flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg"
+                    onclick="authManager.logout()">
                     <span class="material-icons">logout</span>
                     <span class="ml-3">登出</span>
                 </button>
@@ -72,20 +81,26 @@
                                 <span class="material-icons">search</span>
                             </button>
                         </span>
-                        <input autocomplete="off" class="py-2 text-sm text-gray-700 bg-gray-200 rounded-md pl-10 focus:outline-none focus:bg-white focus:text-gray-900 w-full" name="q" placeholder="搜尋題目或知識點..." type="search"/>
+                        <input autocomplete="off"
+                            class="py-2 text-sm text-gray-700 bg-gray-200 rounded-md pl-10 focus:outline-none focus:bg-white focus:text-gray-900 w-full"
+                            name="q" placeholder="搜尋題目或知識點..." type="search" />
                     </div>
                 </div>
                 <div class="flex items-center space-x-4">
                     <div id="userInfo" class="hidden flex items-center space-x-2">
                         <span class="text-sm text-gray-600">歡迎，</span>
                         <span id="userName" class="text-sm font-medium text-blue-600"></span>
-                        <button id="logoutBtn" class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition-colors" onclick="authManager.logout()">
+                        <button id="logoutBtnHeader"
+                            class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition-colors"
+                            onclick="authManager.logout()">
                             登出
                         </button>
                     </div>
                     <div id="authButtons">
-                        <a class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors" href="http://localhost/login.html">登入</a>
-                        <a class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors" href="pages/register.html">註冊</a>
+                        <a class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                            href="http://localhost/login.html">登入</a>
+                        <a class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+                            href="pages/register.html">註冊</a>
                     </div>
                 </div>
             </header>
@@ -98,11 +113,13 @@
                         <h1 class="text-3xl font-bold mb-4">歡迎來到學生練功專區</h1>
                         <p class="text-xl mb-6">AI 驅動的個人化學習體驗，讓您的學習更有效率</p>
                         <div class="flex flex-wrap gap-4">
-                            <button onclick="location.href='pages/exercise.html'" class="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+                            <button onclick="location.href='pages/exercise.html'"
+                                class="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
                                 <span class="material-icons mr-2">play_arrow</span>
                                 開始練習
                             </button>
-                            <button onclick="location.href='pages/dashboard.html'" class="bg-blue-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-400 transition-colors">
+                            <button onclick="location.href='pages/dashboard.html'"
+                                class="bg-blue-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-400 transition-colors">
                                 <span class="material-icons mr-2">dashboard</span>
                                 查看進度
                             </button>
@@ -111,7 +128,8 @@
 
                     <!-- 快速功能區 -->
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                        <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer" onclick="location.href='pages/exercise.html'">
+                        <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer"
+                            onclick="location.href='pages/exercise.html'">
                             <div class="flex items-center mb-4">
                                 <div class="bg-blue-100 p-3 rounded-lg">
                                     <span class="material-icons text-blue-600 text-2xl">quiz</span>
@@ -121,7 +139,8 @@
                             <p class="text-gray-600 text-sm">根據您的學習進度與需求，量身打造專屬題庫</p>
                         </div>
 
-                        <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer" onclick="location.href='pages/dashboard.html'">
+                        <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer"
+                            onclick="location.href='pages/dashboard.html'">
                             <div class="flex items-center mb-4">
                                 <div class="bg-green-100 p-3 rounded-lg">
                                     <span class="material-icons text-green-600 text-2xl">analytics</span>
@@ -131,7 +150,8 @@
                             <p class="text-gray-600 text-sm">即時分析您的作答弱點，並提供個人化重點筆記</p>
                         </div>
 
-                        <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer" onclick="aiAnalysisAPI.showUnderDevelopmentModal('AI即時問答')">
+                        <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer"
+                            onclick="aiAnalysisAPI.showUnderDevelopmentModal('AI即時問答')">
                             <div class="flex items-center mb-4">
                                 <div class="bg-purple-100 p-3 rounded-lg">
                                     <span class="material-icons text-purple-600 text-2xl">chat</span>
@@ -159,11 +179,11 @@
                             <div class="bg-white p-6 rounded-lg shadow-md">
                                 <div class="flex items-center justify-between">
                                     <div>
-                                        <p class="text-sm text-gray-600">今日練習題數</p>
-                                        <p id="todayQuestions" class="text-2xl font-bold text-blue-600">0</p>
+                                        <p class="text-sm text-gray-600">練習總題數</p>
+                                        <p id="totalQuestions" class="text-2xl font-bold text-blue-600">0</p>
                                     </div>
                                     <div class="bg-blue-100 p-3 rounded-lg">
-                                        <span class="material-icons text-blue-600">today</span>
+                                        <span class="material-icons text-blue-600">quiz</span>
                                     </div>
                                 </div>
                             </div>
@@ -171,8 +191,8 @@
                             <div class="bg-white p-6 rounded-lg shadow-md">
                                 <div class="flex items-center justify-between">
                                     <div>
-                                        <p class="text-sm text-gray-600">正確率</p>
-                                        <p id="accuracyRate" class="text-2xl font-bold text-green-600">0%</p>
+                                        <p class="text-sm text-gray-600">平均正確率</p>
+                                        <p id="avgAccuracy" class="text-2xl font-bold text-green-600">0%</p>
                                     </div>
                                     <div class="bg-green-100 p-3 rounded-lg">
                                         <span class="material-icons text-green-600">trending_up</span>
@@ -183,11 +203,11 @@
                             <div class="bg-white p-6 rounded-lg shadow-md">
                                 <div class="flex items-center justify-between">
                                     <div>
-                                        <p class="text-sm text-gray-600">連續學習天數</p>
-                                        <p id="streakDays" class="text-2xl font-bold text-orange-600">0</p>
+                                        <p class="text-sm text-gray-600">總學習時數</p>
+                                        <p id="totalTime" class="text-2xl font-bold text-purple-600">0 分</p>
                                     </div>
-                                    <div class="bg-orange-100 p-3 rounded-lg">
-                                        <span class="material-icons text-orange-600">local_fire_department</span>
+                                    <div class="bg-purple-100 p-3 rounded-lg">
+                                        <span class="material-icons text-purple-600">schedule</span>
                                     </div>
                                 </div>
                             </div>
@@ -206,9 +226,7 @@
         </div>
     </div>
 
-    <!-- 錯誤訊息顯示區 -->
-    <div id="errorMessage" class="hidden fixed top-4 right-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded z-50"></div>
-    <div id="successMessage" class="hidden fixed top-4 right-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded z-50"></div>
+
 
     <!-- JavaScript 檔案載入 -->
     <script src="../shared/js/utils.js"></script>
@@ -219,43 +237,9 @@
     <script src="js/api/learning.js"></script>
     <script src="js/api/ai-analysis.js"></script>
     <script>
-        // 認證檢查
-        document.addEventListener('DOMContentLoaded', function() {
-            const authManager = new AuthManager();
-            
-            // 檢查是否已登入
-            if (!authManager.isLoggedIn()) {
-                console.log('用戶未登入，重定向到登入頁面');
-                window.location.href = '/login.html';
-                return;
-            }
-            
-            // 檢查用戶角色
-            const user = authManager.getUser();
-            if (user && user.role !== 'student') {
-                console.log('用戶角色不符，重定向到登入頁面');
-                window.location.href = '/login.html';
-                return;
-            }
-            
-            // 顯示用戶資訊
-            if (user) {
-                const userNameElement = document.getElementById('userName');
-                if (userNameElement) {
-                    userNameElement.textContent = user.name || user.email || '學生';
-                }
-            }
-            
-            // 登出按鈕事件
-            const logoutBtn = document.getElementById('logoutBtn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', function() {
-                    authManager.logout();
-                    window.location.href = '/login.html';
-                });
-            }
-        });
+        // 認證檢查改由共用模組與各頁 JS 處理，避免在 URL token 尚未處理前過早跳轉
     </script>
     <script src="js/main.js"></script>
 </body>
-</html> 
+
+</html>

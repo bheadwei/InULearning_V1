@@ -11,7 +11,7 @@
 
 // ===== API 客戶端類別 =====
 class ApiClient {
-    constructor(baseURL = Utils.config.API_BASE_URL) {
+    constructor(baseURL = '') { // 預設為空，讓請求使用相對路徑
         this.baseURL = baseURL;
         this.defaultHeaders = {
             'Content-Type': 'application/json',
@@ -42,8 +42,16 @@ class ApiClient {
     setAuthToken(token) {
         if (token) {
             this.defaultHeaders['Authorization'] = `Bearer ${token}`;
+            try { localStorage.setItem('auth_token', token); } catch (e) {}
+            if (typeof Utils !== 'undefined' && typeof Utils.setStorageItem === 'function') {
+                try { Utils.setStorageItem('auth_token', token); } catch (e) {}
+            }
         } else {
             delete this.defaultHeaders['Authorization'];
+            try { localStorage.removeItem('auth_token'); } catch (e) {}
+            if (typeof Utils !== 'undefined' && typeof Utils.removeStorageItem === 'function') {
+                try { Utils.removeStorageItem('auth_token'); } catch (e) {}
+            }
         }
     }
     
@@ -52,14 +60,24 @@ class ApiClient {
      * @returns {string|null} JWT Token
      */
     getAuthToken() {
-        return Utils.getStorageItem('auth_token');
+        try {
+            const raw = localStorage.getItem('auth_token');
+            if (raw) return raw;
+        } catch (e) {}
+        if (typeof Utils !== 'undefined' && typeof Utils.getStorageItem === 'function') {
+            return Utils.getStorageItem('auth_token');
+        }
+        return null;
     }
     
     /**
      * 清除認證 Token
      */
     clearAuthToken() {
-        Utils.removeStorageItem('auth_token');
+        try { localStorage.removeItem('auth_token'); } catch (e) {}
+        if (typeof Utils !== 'undefined' && typeof Utils.removeStorageItem === 'function') {
+            try { Utils.removeStorageItem('auth_token'); } catch (e) {}
+        }
         delete this.defaultHeaders['Authorization'];
     }
     
@@ -200,7 +218,7 @@ class ApiClient {
         } = options;
         
         // 建立完整 URL
-        const url = new URL(endpoint, this.baseURL);
+        const url = new URL(this.baseURL + endpoint, window.location.origin);
         
         // 添加查詢參數
         Object.entries(params).forEach(([key, value]) => {
@@ -465,12 +483,20 @@ apiClient.addRequestInterceptor(async (config) => {
 apiClient.addResponseInterceptor(async (response) => {
     if (response.status === 401) {
         // Token 過期，清除本地儲存並重新導向到登入頁面
-        apiClient.clearAuthToken();
-        Utils.clearStorage();
+        try {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('user_info');
+        } catch (e) {}
+        if (typeof Utils !== 'undefined') {
+            try { typeof Utils.removeStorageItem === 'function' && Utils.removeStorageItem('auth_token'); } catch (e) {}
+            try { typeof Utils.removeStorageItem === 'function' && Utils.removeStorageItem('user_info'); } catch (e) {}
+            try { typeof Utils.clearStorage === 'function' && Utils.clearStorage(); } catch (e) {}
+        }
+        delete apiClient.defaultHeaders['Authorization'];
         
         // 檢查當前頁面是否為登入頁面
-        if (!window.location.pathname.includes('login.html')) {
-            window.location.href = '/login.html';
+        if (!window.location.href.includes('/login.html')) {
+            window.location.href = 'http://localhost/login.html';
         }
     }
     return response;

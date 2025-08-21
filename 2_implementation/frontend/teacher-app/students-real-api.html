@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>學生分析 - 真實 API - InULearning</title>
+    <meta name="description" content="InULearning 教師控制台：使用真實 API 的學生分析功能">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <style>
+        body { font-family: 'Noto Sans TC', sans-serif; margin: 0; padding: 0; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .auth-section { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .content-section { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s; }
+        .btn-primary { background: #3b82f6; color: white; }
+        .btn-primary:hover { background: #2563eb; }
+        .btn-success { background: #10b981; color: white; }
+        .btn-success:hover { background: #059669; }
+        .btn-warning { background: #f59e0b; color: white; }
+        .btn-warning:hover { background: #d97706; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 500; color: #374151; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; }
+        .form-group input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+        .status { padding: 8px 12px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+        .status-success { background: #d1fae5; color: #065f46; }
+        .status-error { background: #fee2e2; color: #991b1b; }
+        .status-warning { background: #fef3c7; color: #92400e; }
+        .status-info { background: #dbeafe; color: #1e40af; }
+        .log { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 4px; padding: 10px; margin: 10px 0; font-family: monospace; font-size: 12px; }
+        .hidden { display: none; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .card { background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 20px 0; }
+        .stat-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; text-align: center; }
+        .stat-number { font-size: 2rem; font-weight: bold; color: #3b82f6; }
+        .stat-label { color: #64748b; margin-top: 5px; font-size: 14px; }
+        
+        /* 載入狀態樣式 */
+        .loading { opacity: 0.6; pointer-events: none; }
+        .loading-spinner { 
+            display: none; /* 預設隱藏 */
+            width: 20px; 
+            height: 20px; 
+            border: 3px solid #f3f3f3; 
+            border-top: 3px solid #3b82f6; 
+            border-radius: 50%; 
+            animation: spin 1s linear infinite; 
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* 錯誤狀態樣式 */
+        .error-message { background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; padding: 15px; border-radius: 8px; margin: 15px 0; }
+        
+        /* 成功狀態樣式 */
+        .success-message { background: #d1fae5; border: 1px solid #a7f3d0; color: #065f46; padding: 15px; border-radius: 8px; margin: 15px 0; }
+        
+        /* 刷新按鈕樣式 */
+        .refresh-btn { background: #6b7280; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; margin-left: 10px; }
+        .refresh-btn:hover { background: #4b5563; }
+        
+        /* 數據狀態樣式 */
+        .data-status { display: flex; align-items: center; justify-content: space-between; margin: 15px 0; }
+        .data-info { color: #6b7280; font-size: 14px; }
+        
+        /* 學生卡片增強樣式 */
+        .student-card { transition: transform 0.2s, box-shadow 0.2s; }
+        .student-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .student-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 15px; }
+        .student-stat { text-align: center; padding: 10px; background: #f8fafc; border-radius: 6px; }
+        .student-stat-value { font-size: 1.2rem; font-weight: bold; color: #3b82f6; }
+        .student-stat-label { font-size: 12px; color: #64748b; margin-top: 5px; }
+        
+        /* 圖表樣式 */
+        .charts-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); 
+            gap: 30px; 
+            margin: 20px 0; 
+        }
+        
+        .chart-container { 
+            background: white; 
+            border: 1px solid #e5e7eb; 
+            border-radius: 12px; 
+            padding: 25px; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            /* 固定高度，防止圖表無限延伸 */
+            height: 400px;
+            position: relative;
+        }
+        
+        .chart-container:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15); 
+        }
+        
+        .chart-container h3 { 
+            margin: 0 0 20px 0; 
+            color: #374151; 
+            font-size: 18px; 
+            text-align: center;
+            /* 固定標題高度 */
+            height: 30px;
+            line-height: 30px;
+        }
+        
+        .chart-container canvas { 
+            /* 固定圖表尺寸，防止無限延伸 */
+            width: 100% !important;
+            height: 300px !important;
+            max-width: 100%;
+            max-height: 300px;
+        }
+        
+        /* 響應式圖表 */
+        @media (max-width: 768px) {
+            .charts-grid { 
+                grid-template-columns: 1fr; 
+                gap: 20px; 
+            }
+            
+            .chart-container { 
+                padding: 20px; 
+                height: 350px;
+            }
+            
+            .chart-container canvas {
+                height: 250px !important;
+                max-height: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎓 學生分析 - 真實 API 版本</h1>
+            <p>使用真實後端 API 的學生分析功能</p>
+        </div>
+
+        <!-- 認證區域 -->
+        <div class="auth-section">
+            <h2>🔐 用戶認證</h2>
+            <div id="loginForm">
+                <div class="form-group">
+                    <label for="email">電子郵件:</label>
+                    <input type="email" id="email" value="teacher@example.com" placeholder="teacher@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="password">密碼:</label>
+                    <input type="password" id="password" value="password123" placeholder="密碼">
+                </div>
+                <button class="btn btn-primary" onclick="login()">登入</button>
+            </div>
+            
+            <div id="userInfo" class="hidden">
+                <div class="status status-success">
+                    ✅ 已登入: <span id="userName">用戶名</span>
+                </div>
+                <button class="btn btn-warning" onclick="logout()">登出</button>
+            </div>
+        </div>
+
+        <!-- 功能區域 -->
+        <div class="content-section">
+            <h2>📚 班級管理</h2>
+            <div id="classSection" class="hidden">
+                <div class="data-status">
+                    <div>
+                        <button class="btn btn-primary" onclick="loadClasses()" id="loadClassesBtn">
+                            <span class="loading-spinner hidden" id="loadClassesSpinner"></span>
+                            載入班級列表
+                        </button>
+                        <button class="btn btn-success" onclick="createClass()">創建新班級</button>
+                    </div>
+                    <div class="data-info" id="classDataInfo"></div>
+                </div>
+                
+                <div id="classSelector" class="hidden">
+                    <h3>選擇班級:</h3>
+                    <select id="classSelect" onchange="onClassSelected()">
+                        <option value="">請選擇班級...</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- 班級概覽 -->
+        <div id="classOverview" class="content-section hidden">
+            <div class="data-status">
+                <h2>📊 班級概覽</h2>
+                <button class="refresh-btn" onclick="refreshClassOverview()" id="refreshOverviewBtn">
+                    <span class="loading-spinner hidden" id="refreshOverviewSpinner"></span>
+                    刷新
+                </button>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalStudents">0</div>
+                    <div class="stat-label">學生總數</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="averageAccuracy">0%</div>
+                    <div class="stat-label">平均正確率</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="averageSpeed">0</div>
+                    <div class="stat-label">平均答題速度</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalSessions">0</div>
+                    <div class="stat-label">總學習會話</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 圖表分析區域 -->
+        <div id="chartsSection" class="content-section hidden">
+            <div class="data-status">
+                <h2>📈 數據分析圖表</h2>
+                <button class="refresh-btn" onclick="refreshCharts()" id="refreshChartsBtn">
+                    <span class="loading-spinner hidden" id="refreshChartsSpinner"></span>
+                    刷新圖表
+                </button>
+            </div>
+            
+            <!-- 圖表網格 -->
+            <div class="charts-grid">
+                <!-- 學生正確率分布圖 -->
+                <div class="chart-container">
+                    <h3>🎯 學生正確率分布</h3>
+                    <canvas id="accuracyChart" width="400" height="300"></canvas>
+                </div>
+                
+                <!-- 學生答題速度分布圖 -->
+                <div class="chart-container">
+                    <h3>⚡ 學生答題速度分布</h3>
+                    <canvas id="speedChart" width="400" height="300"></canvas>
+                </div>
+                
+                <!-- 學習會話趨勢圖 -->
+                <div class="chart-container">
+                    <h3>📚 學習會話趨勢</h3>
+                    <canvas id="sessionsChart" width="400" height="300"></canvas>
+                </div>
+                
+                <!-- 科目表現對比圖 -->
+                <div class="chart-container">
+                    <h3>📖 科目表現對比</h3>
+                    <canvas id="subjectChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- 學生列表 -->
+        <div id="studentList" class="content-section hidden">
+            <div class="data-status">
+                <h2>👥 學生列表</h2>
+                <button class="refresh-btn" onclick="refreshStudentList()" id="refreshStudentsBtn">
+                    <span class="loading-spinner hidden" id="refreshStudentsSpinner"></span>
+                    刷新
+                </button>
+            </div>
+            <div id="studentGrid" class="grid">
+                <!-- 學生卡片將在這裡動態生成 -->
+            </div>
+        </div>
+
+        <!-- 日誌區域 -->
+        <div class="content-section">
+            <h2>📝 操作日誌</h2>
+            <div style="margin-bottom: 15px;">
+                <button class="btn btn-warning" onclick="clearLogs()">清除日誌</button>
+                <button class="btn btn-warning" onclick="forceClearLoading()" style="margin-left: 10px;">清除載入狀態</button>
+                <button class="btn btn-warning" onclick="clearAllCharts()" style="margin-left: 10px;">清除所有圖表</button>
+                <button class="btn btn-warning" onclick="resizeAllCharts()" style="margin-left: 10px;">重新調整圖表尺寸</button>
+            </div>
+            <div id="logs"></div>
+        </div>
+    </div>
+
+    <script>
+        // 全局變數
+        let currentUser = null;
+        let currentClass = null;
+        let classes = [];
+        let charts = {}; // 存儲圖表實例
+        let chartUpdateTimeout = null; // 防抖定時器
+
+        // 圖表配置和顏色主題
+        const chartColors = {
+            primary: '#3b82f6',
+            secondary: '#10b981',
+            accent: '#f59e0b',
+            danger: '#ef4444',
+            success: '#22c55e',
+            warning: '#f97316',
+            info: '#06b6d4',
+            light: '#f8fafc',
+            dark: '#1e293b'
+        };
+
+        const chartOptions = {
+            responsive: true,
+            maintainAspectRatio: false, // 重要：不維持寬高比
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        font: {
+                            family: 'Noto Sans TC, sans-serif',
+                            size: 12
+                        }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    borderColor: chartColors.primary,
+                    borderWidth: 1
+                }
+            },
+            // 添加尺寸限制
+            layout: {
+                padding: {
+                    top: 10,
+                    bottom: 10,
+                    left: 10,
+                    right: 10
+                }
+            }
+        };
+
+        // 載入狀態管理
+        function showLoading(buttonId, spinnerId) {
+            console.log(`🔧 顯示載入狀態: ${buttonId}, ${spinnerId}`);
+            const button = document.getElementById(buttonId);
+            const spinner = document.getElementById(spinnerId);
+            
+            if (button && spinner) {
+                button.classList.add('loading');
+                spinner.style.display = 'inline-block';
+                console.log('✅ 載入狀態已顯示');
+            } else {
+                console.log('❌ 找不到按鈕或 spinner:', { button: !!button, spinner: !!spinner });
+            }
+        }
+
+        function hideLoading(buttonId, spinnerId) {
+            console.log(`🔧 隱藏載入狀態: ${buttonId}, ${spinnerId}`);
+            const button = document.getElementById(buttonId);
+            const spinner = document.getElementById(spinnerId);
+            
+            if (button && spinner) {
+                button.classList.remove('loading');
+                spinner.style.display = 'none';
+                console.log('✅ 載入狀態已隱藏');
+            } else {
+                console.log('❌ 找不到按鈕或 spinner:', { button: !!button, spinner: !!spinner });
+            }
+        }
+
+        // 強制清除所有載入狀態
+        function clearAllLoading() {
+            console.log('🔧 強制清除所有載入狀態');
+            const spinners = document.querySelectorAll('.loading-spinner');
+            const buttons = document.querySelectorAll('.btn');
+            
+            spinners.forEach(spinner => {
+                spinner.style.display = 'none';
+                console.log('✅ 隱藏 spinner:', spinner.id);
+            });
+            
+            buttons.forEach(button => {
+                button.classList.remove('loading');
+                console.log('✅ 移除按鈕載入狀態:', button.id);
+            });
+        }
+
+        // 顯示消息
+        function showMessage(message, type = 'info') {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = type === 'error' ? 'error-message' : 'success-message';
+            messageDiv.textContent = message;
+            
+            // 插入到頁面頂部
+            const container = document.querySelector('.container');
+            container.insertBefore(messageDiv, container.firstChild);
+            
+            // 3秒後自動移除
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 3000);
+        }
+
+        // 更新數據信息顯示
+        function updateDataInfo(elementId, info) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.textContent = info;
+            }
+        }
+
+        // 日誌系統
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logDiv = document.createElement('div');
+            logDiv.className = `log`;
+            logDiv.innerHTML = `<strong>[${timestamp}]</strong> ${message}`;
+            document.getElementById('logs').appendChild(logDiv);
+            console.log(`[${timestamp}] ${message}`);
+        }
+
+        function clearLogs() {
+            document.getElementById('logs').innerHTML = '';
+            log('日誌已清除', 'info');
+        }
+
+        // 認證功能
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            if (!email || !password) {
+                log('❌ 請輸入電子郵件和密碼', 'error');
+                return;
+            }
+            
+            log('🔐 嘗試登入...', 'info');
+            
+            try {
+                const response = await fetch('http://localhost/api/v1/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    currentUser = data;
+                    
+                    // 保存 token 到 localStorage
+                    localStorage.setItem('access_token', data.access_token);
+                    localStorage.setItem('refresh_token', data.refresh_token);
+                    
+                    // 更新 UI
+                    document.getElementById('loginForm').classList.add('hidden');
+                    document.getElementById('userInfo').classList.remove('hidden');
+                    document.getElementById('userName').textContent = email;
+                    document.getElementById('classSection').classList.remove('hidden');
+                    
+                    log('✅ 登入成功！', 'success');
+                    log(`📋 用戶: ${email}, Token: ${data.access_token.substring(0, 20)}...`, 'info');
+                    
+                    // 自動載入班級列表
+                    await loadClasses();
+                } else {
+                    const errorData = await response.json();
+                    log(`❌ 登入失敗: ${response.status} - ${JSON.stringify(errorData)}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ 登入失敗: ${error.message}`, 'error');
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            currentClass = null;
+            classes = [];
+            
+            // 清除 localStorage
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            
+            // 更新 UI
+            document.getElementById('loginForm').classList.remove('hidden');
+            document.getElementById('userInfo').classList.add('hidden');
+            document.getElementById('classSection').classList.add('hidden');
+            document.getElementById('classOverview').classList.add('hidden');
+            document.getElementById('studentList').classList.add('hidden');
+            
+            log('🚪 已登出', 'info');
+        }
+
+        // 班級管理功能
+        async function loadClasses() {
+            if (!currentUser) {
+                showMessage('請先登入', 'error');
+                return;
+            }
+            
+            log('🔧 開始載入班級...', 'info');
+            showLoading('loadClassesBtn', 'loadClassesSpinner');
+            log('📚 載入班級列表...', 'info');
+            
+            try {
+                const response = await fetch('http://localhost/api/v1/teacher/classes', {
+                    headers: {
+                        'Authorization': `Bearer ${currentUser.access_token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    classes = await response.json();
+                    populateClassSelector(classes);
+                    updateDataInfo('classDataInfo', `已載入 ${classes.length} 個班級`);
+                    showMessage(`成功載入 ${classes.length} 個班級`, 'success');
+                    log(`✅ 載入到 ${classes.length} 個班級`, 'success');
+                } else {
+                    const errorData = await response.json();
+                    const errorMsg = `載入班級失敗: HTTP ${response.status}`;
+                    showMessage(errorMsg, 'error');
+                    log(`❌ ${errorMsg} - ${JSON.stringify(errorData)}`, 'error');
+                    
+                    if (response.status === 404) {
+                        log('💡 教師管理服務沒有 nginx 代理配置，使用模擬數據', 'warning');
+                        loadMockClasses();
+                    }
+                }
+            } catch (error) {
+                const errorMsg = `載入班級失敗: ${error.message}`;
+                showMessage(errorMsg, 'error');
+                log(`❌ ${errorMsg}`, 'error');
+                log('💡 使用模擬數據', 'warning');
+                loadMockClasses();
+            } finally {
+                log('🔧 清除載入狀態...', 'info');
+                hideLoading('loadClassesBtn', 'loadClassesSpinner');
+                log('🔧 載入狀態已清除', 'info');
+            }
+        }
+
+        function loadMockClasses() {
+            log('🔧 載入模擬班級數據...', 'info');
+            classes = [
+                { id: 1, name: '7A班', subject: '數學', description: '七年級數學班' },
+                { id: 2, name: '7B班', subject: '英文', description: '七年級英文班' },
+                { id: 3, name: '8A班', subject: '科學', description: '八年級科學班' }
+            ];
+            populateClassSelector(classes);
+            updateDataInfo('classDataInfo', `已載入 ${classes.length} 個模擬班級`);
+            log('✅ 載入模擬班級數據', 'success');
+        }
+
+        function populateClassSelector(classes) {
+            const selector = document.getElementById('classSelect');
+            selector.innerHTML = '<option value="">請選擇班級...</option>';
+            
+            classes.forEach(cls => {
+                const option = document.createElement('option');
+                option.value = cls.id;
+                option.textContent = `${cls.name} (${cls.subject})`;
+                selector.appendChild(option);
+            });
+            
+            document.getElementById('classSelector').classList.remove('hidden');
+        }
+
+        function onClassSelected() {
+            const classId = document.getElementById('classSelect').value;
+            if (classId) {
+                currentClass = classes.find(c => c.id == classId);
+                log(`📚 選擇班級: ${currentClass.name}`, 'info');
+                
+                // 顯示圖表區域
+                document.getElementById('chartsSection').classList.remove('hidden');
+                
+                loadClassOverview(classId);
+                loadStudents(classId);
+            }
+        }
+
+        async function loadClassOverview(classId) {
+            if (!currentClass) return;
+            
+            showLoading('refreshOverviewBtn', 'refreshOverviewSpinner');
+            log(`📊 載入班級概覽: ${classId}`, 'info');
+            
+            try {
+                const response = await fetch(`http://localhost/api/v1/teacher/classes/${classId}/overview`, {
+                    headers: {
+                        'Authorization': `Bearer ${currentUser.access_token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    displayClassOverview(data);
+                    showMessage('班級概覽載入成功', 'success');
+                    log('✅ 載入班級概覽成功', 'success');
+                } else {
+                    const errorMsg = `載入班級概覽失敗: HTTP ${response.status}`;
+                    showMessage(errorMsg, 'error');
+                    log(`❌ ${errorMsg}`, 'error');
+                    log('💡 使用模擬數據', 'warning');
+                    displayMockOverview();
+                }
+            } catch (error) {
+                const errorMsg = `載入班級概覽失敗: ${error.message}`;
+                showMessage(errorMsg, 'error');
+                log(`❌ ${errorMsg}`, 'error');
+                log('💡 使用模擬數據', 'warning');
+                displayMockOverview();
+            } finally {
+                hideLoading('refreshOverviewBtn', 'refreshOverviewSpinner');
+            }
+        }
+
+        function displayMockOverview() {
+            const mockData = {
+                total_students: 25,
+                average_accuracy: 78.5,
+                average_speed: 45.2,
+                total_sessions: 150
+            };
+            displayClassOverview(mockData);
+        }
+
+        function displayClassOverview(data) {
+            document.getElementById('totalStudents').textContent = data.total_students || 0;
+            document.getElementById('averageAccuracy').textContent = `${(data.average_accuracy || 0).toFixed(1)}%`;
+            document.getElementById('averageSpeed').textContent = `${(data.average_speed || 0).toFixed(1)} 秒/題`;
+            document.getElementById('totalSessions').textContent = data.total_sessions || 0;
+            
+            document.getElementById('classOverview').classList.remove('hidden');
+        }
+
+        async function loadStudents(classId) {
+            if (!currentClass) return;
+            
+            showLoading('refreshStudentsBtn', 'refreshStudentsSpinner');
+            log(`👥 載入學生列表: ${classId}`, 'info');
+            
+            try {
+                const response = await fetch(`http://localhost/api/v1/teacher/classes/${classId}/students/analysis`, {
+                    headers: {
+                        'Authorization': `Bearer ${currentUser.access_token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    displayStudents(data.students || []);
+                    showMessage(`學生列表載入成功 (${data.students.length} 名學生)`, 'success');
+                    log('✅ 載入學生列表成功', 'success');
+                    
+                    // 創建圖表
+                    createAllCharts(data.students || []);
+                    
+                } else {
+                    const errorMsg = `載入學生列表失敗: HTTP ${response.status}`;
+                    showMessage(errorMsg, 'error');
+                    log(`❌ ${errorMsg}`, 'error');
+                    log('💡 使用模擬數據', 'warning');
+                    displayMockStudents();
+                    createAllCharts(getMockStudents());
+                }
+            } catch (error) {
+                const errorMsg = `載入學生列表失敗: ${error.message}`;
+                showMessage(errorMsg, 'error');
+                log(`❌ ${errorMsg}`, 'error');
+                log('💡 使用模擬數據', 'warning');
+                displayMockStudents();
+                createAllCharts(getMockStudents());
+            } finally {
+                hideLoading('refreshStudentsBtn', 'refreshStudentsSpinner');
+            }
+        }
+
+        function displayMockStudents() {
+            const mockStudents = getMockStudents();
+            displayStudents(mockStudents);
+        }
+
+        function getMockStudents() {
+            return [
+                { 
+                    student_id: 1, 
+                    student_name: '張小明', 
+                    class_name: '7A班',
+                    accuracy_rate: 85.5, 
+                    average_speed: 35.2, 
+                    total_sessions: 12, 
+                    total_questions: 120 
+                },
+                { 
+                    student_id: 2, 
+                    student_name: '李小華', 
+                    class_name: '7A班',
+                    accuracy_rate: 72.3, 
+                    average_speed: 52.1, 
+                    total_sessions: 8, 
+                    total_questions: 80 
+                },
+                { 
+                    student_id: 3, 
+                    student_name: '王小美', 
+                    class_name: '7A班',
+                    accuracy_rate: 91.2, 
+                    average_speed: 28.5, 
+                    total_sessions: 15, 
+                    total_questions: 150 
+                },
+                { 
+                    student_id: 4, 
+                    student_name: '陳小強', 
+                    class_name: '7B班',
+                    accuracy_rate: 78.9, 
+                    average_speed: 45.8, 
+                    total_sessions: 10, 
+                    total_questions: 95 
+                },
+                { 
+                    student_id: 5, 
+                    student_name: '林小雅', 
+                    class_name: '7B班',
+                    accuracy_rate: 88.7, 
+                    average_speed: 32.1, 
+                    total_sessions: 18, 
+                    total_questions: 180 
+                }
+            ];
+        }
+
+        function displayStudents(students) {
+            const grid = document.getElementById('studentGrid');
+            grid.innerHTML = '';
+            
+            if (students.length === 0) {
+                grid.innerHTML = '<div class="card"><p style="text-align: center; color: #6b7280;">暫無學生數據</p></div>';
+                return;
+            }
+            
+            students.forEach(student => {
+                const card = document.createElement('div');
+                card.className = 'card student-card';
+                card.innerHTML = `
+                    <h3>${student.student_name}</h3>
+                    <p><strong>班級:</strong> ${student.class_name}</p>
+                    <div class="student-stats">
+                        <div class="student-stat">
+                            <div class="student-stat-value">${(student.accuracy_rate || 0).toFixed(1)}%</div>
+                            <div class="student-stat-label">正確率</div>
+                        </div>
+                        <div class="student-stat">
+                            <div class="student-stat-value">${(student.average_speed || 0).toFixed(1)}</div>
+                            <div class="student-stat-label">秒/題</div>
+                        </div>
+                        <div class="student-stat">
+                            <div class="student-stat-value">${student.total_sessions || 0}</div>
+                            <div class="student-stat-label">學習會話</div>
+                        </div>
+                        <div class="student-stat">
+                            <div class="student-stat-value">${student.total_questions || 0}</div>
+                            <div class="student-stat-label">總題數</div>
+                        </div>
+                    </div>
+                    ${student.last_active ? `<p><small><strong>最後活躍:</strong> ${new Date(student.last_active).toLocaleDateString()}</small></p>` : ''}
+                `;
+                grid.appendChild(card);
+            });
+            
+            document.getElementById('studentList').classList.remove('hidden');
+        }
+
+        async function createClass() {
+            log('📝 創建新班級功能開發中...', 'info');
+            // TODO: 實現創建班級功能
+        }
+
+        // 刷新功能
+        function refreshClassOverview() {
+            if (currentClass) {
+                loadClassOverview(currentClass.id);
+            }
+        }
+
+        function refreshStudentList() {
+            if (currentClass) {
+                loadStudents(currentClass.id);
+            }
+        }
+
+        // 圖表管理功能
+        function createChart(ctx, type, config = {}) {
+            // 如果圖表已存在，先銷毀它
+            if (charts[ctx.id]) {
+                try {
+                    charts[ctx.id].destroy();
+                } catch (error) {
+                    console.warn(`銷毀圖表失敗: ${error.message}`);
+                }
+                delete charts[ctx.id];
+            }
+
+            let chart;
+            try {
+                // 基礎配置
+                const baseOptions = {
+                    ...chartOptions,
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    // 強制限制圖表尺寸
+                    aspectRatio: 1.5, // 寬高比 1.5:1
+                };
+
+                switch (type) {
+                    case 'bar':
+                        chart = new Chart(ctx, {
+                            type: 'bar',
+                            data: config.data || {},
+                            options: {
+                                ...baseOptions,
+                                scales: {
+                                    x: {
+                                        beginAtZero: true,
+                                        ticks: {
+                                            font: {
+                                                family: 'Noto Sans TC, sans-serif',
+                                                size: 12
+                                            }
+                                        }
+                                    },
+                                    y: {
+                                        beginAtZero: true,
+                                        ticks: {
+                                            font: {
+                                                family: 'Noto Sans TC, sans-serif',
+                                                size: 12
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                        break;
+                    case 'line':
+                        chart = new Chart(ctx, {
+                            type: 'line',
+                            data: config.data || {},
+                            options: {
+                                ...baseOptions,
+                                scales: {
+                                    x: {
+                                        type: 'category',
+                                        beginAtZero: true,
+                                        ticks: {
+                                            font: {
+                                                family: 'Noto Sans TC, sans-serif',
+                                                size: 12
+                                            }
+                                        }
+                                    },
+                                    y: {
+                                        beginAtZero: true,
+                                        ticks: {
+                                            font: {
+                                                family: 'Noto Sans TC, sans-serif',
+                                                size: 12
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                        break;
+                    case 'pie':
+                        chart = new Chart(ctx, {
+                            type: 'pie',
+                            data: config.data || {},
+                            options: {
+                                ...baseOptions,
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: {
+                                        position: 'top',
+                                        labels: {
+                                            font: {
+                                                family: 'Noto Sans TC, sans-serif',
+                                                size: 12
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                        break;
+                    default:
+                        console.warn(`不支援的圖表類型: ${type}`);
+                        return null;
+                }
+                
+                charts[ctx.id] = chart;
+                console.log(`✅ 圖表創建成功: ${ctx.id}`);
+                return chart;
+                
+            } catch (error) {
+                console.error(`❌ 創建圖表失敗: ${ctx.id}`, error);
+                return null;
+            }
+        }
+
+        function clearAllCharts() {
+            console.log('🔧 開始清除所有圖表...');
+            Object.keys(charts).forEach(chartId => {
+                try {
+                    if (charts[chartId]) {
+                        charts[chartId].destroy();
+                        console.log(`✅ 圖表已銷毀: ${chartId}`);
+                    }
+                } catch (error) {
+                    console.warn(`銷毀圖表失敗: ${chartId}`, error);
+                }
+            });
+            charts = {};
+            console.log('✅ 所有圖表已清除');
+        }
+
+        function updateChart(chart, newData) {
+            if (chart) {
+                chart.data = newData;
+                chart.update();
+            }
+        }
+
+        function refreshCharts() {
+            if (currentClass) {
+                loadClassOverview(currentClass.id);
+                loadStudents(currentClass.id);
+            }
+        }
+
+        // 圖表創建函數
+        function createAccuracyChart(students) {
+            const ctx = document.getElementById('accuracyChart');
+            if (!ctx) return;
+            
+            // 按正確率分組
+            const accuracyRanges = {
+                '90-100%': 0,
+                '80-89%': 0,
+                '70-79%': 0,
+                '60-69%': 0,
+                '50-59%': 0,
+                '0-49%': 0
+            };
+            
+            students.forEach(student => {
+                const accuracy = student.accuracy_rate || 0;
+                if (accuracy >= 90) accuracyRanges['90-100%']++;
+                else if (accuracy >= 80) accuracyRanges['80-89%']++;
+                else if (accuracy >= 70) accuracyRanges['70-79%']++;
+                else if (accuracy >= 60) accuracyRanges['60-69%']++;
+                else if (accuracy >= 50) accuracyRanges['50-59%']++;
+                else accuracyRanges['0-49%']++;
+            });
+            
+            const data = {
+                labels: Object.keys(accuracyRanges),
+                datasets: [{
+                    label: '學生數量',
+                    data: Object.values(accuracyRanges),
+                    backgroundColor: [
+                        chartColors.success,
+                        chartColors.secondary,
+                        chartColors.primary,
+                        chartColors.info,
+                        chartColors.warning,
+                        chartColors.danger
+                    ],
+                    borderColor: chartColors.dark,
+                    borderWidth: 1
+                }]
+            };
+            
+            createChart(ctx, 'bar', { data });
+        }
+
+        function createSpeedChart(students) {
+            const ctx = document.getElementById('speedChart');
+            if (!ctx) return;
+            
+            // 按答題速度分組
+            const speedRanges = {
+                '0-30秒': 0,
+                '31-60秒': 0,
+                '61-90秒': 0,
+                '91-120秒': 0,
+                '120+秒': 0
+            };
+            
+            students.forEach(student => {
+                const speed = student.average_speed || 0;
+                if (speed <= 30) speedRanges['0-30秒']++;
+                else if (speed <= 60) speedRanges['31-60秒']++;
+                else if (speed <= 90) speedRanges['61-90秒']++;
+                else if (speed <= 120) speedRanges['91-120秒']++;
+                else speedRanges['120+秒']++;
+            });
+            
+            const data = {
+                labels: Object.keys(speedRanges),
+                datasets: [{
+                    label: '學生數量',
+                    data: Object.values(speedRanges),
+                    backgroundColor: [
+                        chartColors.success,
+                        chartColors.secondary,
+                        chartColors.primary,
+                        chartColors.warning,
+                        chartColors.danger
+                    ],
+                    borderColor: chartColors.dark,
+                    borderWidth: 1
+                }]
+            };
+            
+            createChart(ctx, 'bar', { data });
+        }
+
+        function createSessionsChart(students) {
+            const ctx = document.getElementById('sessionsChart');
+            if (!ctx) return;
+            
+            // 按學習會話數量分組
+            const sessionRanges = {
+                '0-5次': 0,
+                '6-10次': 0,
+                '11-15次': 0,
+                '16-20次': 0,
+                '20+次': 0
+            };
+            
+            students.forEach(student => {
+                const sessions = student.total_sessions || 0;
+                if (sessions <= 5) sessionRanges['0-5次']++;
+                else if (sessions <= 10) sessionRanges['6-10次']++;
+                else if (sessions <= 15) sessionRanges['11-15次']++;
+                else if (sessions <= 20) sessionRanges['16-20次']++;
+                else sessionRanges['20+次']++;
+            });
+            
+            const data = {
+                labels: Object.keys(sessionRanges),
+                datasets: [{
+                    label: '學生數量',
+                    data: Object.values(sessionRanges),
+                    backgroundColor: [
+                        chartColors.info,
+                        chartColors.primary,
+                        chartColors.secondary,
+                        chartColors.success,
+                        chartColors.accent
+                    ],
+                    borderColor: chartColors.dark,
+                    borderWidth: 1
+                }]
+            };
+            
+            createChart(ctx, 'bar', { data });
+        }
+
+        function createSubjectChart(students) {
+            const ctx = document.getElementById('subjectChart');
+            if (!ctx) return;
+            
+            // 計算各科目的平均表現
+            const subjects = {};
+            students.forEach(student => {
+                const subject = student.class_name || '未知';
+                if (!subjects[subject]) {
+                    subjects[subject] = {
+                        accuracy: [],
+                        speed: [],
+                        sessions: []
+                    };
+                }
+                subjects[subject].accuracy.push(student.accuracy_rate || 0);
+                subjects[subject].speed.push(student.average_speed || 0);
+                subjects[subject].sessions.push(student.total_sessions || 0);
+            });
+            
+            const subjectNames = Object.keys(subjects);
+            const avgAccuracy = subjectNames.map(subject => {
+                const accuracies = subjects[subject].accuracy;
+                return accuracies.length > 0 ? accuracies.reduce((a, b) => a + b, 0) / accuracies.length : 0;
+            });
+            
+            const data = {
+                labels: subjectNames,
+                datasets: [{
+                    label: '平均正確率 (%)',
+                    data: avgAccuracy,
+                    backgroundColor: chartColors.primary,
+                    borderColor: chartColors.dark,
+                    borderWidth: 2,
+                    fill: false
+                }]
+            };
+            
+            createChart(ctx, 'line', { data });
+        }
+
+        function createAllCharts(students) {
+            // 清除之前的定時器
+            if (chartUpdateTimeout) {
+                clearTimeout(chartUpdateTimeout);
+            }
+            
+            // 使用防抖機制，延遲 300ms 後更新圖表
+            chartUpdateTimeout = setTimeout(() => {
+                console.log('🔧 開始創建所有圖表...');
+                console.log(`📊 學生數據: ${students.length} 名`);
+                
+                // 清除舊圖表
+                clearAllCharts();
+                
+                // 檢查學生數據
+                if (!students || students.length === 0) {
+                    console.log('⚠️ 沒有學生數據，跳過圖表創建');
+                    return;
+                }
+                
+                // 創建新圖表
+                try {
+                    createAccuracyChart(students);
+                    createSpeedChart(students);
+                    createSessionsChart(students);
+                    createSubjectChart(students);
+                    
+                    // 強制重新調整所有圖表尺寸
+                    setTimeout(() => {
+                        Object.values(charts).forEach(chart => {
+                            if (chart && chart.resize) {
+                                chart.resize();
+                            }
+                        });
+                        console.log('✅ 圖表尺寸已重新調整');
+                    }, 100);
+                    
+                    log('📊 所有圖表已更新', 'success');
+                    console.log('✅ 所有圖表創建完成');
+                    
+                } catch (error) {
+                    console.error('❌ 創建圖表時發生錯誤:', error);
+                    log('❌ 圖表創建失敗', 'error');
+                }
+            }, 300);
+        }
+
+        // 強制重新調整圖表尺寸
+        function resizeAllCharts() {
+            console.log('🔧 強制重新調整所有圖表尺寸...');
+            Object.values(charts).forEach(chart => {
+                if (chart && chart.resize) {
+                    try {
+                        chart.resize();
+                        console.log('✅ 圖表尺寸已調整');
+                    } catch (error) {
+                        console.warn('⚠️ 調整圖表尺寸失敗:', error);
+                    }
+                }
+            });
+        }
+
+        // 頁面載入完成後的初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            log('🚀 真實 API 學生分析頁面載入完成', 'success');
+            log('💡 請先登入以開始使用', 'info');
+            
+            // 檢查必要的 DOM 元素
+            const loadClassesBtn = document.getElementById('loadClassesBtn');
+            const loadClassesSpinner = document.getElementById('loadClassesSpinner');
+            
+            if (loadClassesBtn && loadClassesSpinner) {
+                log('✅ 找到載入班級按鈕和 spinner', 'success');
+            } else {
+                log('❌ 找不到載入班級按鈕或 spinner', 'error');
+                log(`按鈕: ${!!loadClassesBtn}, Spinner: ${!!loadClassesSpinner}`, 'error');
+            }
+            
+            // 檢查圖表元素
+            const chartElements = [
+                'accuracyChart',
+                'speedChart', 
+                'sessionsChart',
+                'subjectChart'
+            ];
+            
+            const missingCharts = chartElements.filter(id => !document.getElementById(id));
+            if (missingCharts.length === 0) {
+                log('✅ 所有圖表元素都已找到', 'success');
+            } else {
+                log('❌ 缺少圖表元素:', 'error');
+                log(`缺少: ${missingCharts.join(', ')}`, 'error');
+            }
+            
+            // 清除所有載入狀態
+            clearAllLoading();
+            
+            // 檢查是否有保存的 token
+            const token = localStorage.getItem('access_token');
+            if (token) {
+                log('🔑 發現保存的 token，嘗試自動登入...', 'info');
+                // TODO: 驗證 token 有效性
+            }
+        });
+
+        // 頁面卸載時清理資源
+        window.addEventListener('beforeunload', () => {
+            console.log('🔧 頁面即將卸載，清理資源...');
+            if (chartUpdateTimeout) {
+                clearTimeout(chartUpdateTimeout);
+            }
+            clearAllCharts();
+        });
+
+        // 手動清除載入狀態（調試用）
+        function forceClearLoading() {
+            clearAllLoading();
+            log('🔧 強制清除所有載入狀態', 'info');
+        }
+    </script>
+</body>
+</html>

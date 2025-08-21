@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API 客戶端診斷</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { background: #f5f5f5; padding: 20px; margin: 20px 0; border-radius: 8px; }
+        .result { background: white; padding: 10px; margin: 10px 0; border-radius: 4px; border: 1px solid #ddd; }
+        .success { border-color: #4caf50; background: #e8f5e8; }
+        .error { border-color: #f44336; background: #ffebee; }
+        button { padding: 10px 20px; margin: 5px; background: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #1976d2; }
+        pre { background: #f8f8f8; padding: 10px; border-radius: 4px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🔍 API 客戶端診斷</h1>
+    
+    <div class="test-section">
+        <h2>📋 診斷說明</h2>
+        <p>這個頁面用來診斷 API 客戶端的問題。點擊下方按鈕來測試不同的功能。</p>
+    </div>
+
+    <div class="test-section">
+        <h2>🧪 診斷測試</h2>
+        
+        <button onclick="testApiClient()">
+            測試 API 客戶端
+        </button>
+        
+        <button onclick="testDirectFetch()">
+            測試直接 Fetch
+        </button>
+        
+        <button onclick="testApiPaths()">
+            測試 API 路徑
+        </button>
+        
+        <button onclick="clearResults()">
+            清除結果
+        </button>
+    </div>
+
+    <div class="test-section">
+        <h2>📊 測試結果</h2>
+        <div id="results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔧 手動測試</h2>
+        <p>您也可以在瀏覽器控制台中手動測試：</p>
+        <pre>
+// 檢查 API 客戶端
+console.log('API 客戶端:', window.apiClient);
+console.log('API 客戶端 baseUrl:', window.apiClient?.baseUrl);
+
+// 測試 API 客戶端
+if (window.apiClient) {
+    window.apiClient.get('/relationships/teacher/removed-students')
+        .then(data => console.log('API 客戶端成功:', data))
+        .catch(err => console.error('API 客戶端失敗:', err));
+}
+
+// 測試直接 fetch
+fetch('/api/v1/relationships/teacher/removed-students')
+    .then(res => res.json())
+    .then(data => console.log('直接 fetch 成功:', data))
+    .catch(err => console.error('直接 fetch 失敗:', err));
+        </pre>
+    </div>
+
+    <script src="../js/api-client.js"></script>
+    <script>
+        function addResult(title, content, isSuccess = true) {
+            const resultsDiv = document.getElementById('results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `result ${isSuccess ? 'success' : 'error'}`;
+            resultDiv.innerHTML = `
+                <h3>${title}</h3>
+                <pre>${content}</pre>
+            `;
+            resultsDiv.appendChild(resultDiv);
+        }
+
+        async function testApiClient() {
+            console.log('🧪 開始測試 API 客戶端...');
+            
+            try {
+                // 檢查 API 客戶端是否存在
+                if (!window.apiClient) {
+                    addResult('❌ API 客戶端測試', 'window.apiClient 未定義', false);
+                    return;
+                }
+
+                addResult('✅ API 客戶端存在', `baseUrl: ${window.apiClient.baseUrl}\n方法: ${Object.keys(window.apiClient).join(', ')}`);
+
+                // 測試 API 客戶端的 get 方法
+                const response = await window.apiClient.get('/relationships/teacher/removed-students');
+                addResult('✅ API 客戶端請求成功', JSON.stringify(response, null, 2));
+                
+            } catch (error) {
+                addResult('❌ API 客戶端請求失敗', error.message, false);
+            }
+        }
+
+        async function testDirectFetch() {
+            console.log('🧪 開始測試直接 Fetch...');
+            
+            try {
+                const response = await fetch('/api/v1/relationships/teacher/removed-students');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addResult('✅ 直接 Fetch 成功', JSON.stringify(data, null, 2));
+                } else {
+                    addResult('❌ 直接 Fetch 失敗', `狀態: ${response.status}\n資料: ${JSON.stringify(data, null, 2)}`, false);
+                }
+                
+            } catch (error) {
+                addResult('❌ 直接 Fetch 錯誤', error.message, false);
+            }
+        }
+
+        async function testApiPaths() {
+            console.log('🧪 開始測試 API 路徑...');
+            
+            const paths = [
+                '/relationships/teacher/removed-students',
+                '/api/v1/relationships/teacher/removed-students',
+                '/relationships/teacher-class?include_deleted=true',
+                '/api/v1/relationships/teacher-class?include_deleted=true'
+            ];
+            
+            for (const path of paths) {
+                try {
+                    const response = await fetch(path);
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        addResult(`✅ 路徑 ${path} 成功`, JSON.stringify(data, null, 2));
+                    } else {
+                        addResult(`❌ 路徑 ${path} 失敗`, `狀態: ${response.status}\n資料: ${JSON.stringify(data, null, 2)}`, false);
+                    }
+                    
+                } catch (error) {
+                    addResult(`❌ 路徑 ${path} 錯誤`, error.message, false);
+                }
+            }
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+
+        // 頁面載入完成後的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 API 客戶端診斷頁面已載入');
+            console.log('當前頁面 URL:', window.location.href);
+            
+            // 檢查 API 客戶端
+            if (window.apiClient) {
+                console.log('✅ 找到 API 客戶端:', window.apiClient);
+                console.log('API 客戶端 baseUrl:', window.apiClient.baseUrl);
+            } else {
+                console.log('❌ 未找到 API 客戶端');
+            }
+            
+            // 檢查是否有認證 token
+            const token = localStorage.getItem('auth_token') || 
+                         sessionStorage.getItem('auth_token') || 
+                         localStorage.getItem('teacher_token') || 
+                         sessionStorage.getItem('teacher_token');
+            
+            if (token) {
+                console.log('✅ 找到認證 token');
+            } else {
+                console.log('❌ 未找到認證 token');
+            }
+        });
+    </script>
+</body>
+</html>

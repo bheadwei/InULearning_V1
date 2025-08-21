@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>成績管理 - InULearning 教師控制台</title>
+    <meta name="description" content="InULearning 教師控制台：管理班級、學生、題庫與作業，查看學習報告。">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+    <link rel="stylesheet" href="../css/main.css">
+</head>
+
+<body class="bg-gray-100">
+    <div class="flex h-screen bg-white">
+        <!-- 側邊欄 -->
+        <aside class="w-64 bg-blue-800 text-white flex flex-col">
+            <a class="block" href="../index.html">
+                <div class="flex items-center justify-center p-6 hover:bg-blue-700">
+                    <div class="w-24 h-24 rounded-full bg-blue-600 flex items-center justify-center">
+                        <span class="material-icons text-3xl">school</span>
+                    </div>
+                </div>
+                <div class="px-6 pb-4 hover:bg-blue-700">
+                    <h1 class="text-xl font-bold text-center">InU Learning</h1>
+                    <p class="text-sm text-center">【因你而學】</p>
+                </div>
+            </a>
+            <nav class="flex-1 px-4 py-4 space-y-2">
+                <a class="flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg" href="../index.html">
+                    <span class="material-icons">dashboard</span>
+                    <span class="ml-3">教師控制台</span>
+                </a>
+                <a class="flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg" href="classes-enhanced.html">
+                    <span class="material-icons">class</span>
+                    <span class="ml-3">班級管理</span>
+                </a>
+                <a class="flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg" href="students-enhanced.html">
+                    <span class="material-icons">people</span>
+                    <span class="ml-3">學生分析</span>
+                </a>
+                <a class="flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg" href="assignments-enhanced.html">
+                    <span class="material-icons">assignment</span>
+                    <span class="ml-3">作業管理</span>
+                </a>
+                <a class="flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg" href="questions-enhanced.html">
+                    <span class="material-icons">quiz</span>
+                    <span class="ml-3">題庫管理</span>
+                </a>
+                <a class="flex items-center px-4 py-2 text-gray-100 bg-blue-700 rounded-lg" href="grades-enhanced.html">
+                    <span class="material-icons">analytics</span>
+                    <span class="ml-3">成績管理</span>
+                </a>
+                <a class="flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg" href="analytics-enhanced.html">
+                    <span class="material-icons">analytics</span>
+                    <span class="ml-3">學習分析</span>
+                </a>
+            </nav>
+            <div class="p-4 border-t border-blue-700">
+                <button id="logoutBtn" class="w-full flex items-center px-4 py-2 text-gray-100 hover:bg-blue-700 rounded-lg">
+                    <span class="material-icons">logout</span>
+                    <span class="ml-3">登出</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- 主要內容區域 -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- 頂部導航 -->
+            <header class="flex justify-between items-center p-4 bg-white border-b">
+                <div class="flex items-center flex-1">
+                    <button class="text-gray-500 focus:outline-none lg:hidden">
+                        <span class="material-icons">menu</span>
+                    </button>
+                    <div class="relative text-gray-600 focus-within:text-gray-400 ml-4 flex-1 max-w-md">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-2">
+                            <button class="p-1 focus:outline-none" type="submit">
+                                <span class="material-icons">search</span>
+                            </button>
+                        </span>
+                        <input autocomplete="off" class="py-2 text-sm text-gray-700 bg-gray-200 rounded-md pl-10 focus:outline-none focus:bg-white focus:text-gray-900 w-full" name="q" placeholder="搜尋班級、學生或題目..." type="search"/>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div id="userInfo" class="hidden flex items-center space-x-2">
+                        <span class="text-sm text-gray-600">歡迎，</span>
+                        <span id="userName" class="text-sm font-medium text-blue-600">王老師</span>
+                        <button id="logoutBtn" class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition-colors">
+                            登出
+                        </button>
+                    </div>
+                    <div id="authButtons">
+                        <a class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors" href="http://localhost/login.html">登入</a>
+                        <a class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors" href="register.html">註冊</a>
+                    </div>
+                </div>
+            </header>
+
+            <!-- 主要內容 -->
+            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100">
+                <div class="container mx-auto px-6 py-8">
+                    <!-- 歡迎區塊 -->
+                    <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-lg p-8 mb-8">
+                        <h1 class="text-3xl font-bold mb-4">成績管理</h1>
+                        <p class="text-xl mb-6">查看和管理學生作業成績，追蹤學習進度</p>
+                        <div class="flex flex-wrap gap-4">
+                            <button class="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+                                <span class="material-icons mr-2">analytics</span>
+                                成績分析
+                            </button>
+                            <button class="bg-blue-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors">
+                                <span class="material-icons mr-2">download</span>
+                                匯出報告
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 快速操作區 -->
+                    <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-xl font-semibold text-gray-800">快速操作</h2>
+                        </div>
+                        <div class="flex flex-wrap gap-4">
+                            <button class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                                <span class="material-icons mr-2">grade</span>
+                                批改作業
+                            </button>
+                            <button class="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors">
+                                <span class="material-icons mr-2">download</span>
+                                匯出成績
+                            </button>
+                            <button class="bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors">
+                                <span class="material-icons mr-2">analytics</span>
+                                成績分析
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 成績統計 -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <div class="flex items-center">
+                                <div class="bg-blue-100 p-3 rounded-lg mr-4">
+                                    <span class="material-icons text-blue-600 text-2xl">assignment</span>
+                                </div>
+                                <div>
+                                    <h3 class="text-2xl font-bold text-gray-800">24</h3>
+                                    <p class="text-gray-600">總作業數</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <div class="flex items-center">
+                                <div class="bg-green-100 p-3 rounded-lg mr-4">
+                                    <span class="material-icons text-green-600 text-2xl">check_circle</span>
+                                </div>
+                                <div>
+                                    <h3 class="text-2xl font-bold text-gray-800">18</h3>
+                                    <p class="text-gray-600">已批改</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <div class="flex items-center">
+                                <div class="bg-yellow-100 p-3 rounded-lg mr-4">
+                                    <span class="material-icons text-yellow-600 text-2xl">schedule</span>
+                                </div>
+                                <div>
+                                    <h3 class="text-2xl font-bold text-gray-800">6</h3>
+                                    <p class="text-gray-600">待批改</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <div class="flex items-center">
+                                <div class="bg-purple-100 p-3 rounded-lg mr-4">
+                                    <span class="material-icons text-purple-600 text-2xl">trending_up</span>
+                                </div>
+                                <div>
+                                    <h3 class="text-2xl font-bold text-gray-800">85.2</h3>
+                                    <p class="text-gray-600">平均分數</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 成績列表 -->
+                    <div class="bg-white rounded-lg shadow-md">
+                        <div class="p-6 border-b border-gray-200">
+                            <h2 class="text-xl font-semibold text-gray-800">成績列表</h2>
+                        </div>
+                        <div class="p-6">
+                            <div class="overflow-x-auto">
+                                <table class="w-full">
+                                    <thead>
+                                        <tr class="border-b border-gray-200">
+                                            <th class="text-left py-3 px-4 font-semibold text-gray-800">學生姓名</th>
+                                            <th class="text-left py-3 px-4 font-semibold text-gray-800">作業名稱</th>
+                                            <th class="text-left py-3 px-4 font-semibold text-gray-800">班級</th>
+                                            <th class="text-left py-3 px-4 font-semibold text-gray-800">分數</th>
+                                            <th class="text-left py-3 px-4 font-semibold text-gray-800">狀態</th>
+                                            <th class="text-left py-3 px-4 font-semibold text-gray-800">提交時間</th>
+                                            <th class="text-left py-3 px-4 font-semibold text-gray-800">操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                            <td class="py-3 px-4">
+                                                <div class="flex items-center">
+                                                    <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                                                        <span class="text-blue-600 font-semibold">張</span>
+                                                    </div>
+                                                    <span class="font-medium text-gray-800">張小明</span>
+                                                </div>
+                                            </td>
+                                            <td class="py-3 px-4 text-gray-600">數學基礎練習</td>
+                                            <td class="py-3 px-4 text-gray-600">數學基礎班</td>
+                                            <td class="py-3 px-4">
+                                                <span class="text-lg font-bold text-green-600">92</span>
+                                                <span class="text-sm text-gray-500">/100</span>
+                                            </td>
+                                            <td class="py-3 px-4">
+                                                <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">已批改</span>
+                                            </td>
+                                            <td class="py-3 px-4 text-gray-600">2024/12/20</td>
+                                            <td class="py-3 px-4">
+                                                <button class="text-blue-600 hover:text-blue-800 mr-2">查看</button>
+                                                <button class="text-gray-600 hover:text-gray-800">編輯</button>
+                                            </td>
+                                        </tr>
+                                        <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                            <td class="py-3 px-4">
+                                                <div class="flex items-center">
+                                                    <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                                                        <span class="text-green-600 font-semibold">李</span>
+                                                    </div>
+                                                    <span class="font-medium text-gray-800">李小華</span>
+                                                </div>
+                                            </td>
+                                            <td class="py-3 px-4 text-gray-600">英文單字測驗</td>
+                                            <td class="py-3 px-4 text-gray-600">英文進階班</td>
+                                            <td class="py-3 px-4">
+                                                <span class="text-lg font-bold text-yellow-600">78</span>
+                                                <span class="text-sm text-gray-500">/100</span>
+                                            </td>
+                                            <td class="py-3 px-4">
+                                                <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">待批改</span>
+                                            </td>
+                                            <td class="py-3 px-4 text-gray-600">2024/12/21</td>
+                                            <td class="py-3 px-4">
+                                                <button class="text-blue-600 hover:text-blue-800 mr-2">查看</button>
+                                                <button class="text-green-600 hover:text-green-800">批改</button>
+                                            </td>
+                                        </tr>
+                                        <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                            <td class="py-3 px-4">
+                                                <div class="flex items-center">
+                                                    <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mr-3">
+                                                        <span class="text-purple-600 font-semibold">王</span>
+                                                    </div>
+                                                    <span class="font-medium text-gray-800">王小美</span>
+                                                </div>
+                                            </td>
+                                            <td class="py-3 px-4 text-gray-600">物理實驗報告</td>
+                                            <td class="py-3 px-4 text-gray-600">物理實驗班</td>
+                                            <td class="py-3 px-4">
+                                                <span class="text-lg font-bold text-red-600">65</span>
+                                                <span class="text-sm text-gray-500">/100</span>
+                                            </td>
+                                            <td class="py-3 px-4">
+                                                <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">已批改</span>
+                                            </td>
+                                            <td class="py-3 px-4 text-gray-600">2024/12/19</td>
+                                            <td class="py-3 px-4">
+                                                <button class="text-blue-600 hover:text-blue-800 mr-2">查看</button>
+                                                <button class="text-gray-600 hover:text-gray-800">編輯</button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- JavaScript 檔案載入 -->
+    <script src="../js/auth.js"></script>
+    <script src="../js/main.js"></script>
+    
+    <script>
+        // 頁面載入完成後的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 更新認證狀態和歡迎訊息
+            if (typeof teacherAuth !== 'undefined') {
+                teacherAuth.updateUI();
+            }
+            
+            // 登出功能
+            document.getElementById('logoutBtn').addEventListener('click', function() {
+                if (confirm('確定要登出嗎？')) {
+                    if (typeof teacherAuth !== 'undefined') {
+                        teacherAuth.logout();
+                    } else {
+                        alert('已登出');
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>測試模態框功能</title>
+    <link rel="stylesheet" href="/shared/css/components.css">
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-button { padding: 10px 20px; margin: 10px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .test-button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <h1>測試模態框功能</h1>
+    
+    <div>
+        <button class="test-button" onclick="openModal()">打開模態框</button>
+        <button class="test-button" onclick="closeModal()">關閉模態框</button>
+    </div>
+    
+    <!-- 測試模態框 -->
+    <div id="testModal" class="modal" style="display:none;">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3 class="modal-title">測試模態框</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>這是一個測試模態框，用來驗證 CSS 樣式是否正常工作。</p>
+                <p>如果您能看到這個模態框，說明樣式已經修復。</p>
+            </div>
+            <div class="modal-footer">
+                <button class="test-button" onclick="closeModal()">關閉</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openModal() {
+            const modal = document.getElementById('testModal');
+            if (modal) {
+                modal.style.display = 'flex';
+                modal.classList.add('show');
+                console.log('✅ 模態框已打開');
+            }
+        }
+        
+        function closeModal() {
+            const modal = document.getElementById('testModal');
+            if (modal) {
+                modal.style.display = 'none';
+                modal.classList.remove('show');
+                console.log('✅ 模態框已關閉');
+            }
+        }
+        
+        // 點擊模態框背景關閉
+        document.getElementById('testModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
