@@ -137,15 +137,38 @@ class ExerciseManager {
         const subjectSelect = document.getElementById('subjectSelect');
         const chapterSelect = document.getElementById('chapterSelect');
 
-        if (gradeSelect) gradeSelect.addEventListener('change', () => { this.updateChapterOptions(); this.scheduleAutoCheck(); });
-        if (editionSelect) editionSelect.addEventListener('change', () => { this.updateChapterOptions(); this.scheduleAutoCheck(); });
-        if (subjectSelect) subjectSelect.addEventListener('change', () => { this.updateChapterOptions(); this.scheduleAutoCheck(); });
-        if (chapterSelect) chapterSelect.addEventListener('change', () => this.scheduleAutoCheck());
+        const onMainSelectChanged = () => { this.updateChapterOptions(); this.scheduleAutoCheck(); };
+        const onScheduleOnly = () => this.scheduleAutoCheck();
+
+        // 支援 mobile：同時監聽 change/input/blur
+        if (gradeSelect) {
+            gradeSelect.addEventListener('change', onMainSelectChanged);
+            gradeSelect.addEventListener('input', onMainSelectChanged);
+            gradeSelect.addEventListener('blur', onMainSelectChanged);
+        }
+        if (editionSelect) {
+            editionSelect.addEventListener('change', onMainSelectChanged);
+            editionSelect.addEventListener('input', onMainSelectChanged);
+            editionSelect.addEventListener('blur', onMainSelectChanged);
+        }
+        if (subjectSelect) {
+            subjectSelect.addEventListener('change', onMainSelectChanged);
+            subjectSelect.addEventListener('input', onMainSelectChanged);
+            subjectSelect.addEventListener('blur', onMainSelectChanged);
+        }
+        if (chapterSelect) {
+            chapterSelect.addEventListener('change', onScheduleOnly);
+            chapterSelect.addEventListener('input', onScheduleOnly);
+            chapterSelect.addEventListener('blur', onScheduleOnly);
+        }
 
         // 題數輸入驗證
         const questionCountInput = document.getElementById('questionCountInput');
         if (questionCountInput) {
-            questionCountInput.addEventListener('input', () => { this.validateQuestionCount(); this.scheduleAutoCheck(); });
+            const onCountChanged = () => { this.validateQuestionCount(); this.scheduleAutoCheck(); };
+            questionCountInput.addEventListener('input', onCountChanged);
+            questionCountInput.addEventListener('change', onCountChanged);
+            questionCountInput.addEventListener('blur', onCountChanged);
         }
 
         // 選項選擇事件
