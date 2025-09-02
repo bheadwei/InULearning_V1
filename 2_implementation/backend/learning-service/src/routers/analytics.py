@@ -60,7 +60,7 @@ async def get_subjects_radar(
     # 聚合每科目資料（基礎 + 新指標）
     # - accuracy_ratio = AVG(is_correct::int) 0..1
     # - avg_time_spent_s = AVG(er.time_spent)
-    # - qpm = 60 / avg_time_spent_s
+    # - qps = 問題數 / Σ作答秒數（優先以題目作答時間估算，回退到 session）
     # - dwell_min = AVG(ls.time_spent) / 60  (分鐘)
     # - growth_rate = (recent_acc - past_acc) / past_acc  (以 window 對半切分)
     # - time_stddev_s = stddev_samp(er.time_spent)
@@ -76,6 +76,25 @@ async def get_subjects_radar(
                 func.avg(cast(case((ExerciseRecord.created_at >= window_mid, case((ExerciseRecord.is_correct == True, 1), else_=0)), else_=None), Float)).label("recent_acc"),
                 func.avg(cast(case((ExerciseRecord.created_at < window_mid, case((ExerciseRecord.is_correct == True, 1), else_=0)), else_=None), Float)).label("past_acc"),
                 func.stddev_samp(ExerciseRecord.time_spent).label("time_stddev_s"),
+                # 供計算答題速率(題/秒)的附加聚合
+                func.count(ExerciseRecord.id).label("num_questions"),
+                func.sum(ExerciseRecord.time_spent).label("sum_er_time_spent_s"),
+                func.coalesce(
+                    cast(
+                        func.count(ExerciseRecord.id)
+                        / func.nullif(func.sum(ExerciseRecord.time_spent), 0),
+                        Float,
+                    ),
+                    0.0,
+                ).label("qps_from_er"),
+                func.coalesce(
+                    cast(
+                        func.count(ExerciseRecord.id)
+                        / func.nullif(func.sum(LearningSession.time_spent), 0),
+                        Float,
+                    ),
+                    0.0,
+                ).label("qps_from_session"),
             )
             .join(LearningSession, LearningSession.id == ExerciseRecord.session_id)
             .where(
@@ -90,7 +109,8 @@ async def get_subjects_radar(
         logger.error(f"Radar aggregation failed: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Radar aggregation failed")
 
-    # 查詢知識點掌握率：對每個科目，平均每個知識點的正確率
+    # 查詢知識點掌握率：對每個科目，計算「已掌握的知識點比例」
+    # 定義：同一知識點嘗試次數 >= 3 且正確率 >= 0.7 視為掌握
     knowledge_mastery_map: Dict[str, float] = {}
     try:
         kp_sql = text(
@@ -98,13 +118,17 @@ async def get_subjects_radar(
             WITH per_kp AS (
               SELECT er.subject AS subject,
                      kp AS kp,
-                     AVG(CASE WHEN er.is_correct THEN 1.0 ELSE 0.0 END) AS kp_acc
+                     COUNT(*) AS attempts,
+                     AVG(CASE WHEN er.is_correct THEN 1.0 ELSE 0.0 END) AS acc
               FROM exercise_records er, UNNEST(er.knowledge_points) AS kp
               WHERE er.user_id = :user_id
                 AND er.created_at >= :window_start
               GROUP BY er.subject, kp
             )
-            SELECT subject, AVG(kp_acc) AS knowledge_mastery
+            SELECT subject,
+                   CASE WHEN COUNT(*) = 0 THEN 0.0
+                        ELSE SUM(CASE WHEN attempts >= 3 AND acc >= 0.7 THEN 1 ELSE 0 END)::float / COUNT(*)
+                   END AS knowledge_mastery
             FROM per_kp
             GROUP BY subject
             """
@@ -117,9 +141,33 @@ async def get_subjects_radar(
         # fallback: 使用 accuracy_ratio 當作掌握率
 
     subjects_raw: List[Dict[str, Any]] = []
-    for subject, accuracy_ratio, avg_time_spent_s, dwell_min, recent_acc, past_acc, time_stddev_s in rows:
+    for (
+        subject,
+        accuracy_ratio,
+        avg_time_spent_s,
+        dwell_min,
+        recent_acc,
+        past_acc,
+        time_stddev_s,
+        num_questions,
+        sum_er_time_spent_s,
+        qps_from_er,
+        qps_from_session,
+    ) in rows:
         avg_time_spent_s = float(avg_time_spent_s) if avg_time_spent_s is not None else None
-        qpm = 60.0 / avg_time_spent_s if (avg_time_spent_s and avg_time_spent_s > 0) else 0.0
+        # 答題速率(QPS, 題/秒)優先以作答時間總和估算，其次以 session 時數估算，最後回退為 1/平均作答秒數
+        qpm_candidates: List[float] = []
+        try:
+            qpm_candidates.append(float(qps_from_er or 0.0))
+        except Exception:
+            qpm_candidates.append(0.0)
+        try:
+            qpm_candidates.append(float(qps_from_session or 0.0))
+        except Exception:
+            qpm_candidates.append(0.0)
+        if avg_time_spent_s and avg_time_spent_s > 0:
+            qpm_candidates.append(1.0 / avg_time_spent_s)
+        qps = max(qpm_candidates) if qpm_candidates else 0.0
         dwell_min = float(dwell_min or 0.0)
         accuracy_ratio = float(accuracy_ratio or 0.0)
         recent_acc = float(recent_acc or 0.0)
@@ -132,7 +180,7 @@ async def get_subjects_radar(
                 "subject": subject or "未知科目",
                 "raw": {
                     "accuracy": accuracy_ratio,         # 0..1
-                    "qpm": float(qpm),
+                    "qps": float(qps),
                     "dwell_min": dwell_min,             # minutes
                     "growth_rate": growth_rate,         # can be negative
                     "knowledge_mastery": knowledge_mastery, # 0..1
@@ -144,7 +192,7 @@ async def get_subjects_radar(
     # 統一尺度鍵（0..1，前端顯示百分率）
     metric_keys = [
         "accuracy",           # higher better (0..1)
-        "qpm",                # higher better (min-max)
+        "qps",                # higher better (min-max)
         "dwell_min",          # lower better (invert then min-max)
         "growth_rate",        # can be negative, min-max across subjects
         "knowledge_mastery",  # higher better (0..1)
@@ -161,7 +209,7 @@ async def get_subjects_radar(
             return 1.0
         return x
 
-    QPM_MAX = 3.0            # 期望上限(題/分)
+    QPS_MAX = 0.05           # 期望上限(題/秒) ≈ 3 題/分
     DWELL_MAX_MIN = 30.0     # 期望上限(分鐘)
     STD_MAX = 60.0           # 作答時間標準差上限(秒)
 
@@ -169,7 +217,7 @@ async def get_subjects_radar(
     for item in subjects_raw:
         r = item["raw"]
         acc_norm = clamp01(r.get("accuracy", 0.0))
-        qpm_norm = clamp01((r.get("qpm", 0.0) or 0.0) / QPM_MAX)
+        qpm_norm = clamp01((r.get("qps", 0.0) or 0.0) / QPS_MAX)
         dwell_raw = r.get("dwell_min", 0.0) or 0.0
         dwell_norm = clamp01(1.0 - (dwell_raw / DWELL_MAX_MIN))
         growth_raw = r.get("growth_rate", 0.0) or 0.0  # -inf..+inf,常見在[-1,1]
@@ -185,7 +233,7 @@ async def get_subjects_radar(
                 "raw": r,
                 "normalized": {
                     "accuracy": acc_norm,
-                    "qpm": qpm_norm,
+                    "qps": qpm_norm,
                     "dwell_min": dwell_norm,
                     "growth_rate": growth_norm,
                     "knowledge_mastery": km_norm,
@@ -235,11 +283,13 @@ async def get_subjects_trend(
         score_expr = func.avg(cast(ExerciseRecord.score, Float))
         y_expr = acc_expr if metric == "accuracy" else score_expr
 
+        # 以 session 做為 x 軸索引，確保同一天的多個 session 也各自顯示
         stmt = (
             select(
                 ExerciseRecord.subject.label("subject"),
                 ExerciseRecord.session_id.label("session_id"),
-                LearningSession.start_time.label("x"),
+                # x 軸直接使用 session_id（整數索引），前端可等距排列
+                ExerciseRecord.session_id.label("x"),
                 y_expr.label("y"),
             )
             .join(LearningSession, LearningSession.id == ExerciseRecord.session_id)
@@ -252,8 +302,8 @@ async def get_subjects_trend(
                     else []
                 ),
             )
-            .group_by(ExerciseRecord.subject, ExerciseRecord.session_id, LearningSession.start_time)
-            .order_by(LearningSession.start_time.asc())
+            .group_by(ExerciseRecord.subject, ExerciseRecord.session_id)
+            .order_by(ExerciseRecord.session_id.asc())
         )
 
         rows = (await db_session.execute(stmt)).all()
@@ -268,7 +318,8 @@ async def get_subjects_trend(
             series_map[subj] = []
         # accuracy 0..1, score 0..100 (如果為 None，給 0)
         y_value = float(y) if y is not None else 0.0
-        series_map[subj].append({"x": x.isoformat() if x else None, "y": y_value})
+        # x 為 session_id（整數），不壓縮同日多個 session
+        series_map[subj].append({"x": int(x) if x is not None else None, "y": y_value})
 
     # 依每科目限制點數，並固定科目順序
     out_series: List[Dict[str, Any]] = []

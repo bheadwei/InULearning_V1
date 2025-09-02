@@ -36,7 +36,7 @@
     // 指標中文對照
     const METRIC_LABELS = {
         accuracy: '正確率',
-        qpm: '平均答題速率(題/分)',
+        qps: '答題速率(題/秒)',
         dwell_min: '停留時間(分)',
         growth_rate: '成長率',
         knowledge_mastery: '知識點掌握率',
@@ -58,6 +58,20 @@
         return SUBJECT_COLORS[name] || '#3B82F6';
     }
 
+    function styleTabPill(buttonEl, isActive, colorHex) {
+        // Base classes remain for padding/shape
+        buttonEl.className = 'px-3 py-1 rounded-full text-sm border transition-colors';
+        if (isActive) {
+            buttonEl.style.backgroundColor = colorHex;
+            buttonEl.style.borderColor = colorHex;
+            buttonEl.style.color = '#FFFFFF';
+        } else {
+            buttonEl.style.backgroundColor = '#F3F4F6';   // gray-100
+            buttonEl.style.borderColor = '#E5E7EB';       // gray-200
+            buttonEl.style.color = '#374151';             // gray-700
+        }
+    }
+
     function formatRawValue(metricKey, rawVal) {
         if (rawVal === null || rawVal === undefined) return '-';
         if (metricKey === 'accuracy' || metricKey === 'knowledge_mastery' || metricKey === 'growth_rate') {
@@ -65,7 +79,7 @@
             const sign = metricKey === 'growth_rate' && percent > 0 ? '+' : '';
             return `${sign}${toFixedNumber(percent, 2)}%`;
         }
-        if (metricKey === 'qpm') return `${toFixedNumber(rawVal, 2)} 題/分`;
+        if (metricKey === 'qps') return `${toFixedNumber(rawVal, 3)} 題/秒`;
         if (metricKey === 'dwell_min') return `${toFixedNumber(rawVal, 1)} 分鐘`;
         if (metricKey === 'time_stability') return `${toFixedNumber(rawVal, 1)} 秒`;
         return toFixedNumber(rawVal, 2);
@@ -98,6 +112,7 @@
         const chart = document.createElement('div');
         chart.style.height = '100%';
         chart.style.width = '100%';
+        chart.style.minHeight = '240px';
         el.appendChild(tabs);
         el.appendChild(chart);
 
@@ -145,16 +160,17 @@
         };
 
         // 建立 tabs（固定順序：國文/英文/數學/自然/地理/歷史/公民，若後端已排序，此處按原順序渲染）
+        const tabColors = subjects.map((s) => getSubjectColor(s.label || s.subject_id));
         subjects.forEach((s, idx) => {
             const btn = document.createElement('button');
-            btn.className = 'px-3 py-1 rounded-full text-sm border ' + (idx === activeIndex ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-100 text-gray-700 border-gray-200');
+            styleTabPill(btn, idx === activeIndex, tabColors[idx]);
             btn.textContent = s.label || s.subject_id;
             btn.addEventListener('click', async () => {
                 if (activeIndex === idx) return;
                 activeIndex = idx;
-                // 更新樣式
+                // 更新樣式：依各科顏色同步 pill 顏色
                 Array.from(tabs.children).forEach((c, i) => {
-                    c.className = 'px-3 py-1 rounded-full text-sm border ' + (i === activeIndex ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-100 text-gray-700 border-gray-200');
+                    styleTabPill(c, i === activeIndex, tabColors[i]);
                 });
                 await draw(activeIndex);
             });
@@ -185,6 +201,7 @@
         const chart = document.createElement('div');
         chart.style.height = '100%';
         chart.style.width = '100%';
+        chart.style.minHeight = '260px';
         el.appendChild(tabs);
         el.appendChild(chart);
 
@@ -192,21 +209,23 @@
 
         const draw = async (idx) => {
             const s = series[idx];
-            const x = (s.points || []).map((p) => p.x);
-            const y = (s.points || []).map((p) => p.y);
+            const pts = s.points || [];
+            // X 軸以練習次數標示：1、2、3、...
+            const x = pts.map((_, i) => i + 1);
+            const y = pts.map((p) => p.y);
             const color = getSubjectColor(s.label || s.subject_id);
             const trace = {
                 type: 'scatter',
                 mode: 'lines+markers',
                 x,
                 y,
-                hovertemplate: '%{x}<br>值: %{y:.2f}<extra></extra>',
+                hovertemplate: '第%{x}次<br>值: %{y:.2f}<extra></extra>',
                 line: { color },
                 marker: { color },
             };
             const layout = {
                 title: { text: s.label || s.subject_id, x: 0.5, y: 0.95, font: { size: 14 } },
-                xaxis: { title: '時間' },
+                xaxis: { title: '練習次數', tickmode: 'linear', dtick: 1, tick0: 1 },
                 yaxis: { title: trendResponse?.metric === 'score' ? '分數' : '正確率', rangemode: 'tozero' },
                 showlegend: false,
                 margin: { t: 40, r: 20, b: 40, l: 40 },
@@ -222,15 +241,16 @@
         };
 
         // 建立 tabs（固定順序：國文/英文/數學/自然/地理/歷史/公民，後端已排序）
+        const tabSeriesColors = series.map((s) => getSubjectColor(s.label || s.subject_id));
         series.forEach((s, idx) => {
             const btn = document.createElement('button');
-            btn.className = 'px-3 py-1 rounded-full text-sm border ' + (idx === activeIndex ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-100 text-gray-700 border-gray-200');
+            styleTabPill(btn, idx === activeIndex, tabSeriesColors[idx]);
             btn.textContent = s.label || s.subject_id;
             btn.addEventListener('click', async () => {
                 if (activeIndex === idx) return;
                 activeIndex = idx;
                 Array.from(tabs.children).forEach((c, i) => {
-                    c.className = 'px-3 py-1 rounded-full text-sm border ' + (i === activeIndex ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-100 text-gray-700 border-gray-200');
+                    styleTabPill(c, i === activeIndex, tabSeriesColors[i]);
                 });
                 await draw(activeIndex);
             });
