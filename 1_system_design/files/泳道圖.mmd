@@ -1,0 +1,117 @@
+%% InULearning 系統泳道圖 (基於當前專案狀態)
+%% 來源：docker-compose、Nginx 設定、各微服務 main.py、README
+%% 說明：以時序圖形式呈現主要用例的跨服務互動（等效泳道）
+
+sequenceDiagram
+    autonumber
+
+    %% 參與者（泳道）
+    actor Student as 學生端 Web App (8080)
+    actor Parent as 家長端 Web App (8082)
+    actor Teacher as 教師端 Web App (8083)
+    actor Admin as 管理端 Web App (8081)
+
+    participant Nginx as API Gateway (Nginx:80)
+    participant Auth as 認證服務 Auth (8001)
+    participant QB as 題庫服務 Question Bank (8002)
+    participant Learn as 學習服務 Learning (8003)
+    participant AI as AI 分析服務 (8004)
+    participant ParentAPI as 家長儀表板服務 (8005)
+    participant TeacherAPI as 教師管理服務 (Nginx 代理)
+    participant Report as 報告服務 (8007)
+
+    participant PG as PostgreSQL
+    participant MDB as MongoDB
+    participant Redis as Redis
+    participant MinIO as MinIO
+
+    %% 區段 1：統一登入流程（JWT）
+    rect rgb(245, 248, 255)
+        Student->>Nginx: 開啟登入頁 /login.html
+        Student->>Nginx: POST /api/v1/auth/login {帳號、密碼}
+        Nginx->>Auth: 轉發 /api/v1/auth/login
+        Auth-->>Nginx: 200 OK + JWT(Access Token)
+        Nginx-->>Student: 回傳 JWT
+        note over Student,Auth: 後續 API 以 Authorization: Bearer <JWT> 存取
+    end
+
+    %% 區段 2：學生開始練習（取得題目並建立會話）
+    rect rgb(245, 255, 245)
+        Student->>Nginx: POST /api/v1/learning/exercises/create {年級/版本/科目/章節/題數}
+        Nginx->>Learn: 轉發請求（驗證 JWT）
+        Learn->>QB: GET /api/v1/questions/by-conditions
+        QB->>MDB: 查詢題庫（條件篩選）
+        MDB-->>QB: 題目列表
+        QB-->>Learn: 題目資料（含圖片檔名）
+        Learn->>PG: 建立學習會話與題目明細
+        Learn-->>Nginx: 201 Created + {session_id, 題目清單}
+        Nginx-->>Student: 返回練習開始資料
+
+        %% 題目圖片載入（透過題庫服務讀取 MinIO）
+        Student->>Nginx: GET /api/v1/images/{filename}
+        Nginx->>QB: 轉發圖片請求
+        QB->>MinIO: 讀取物件檔案
+        MinIO-->>QB: 圖片檔案資料流
+        QB-->>Nginx: 圖片內容
+        Nginx-->>Student: 顯示題目圖片
+    end
+
+    %% 區段 3：提交作答與 AI 分析
+    rect rgb(255, 248, 240)
+        Student->>Nginx: POST /api/v1/learning/exercises/{id}/submit {作答}
+        Nginx->>Learn: 轉發提交（驗證 JWT）
+        Learn->>PG: 儲存作答結果
+        Learn->>AI: 請求學習弱點/建議分析
+        AI->>Redis: 佇列/任務管理（RQ）
+        AI->>PG: 儲存分析摘要與建議
+        AI-->>Learn: 回傳分析結果（同步或輪詢）
+        Learn-->>Nginx: 200 OK + {評分、弱點、建議}
+        Nginx-->>Student: 顯示結果與建議
+    end
+
+    %% 區段 4：家長查看儀表板（跨服務聚合）
+    rect rgb(240, 248, 255)
+        Parent->>Nginx: GET /api/v1/parent/... （附 JWT）
+        Nginx->>ParentAPI: 轉發家長儀表板請求
+        ParentAPI->>Learn: 取得孩子學習統計/歷程
+        Learn->>PG: 查詢會話與分數
+        PG-->>Learn: 統計資料
+        ParentAPI->>AI: 取得分析洞察/趨勢
+        AI->>PG: 查詢分析結果
+        PG-->>AI: 分析資料
+        ParentAPI-->>Nginx: 聚合後的儀表板資料
+        Nginx-->>Parent: 呈現家長儀表板
+    end
+
+    %% 區段 5：教師班級監控與出題
+    rect rgb(255, 244, 244)
+        Teacher->>Nginx: GET /api/v1/teacher/... （附 JWT）
+        Nginx->>TeacherAPI: 轉發教師管理請求
+        TeacherAPI->>Learn: 取班級/學生學習情況
+        Learn->>PG: 查詢學習會話與紀錄
+        TeacherAPI->>QB: 取章節/知識點與出題
+        QB->>MDB: 查詢題庫/知識點
+        MDB-->>QB: 結果
+        TeacherAPI->>AI: 取班級趨勢/建議
+        AI->>PG: 查詢/回寫分析資料
+        TeacherAPI-->>Nginx: 聚合教師看板資料
+        Nginx-->>Teacher: 呈現教師管理儀表板
+    end
+
+    %% 區段 6：管理端導出報表
+    rect rgb(250, 250, 255)
+        Admin->>Nginx: POST /api/v1/reports/generate
+        Nginx->>Report: 產生報表請求
+        Report->>PG: 查詢統計資料
+        Report-->>Nginx: 報表連結/檔案
+        Nginx-->>Admin: 下載/預覽報表
+    end
+
+    %% 備註：
+    %% - 所有受保護端點透過 JWT 驗證（Nginx 代理 -> 各服務驗證）
+    %% - CORS 由 Nginx 及各服務配置
+    %% - 目前 AI 任務管理採 Redis/RQ，結果儲存在 PostgreSQL
+    %% - 題目主資料在 MongoDB，圖片檔案在 MinIO，由題庫服務統一讀取
+
+
+
