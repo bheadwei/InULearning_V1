@@ -39,6 +39,7 @@
         qps: '答題速率(題/秒)',
         dwell_min: '停留時間(分)',
         growth_rate: '成長率',
+        answering_fluency: '作答流暢度',
         knowledge_mastery: '知識點掌握率',
         time_stability: '作答時間穩定性(秒, 標準差)',
     };
@@ -81,6 +82,7 @@
         }
         if (metricKey === 'qps') return `${toFixedNumber(rawVal, 3)} 題/秒`;
         if (metricKey === 'dwell_min') return `${toFixedNumber(rawVal, 1)} 分鐘`;
+        if (metricKey === 'answering_fluency') return `${toFixedNumber(rawVal, 1)} 秒`;
         if (metricKey === 'time_stability') return `${toFixedNumber(rawVal, 1)} 秒`;
         return toFixedNumber(rawVal, 2);
     }
@@ -128,7 +130,8 @@
             const theta = categoriesZh.concat(categoriesZh[0]);
             const hoverText = categories.map((m) => {
                 const label = METRIC_LABELS[m] || m;
-                return `${label}: ${formatRawValue(m, raw[m])}`;
+                const rawVal = (m === 'answering_fluency') ? raw['answering_fluency_s'] : raw[m];
+                return `${label}: ${formatRawValue(m, rawVal)}`;
             });
             hoverText.push(hoverText[0]);
 

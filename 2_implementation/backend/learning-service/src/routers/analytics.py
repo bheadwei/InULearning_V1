@@ -62,7 +62,7 @@ async def get_subjects_radar(
     # - avg_time_spent_s = AVG(er.time_spent)
     # - qps = 問題數 / Σ作答秒數（優先以題目作答時間估算，回退到 session）
     # - dwell_min = AVG(ls.time_spent) / 60  (分鐘)
-    # - growth_rate = (recent_acc - past_acc) / past_acc  (以 window 對半切分)
+    # - answering_fluency = AVG(time_spent WHERE is_correct)  (作答流暢度：越小越好)
     # - time_stddev_s = stddev_samp(er.time_spent)
     try:
         window_start = datetime.utcnow() - timedelta(days=days)
@@ -73,8 +73,12 @@ async def get_subjects_radar(
                 (func.avg(cast(case((ExerciseRecord.is_correct == True, 1), else_=0), Float))).label("accuracy_ratio"),
                 func.avg(ExerciseRecord.time_spent).label("avg_time_spent_s"),
                 (func.avg(LearningSession.time_spent) / 60.0).label("dwell_min"),
-                func.avg(cast(case((ExerciseRecord.created_at >= window_mid, case((ExerciseRecord.is_correct == True, 1), else_=0)), else_=None), Float)).label("recent_acc"),
-                func.avg(cast(case((ExerciseRecord.created_at < window_mid, case((ExerciseRecord.is_correct == True, 1), else_=0)), else_=None), Float)).label("past_acc"),
+                func.avg(
+                    cast(
+                        case((ExerciseRecord.is_correct == True, ExerciseRecord.time_spent), else_=None),
+                        Float,
+                    )
+                ).label("fluency_correct_avg_s"),
                 func.stddev_samp(ExerciseRecord.time_spent).label("time_stddev_s"),
                 # 供計算答題速率(題/秒)的附加聚合
                 func.count(ExerciseRecord.id).label("num_questions"),
@@ -146,8 +150,7 @@ async def get_subjects_radar(
         accuracy_ratio,
         avg_time_spent_s,
         dwell_min,
-        recent_acc,
-        past_acc,
+        fluency_correct_avg_s,
         time_stddev_s,
         num_questions,
         sum_er_time_spent_s,
@@ -170,9 +173,7 @@ async def get_subjects_radar(
         qps = max(qpm_candidates) if qpm_candidates else 0.0
         dwell_min = float(dwell_min or 0.0)
         accuracy_ratio = float(accuracy_ratio or 0.0)
-        recent_acc = float(recent_acc or 0.0)
-        past_acc = float(past_acc or 0.0)
-        growth_rate = ((recent_acc - past_acc) / past_acc) if past_acc > 0 else 0.0
+        answering_fluency_s = float(fluency_correct_avg_s or 0.0)
         time_stddev_s = float(time_stddev_s or 0.0)
         knowledge_mastery = knowledge_mastery_map.get(subject, accuracy_ratio)
         subjects_raw.append(
@@ -182,7 +183,7 @@ async def get_subjects_radar(
                     "accuracy": accuracy_ratio,         # 0..1
                     "qps": float(qps),
                     "dwell_min": dwell_min,             # minutes
-                    "growth_rate": growth_rate,         # can be negative
+                    "answering_fluency_s": answering_fluency_s,  # seconds (avg on correct)
                     "knowledge_mastery": knowledge_mastery, # 0..1
                     "time_stability": time_stddev_s,    # seconds (stddev)
                 },
@@ -194,7 +195,7 @@ async def get_subjects_radar(
         "accuracy",           # higher better (0..1)
         "qps",                # higher better (min-max)
         "dwell_min",          # lower better (invert then min-max)
-        "growth_rate",        # can be negative, min-max across subjects
+        "answering_fluency",  # lower better (invert then min-max)
         "knowledge_mastery",  # higher better (0..1)
         "time_stability",     # lower better (invert then min-max)
     ]
@@ -212,6 +213,7 @@ async def get_subjects_radar(
     QPS_MAX = 0.05           # 期望上限(題/秒) ≈ 3 題/分
     DWELL_MAX_MIN = 30.0     # 期望上限(分鐘)
     STD_MAX = 60.0           # 作答時間標準差上限(秒)
+    FLUENCY_MAX_S = 30.0     # 作答流暢度上限(秒，越小越好)
 
     subjects_out: List[Dict[str, Any]] = []
     for item in subjects_raw:
@@ -220,8 +222,8 @@ async def get_subjects_radar(
         qpm_norm = clamp01((r.get("qps", 0.0) or 0.0) / QPS_MAX)
         dwell_raw = r.get("dwell_min", 0.0) or 0.0
         dwell_norm = clamp01(1.0 - (dwell_raw / DWELL_MAX_MIN))
-        growth_raw = r.get("growth_rate", 0.0) or 0.0  # -inf..+inf,常見在[-1,1]
-        growth_norm = clamp01((growth_raw + 1.0) / 2.0)
+        fluency_raw = r.get("answering_fluency_s", 0.0) or 0.0
+        fluency_norm = clamp01(1.0 - (fluency_raw / FLUENCY_MAX_S))
         km_norm = clamp01(r.get("knowledge_mastery", 0.0))
         std_raw = r.get("time_stability", 0.0) or 0.0
         time_stability_norm = clamp01(1.0 - (std_raw / STD_MAX))
@@ -235,7 +237,7 @@ async def get_subjects_radar(
                     "accuracy": acc_norm,
                     "qps": qpm_norm,
                     "dwell_min": dwell_norm,
-                    "growth_rate": growth_norm,
+                    "answering_fluency": fluency_norm,
                     "knowledge_mastery": km_norm,
                     "time_stability": time_stability_norm,
                 },
