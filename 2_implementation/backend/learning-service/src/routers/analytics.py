@@ -285,13 +285,14 @@ async def get_subjects_trend(
         score_expr = func.avg(cast(ExerciseRecord.score, Float))
         y_expr = acc_expr if metric == "accuracy" else score_expr
 
-        # 以 session 做為 x 軸索引，確保同一天的多個 session 也各自顯示
+        # 以 session 做為 x 軸索引，並附帶 session 開始時間做時間排序
         stmt = (
             select(
                 ExerciseRecord.subject.label("subject"),
                 ExerciseRecord.session_id.label("session_id"),
                 # x 軸直接使用 session_id（整數索引），前端可等距排列
                 ExerciseRecord.session_id.label("x"),
+                LearningSession.start_time.label("t"),
                 y_expr.label("y"),
             )
             .join(LearningSession, LearningSession.id == ExerciseRecord.session_id)
@@ -304,8 +305,8 @@ async def get_subjects_trend(
                     else []
                 ),
             )
-            .group_by(ExerciseRecord.subject, ExerciseRecord.session_id)
-            .order_by(ExerciseRecord.session_id.asc())
+            .group_by(ExerciseRecord.subject, ExerciseRecord.session_id, LearningSession.start_time)
+            .order_by(LearningSession.start_time.asc(), ExerciseRecord.session_id.asc())
         )
 
         rows = (await db_session.execute(stmt)).all()
@@ -315,13 +316,17 @@ async def get_subjects_trend(
 
     # 整理為 { subject -> list of points }
     series_map: Dict[str, List[Dict[str, Any]]] = {}
-    for subj, _session_id, x, y in rows:
+    for subj, _session_id, x, y_time, y in rows:
         if subj not in series_map:
             series_map[subj] = []
         # accuracy 0..1, score 0..100 (如果為 None，給 0)
         y_value = float(y) if y is not None else 0.0
-        # x 為 session_id（整數），不壓縮同日多個 session
-        series_map[subj].append({"x": int(x) if x is not None else None, "y": y_value})
+        # x 為 session_id（整數），同時附帶時間戳供前端排序
+        series_map[subj].append({
+            "x": int(x) if x is not None else None,
+            "t": y_time.isoformat() if y_time is not None else None,
+            "y": y_value,
+        })
 
     # 依每科目限制點數，並固定科目順序
     out_series: List[Dict[str, Any]] = []

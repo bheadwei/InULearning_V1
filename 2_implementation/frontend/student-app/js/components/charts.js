@@ -211,7 +211,15 @@
 
         const draw = async (idx) => {
             const s = series[idx];
-            const pts = s.points || [];
+            // 以時間排序（若有 t），否則退回 x 遞增
+            const pts = (s.points || []).slice().sort((a, b) => {
+                const ta = a && a.t ? Date.parse(a.t) : null;
+                const tb = b && b.t ? Date.parse(b.t) : null;
+                if (ta !== null && tb !== null) return ta - tb;
+                const ax = (a && typeof a.x === 'number') ? a.x : 0;
+                const bx = (b && typeof b.x === 'number') ? b.x : 0;
+                return ax - bx;
+            });
             // X 軸以練習次數標示：1、2、3、...
             const x = pts.map((_, i) => i + 1);
             const y = pts.map((p) => p.y);
