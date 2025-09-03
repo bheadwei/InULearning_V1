@@ -38,7 +38,6 @@
         accuracy: '正確率',
         qps: '答題速率(題/秒)',
         dwell_min: '停留時間(分)',
-        growth_rate: '成長率',
         answering_fluency: '作答流暢度',
         knowledge_mastery: '知識點掌握率',
         time_stability: '作答時間穩定性(秒, 標準差)',
